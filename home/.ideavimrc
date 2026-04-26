@@ -1,0 +1,95 @@
+" ~/.ideavimrc
+" ----------------------------------------------------------
+" IdeaVim config for JetBrains IDEs.
+" Mirrors the core editing workflow from config/nvim/init.lua.
+" Keep IDE actions pragmatic; do not chase full Neovim parity.
+" Prefer IDE-native actions where they match the Neovim workflow cleanly.
+
+set clipboard+=unnamedplus
+set clipboard+=ideaput
+set hlsearch
+set ignorecase
+set incsearch
+set scrolloff=8
+set smartcase
+
+let mapleader="\\"
+
+inoremap jk <Esc>
+
+nnoremap j gj
+nnoremap k gk
+nnoremap 0 g0
+nnoremap ^ g^
+nnoremap $ g$
+
+vnoremap < <gv
+vnoremap > >gv
+
+nnoremap n nzz
+nnoremap N Nzz
+nnoremap * *zz
+nnoremap # #zz
+nnoremap gD gDzz
+nnoremap G Gzz
+
+nnoremap U <C-r>
+nnoremap Q <Nop>
+nnoremap <Esc> :nohlsearch<CR>
+
+nnoremap <leader>y ggVGy
+nmap <leader>= <Action>(ReformatCode)
+nmap <leader>v <Action>(EditorToggleColumnMode)
+nmap <leader>bb <Action>(RecentFiles)
+nmap <leader>bw <Action>(CloseContent)
+nmap <leader>bd <Action>(CloseAllEditors)
+nmap <leader>ls <Action>(Switcher)
+
+nnoremap c "_c
+nnoremap C "_C
+nnoremap x "_x
+nnoremap X "_X
+nnoremap s "_s
+nnoremap S "_S
+vnoremap c "_c
+vnoremap C "_C
+vnoremap x "_x
+vnoremap X "_X
+vnoremap s "_s
+vnoremap S "_S
+
+xnoremap p "_dP
+nmap <leader>rs <Action>(RenameElement)
+vmap <leader>rs <Action>(RenameElement)
+
+nmap [b <Action>(PreviousTab)
+nmap ]b <Action>(NextTab)
+nmap [t <Action>(PreviousTab)
+nmap ]t <Action>(NextTab)
+
+nnoremap <leader>1 <C-w>h
+nnoremap <leader>2 <C-w>j
+nnoremap <leader>3 <C-w>k
+nnoremap <leader>4 <C-w>l
+nnoremap <leader>5 <C-w>H
+nnoremap <leader>6 <C-w>J
+nnoremap <leader>7 <C-w>K
+nnoremap <leader>8 <C-w>L
+nmap <leader><leader>1 <Action>(StretchSplitToLeft)
+nmap <leader><leader>2 <Action>(StretchSplitToBottom)
+nmap <leader><leader>3 <Action>(StretchSplitToTop)
+nmap <leader><leader>4 <Action>(StretchSplitToRight)
+
+nmap <leader>cn <Action>(GotoNextError)
+nmap <leader>cp <Action>(GotoPreviousError)
+nmap <leader>co <Action>(ActivateProblemsViewToolWindow)
+nmap <leader>cc <Action>(HideActiveWindow)
+
+nmap <leader>qq <Action>(CloseProject)
+vnoremap <leader>p "+p
+nnoremap <leader>a ggVG
+
+nmap <A-o> <Action>(EditorSelectWord)
+vmap <A-o> <Action>(EditorSelectWord)
+nmap <A-i> <Action>(EditorUnSelectWord)
+vmap <A-i> <Action>(EditorUnSelectWord)

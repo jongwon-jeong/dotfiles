@@ -1,0 +1,17 @@
+[
+  {
+    "key": "escape",
+    "command": "workbench.action.closeQuickOpen",
+    "when": "inQuickOpen"
+  },
+  {
+    "key": "escape",
+    "command": "search.action.clearSearchResults",
+    "when": "searchViewletVisible"
+  },
+  {
+    "key": "escape",
+    "command": "closeFindWidget",
+    "when": "editorFocus && findWidgetVisible"
+  }
+]
