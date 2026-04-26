@@ -1,0 +1,94 @@
+# ~/.config/starship.toml
+
+"$schema" = "https://starship.rs/config-schema.json"
+
+add_newline = false
+scan_timeout = 20
+command_timeout = 1000
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$git_commit\
+$nodejs\
+$python\
+$rust\
+$docker_context\
+$kubernetes\
+$line_break\
+$character"""
+
+right_format = "$cmd_duration"
+
+[username]
+show_always = false
+format = "[ $user ]($style) "
+style_user = "fg:#000000 bg:#c8c3b3 bold"
+style_root = "fg:#ffffff bg:#9f3a30 bold"
+
+[hostname]
+ssh_only = true
+format = "[ @$hostname ]($style) "
+style = "fg:#000000 bg:#b8ad94 bold"
+
+[directory]
+format = "[ $path ]($style)[$read_only]($read_only_style) "
+style = "fg:#000000 bg:#f2eede bold"
+read_only = " ro"
+read_only_style = "fg:#ffffff bg:#9f3a30 bold"
+truncation_length = 3
+truncate_to_repo = true
+home_symbol = "~"
+
+[git_branch]
+format = "[ $branch ]($style) "
+style = "fg:#000000 bg:#c8c3b3 bold"
+
+[git_state]
+format = "[ $state( $progress_current/$progress_total) ]($style) "
+style = "fg:#a55000 bold"
+
+[git_status]
+format = "[ $all_status$ahead_behind ]($style) "
+style = "fg:#9f3a30 bold"
+conflicted = "="
+ahead = "+"
+behind = "-"
+diverged = "<>"
+up_to_date = ""
+untracked = "?"
+stashed = "$"
+modified = "!"
+staged = "+"
+renamed = "r"
+deleted = "x"
+
+[git_commit]
+format = "[ $hash$tag ]($style) "
+style = "fg:#ffffff bg:#303030 bold"
+only_detached = true
+commit_hash_length = 7
+
+[nodejs]
+format = "[ node $version ]($style) "
+style = "fg:#216609 bold"
+
+[python]
+format = "[ py $version ]($style) "
+style = "fg:#b58900 bold"
+
+[rust]
+format = "[ rs $version ]($style) "
+style = "fg:#a55000 bold"
+
+[docker_context]
+format = "[ docker $context ]($style) "
+style = "fg:#1e6fcc bold"
+
+[kubernetes]
+format = "[ k8s $context ]($style) "
+style = "fg:#158c86 bold"

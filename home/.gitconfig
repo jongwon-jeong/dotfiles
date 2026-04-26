@@ -1,0 +1,100 @@
+[core]
+    # Use the global ignore file managed by this dotfiles repo.
+    excludesfile = ~/.gitignore_global
+    # Preserve the platform-native line ending style in the working tree.
+    eol = native
+    # Convert CRLF to LF on commit, but do not rewrite LF to CRLF on checkout.
+    autocrlf = input
+    # Use delta for readable, syntax-highlighted diffs in Git pagers.
+    pager = delta
+
+[user]
+    # Require identity to come from one of the per-directory include files below.
+    useConfigOnly = true
+
+[init]
+    # Create new repositories with main as the default branch name.
+    defaultBranch = main
+
+[pull]
+    # Use merge-based pull by default; safer because it does not rewrite local commits.
+    rebase = false
+
+[push]
+    # Push only the current branch to its upstream branch.
+    default = simple
+    # Automatically set upstream tracking when pushing a new branch for the first time.
+    autoSetupRemote = true
+
+[fetch]
+    # Remove stale remote-tracking branches when fetching.
+    prune = true
+
+[rerere]
+    # Remember conflict resolutions and reuse them when the same conflict appears again.
+    enabled = true
+
+[includeIf "gitdir/i:~/proj/personal/"]
+    # Use a personal identity for repositories under ~/proj/personal/.
+    path = ~/.gitconfig-personal
+
+# ~/.gitconfig-personal
+# [user]
+#     name = {USER_NAME}
+#     email = {EMAIL_ADDRESS}
+
+[includeIf "gitdir/i:~/proj/public/"]
+    # Use a public identity for repositories under ~/proj/public/.
+    path = ~/.gitconfig-public
+
+[includeIf "gitdir/i:~/proj/codeberg/"]
+    # Use a Codeberg-specific identity for repositories under ~/proj/codeberg/.
+    path = ~/.gitconfig-codeberg
+
+[includeIf "gitdir/i:~/proj/work/"]
+    # Use a work identity for repositories under ~/proj/work/.
+    path = ~/.gitconfig-work
+
+[interactive]
+    # Show interactive patch hunks through delta while preserving Git's controls.
+    diffFilter = delta --color-only
+
+[delta]
+    # Allow n and N to move between diff sections.
+    navigate = true
+    # Match the repo-wide Paper light palette.
+    light = true
+    # Show line numbers in diff output.
+    line-numbers = true
+    # Show old and new versions side by side when space allows.
+    side-by-side = true
+
+[merge]
+    # Show local, incoming, and common-base context in conflict markers.
+    conflictStyle = zdiff3
+    # Use Neovim diff mode for git mergetool.
+    tool = nvimdiff
+
+[mergetool]
+    # Do not leave *.orig backup files after resolving conflicts.
+    keepBackup = false
+    # Open the configured mergetool without asking for each conflicted file.
+    prompt = false
+
+[mergetool "nvimdiff"]
+    # Four-way merge view: local, base, remote, and final merged result.
+    cmd = nvim -d "$LOCAL" "$BASE" "$REMOTE" "$MERGED"
+    # Treat a clean Neovim exit as a successful mergetool run.
+    trustExitCode = true
+
+[diff]
+    # Use Neovim diff mode for git difftool.
+    tool = nvimdiff
+
+[difftool]
+    # Open the configured difftool without asking for each changed file.
+    prompt = false
+
+[difftool "nvimdiff"]
+    # Two-way diff view for ordinary file comparisons.
+    cmd = nvim -d "$LOCAL" "$REMOTE"

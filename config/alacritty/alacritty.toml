@@ -1,0 +1,127 @@
+# ~/.config/alacritty/alacritty.toml
+# ----------------------------------------------------------
+
+[colors]
+# # Paper {{{
+# [colors.primary]
+# background = "#F2EEDE"
+# foreground = "#000000"
+# dim_foreground = "#303030"
+#
+# [colors.cursor]
+# text = "#F2EEDE"
+# cursor = "#000000"
+#
+# [colors.selection]
+# text = "#000000"
+# background = "#9FC5E8"
+#
+# [colors.search.matches]
+# foreground = "#000000"
+# background = "#FFD400"
+#
+# [colors.normal]
+# black = "#000000"
+# red = "#7F1D1D"
+# green = "#3F5F2A"
+# yellow = "#7A3F00"
+# blue = "#2F5F8F"
+# magenta = "#5A3F78"
+# cyan = "#2F6F6A"
+# white = "#F2EEDE"
+#
+# [colors.bright]
+# black = "#303030"
+# red = "#9F3A30"
+# green = "#4F6F3A"
+# yellow = "#FFD400"
+# blue = "#3F6F9F"
+# magenta = "#6A4F8A"
+# cyan = "#3F7F78"
+# white = "#FFFFFF"
+#
+# [colors.dim]
+# black = "#333333"
+# red = "#6F2420"
+# green = "#2F4520"
+# yellow = "#6A4B00"
+# blue = "#254A70"
+# magenta = "#44305C"
+# cyan = "#254F4B"
+# white = "#D8D0B8"
+# # }}}
+
+# https://github.com/alacritty/alacritty-theme/blob/master/themes/papertheme.toml
+# Colors (Paper Theme) {{{
+
+# Default colors
+[colors.primary]
+background = '#F2EEDE'
+foreground = '#000000'
+
+[colors.cursor]
+text = "#F2EEDE"
+cursor = "#000000"
+
+[colors.selection]
+text = "#000000"
+background = "#9FC5E8"
+
+[colors.search.matches]
+foreground = "#000000"
+background = "#FFD400"
+
+# Normal colors
+[colors.normal]
+black = '#000000'
+red = '#CC3E28'
+green = '#216609'
+yellow = '#B58900'
+blue = '#1E6FCC'
+magenta = '#5C21A5'
+cyan = '#158C86'
+white = '#AAAAAA'
+
+# Bright colors
+[colors.bright]
+black = '#555555'
+red = '#CC3E28'
+green = '#216609'
+yellow = '#B58900'
+blue = '#1E6FCC'
+magenta = '#5C21A5'
+cyan = '#158C86'
+white = '#AAAAAA'
+# }}}
+
+[font]
+size = 13.0
+builtin_box_drawing = true
+
+[font.normal]
+family = "JetBrainsMonoNL Nerd Font Mono"
+style = "Regular"
+
+[font.bold]
+family = "JetBrainsMonoNL Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "JetBrainsMonoNL Nerd Font Mono"
+style = "Regular"
+# style = "Italic"
+
+[font.bold_italic]
+family = "JetBrainsMonoNL Nerd Font Mono"
+style = "Bold"
+# style = "Bold Italic"
+
+[scrolling]
+history = 10000
+multiplier = 5
+
+[window]
+decorations = "None"       # "Full" | "None"
+startup_mode = "Maximized" # "Windowed" | "Maximized" | "Fullscreen" | "SimpleFullscreen"(macOS only)
+dynamic_padding = true
+dynamic_title = false
