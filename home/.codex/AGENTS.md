@@ -14,15 +14,6 @@
 - Do not rewrite or restate entire files unless explicitly requested.
 - When modifying files, show only the relevant changed parts with enough file and location context.
 
-## Codex Behavior
-
-- For questions or changes about Codex instruction loading, `AGENTS.md`, subagents, or skills, use the official OpenAI Codex documentation as the primary reference:
-  - AGENTS.md: https://developers.openai.com/codex/guides/agents-md
-  - Subagents: https://developers.openai.com/codex/subagents
-  - Skills: https://developers.openai.com/codex/skills
-- Verify against the official docs when Codex behavior may have changed or accuracy matters.
-- These references do not override system, developer, safety, or more specific repository instructions.
-
 ## Git
 
 - Do not commit, amend, rebase, force-push, or push unless explicitly requested.
