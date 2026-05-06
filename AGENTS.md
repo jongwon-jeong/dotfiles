@@ -16,7 +16,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 
 ## Repository Inspection
 
-- Treat hidden dotfiles as in scope during repository inspection, excluding `.git/`.
+- Treat hidden dotfiles and dot directories as in scope during repository inspection, excluding `.git/`.
 - Treat dotfiles and configuration files as first-class repository content.
 
 ## Ignore
