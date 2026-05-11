@@ -98,6 +98,9 @@ install_basic_packages() { # {{{
     install_package \
       mpv alacritty
 
+    install_package flatpak
+    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
     if is_nvidia_hardware_present; then
       if command -v ubuntu-drivers &>/dev/null && ! lsmod | grep -qE "^nvidia"; then
         echo ""
