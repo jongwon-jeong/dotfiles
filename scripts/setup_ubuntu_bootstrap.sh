@@ -92,14 +92,16 @@ install_basic_packages() { # {{{
     ffmpeg jq mat2 \
     wl-clipboard xclip x11-apps \
     python3-full python3-pip python3-venv pipx \
-    build-essential clang lldb clang-format clangd
+    build-essential clang lldb clang-format clangd \
+    flatpak
 
   if ! is_wsl; then
     install_package \
       mpv alacritty
 
-    install_package flatpak
-    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    if command -v flatpak &>/dev/null; then
+      flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    fi
 
     if is_nvidia_hardware_present; then
       if command -v ubuntu-drivers &>/dev/null && ! lsmod | grep -qE "^nvidia"; then
