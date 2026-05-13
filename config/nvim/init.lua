@@ -94,7 +94,6 @@ local servers = {
   html = {},
   lua_ls = {},
   ruff = {},
-  rust_analyzer = {},
   tailwindcss = {},
   taplo = {},
   ty = {},
@@ -121,7 +120,6 @@ local mason_packages = {
   'html-lsp',
   'lua-language-server',
   'ruff',
-  'rust-analyzer',
   'tailwindcss-language-server',
   'taplo',
   'ty',
@@ -135,6 +133,7 @@ local mason_packages = {
 local ts_langs = {
   'c',
   'comment',
+  'cpp',
   'css',
   'dockerfile',
   'html',
@@ -145,7 +144,6 @@ local ts_langs = {
   'markdown_inline',
   'python',
   'regex',
-  'rust',
   'toml',
   'tsx',
   'typescript',
@@ -436,44 +434,6 @@ vim.lsp.config('vtsls', {
     },
   },
   root_markers = { 'tsconfig.json', 'package.json', '.git' },
-})
-
-vim.lsp.config('rust_analyzer', {
-  capabilities = capabilities,
-  settings = {
-    ['rust-analyzer'] = {
-      cargo = {
-        allFeatures = true,
-        loadOutDirsFromCheck = true,
-        buildScripts = { enable = true },
-      },
-      check = {
-        allFeatures = true,
-        command = 'clippy',
-        extraArgs = { '--no-deps' },
-      },
-      procMacro = {
-        enable = true,
-        ignored = {
-          ['async-trait'] = { 'async_trait' },
-          ['napi-derive'] = { 'napi' },
-          ['async-recursion'] = { 'async_recursion' },
-        },
-      },
-      inlayHints = {
-        bindingModeHints = { enable = true },
-        chainingHints = { enable = true },
-        closingBraceHints = { enable = true, minLines = 25 },
-        parameterHints = { enable = true },
-        typeHints = { enable = true },
-      },
-      diagnostics = {
-        disabled = { 'unresolved-proc-macro' },
-        enable = true,
-      },
-    },
-  },
-  root_markers = { 'Cargo.toml', 'rust-project.json', '.git' },
 })
 
 vim.lsp.config('lua_ls', {
@@ -1727,9 +1687,9 @@ end
 
 -- A single file source code runner {{{
 local run_commands = {
-  c = 'cc -std=c17 -g -O2 -Wall -Wextra -Wshadow -fsanitize=address,undefined %s -o %s -lm && %s',
+  c = 'cc -std=c17 -g -O2 -Wall -Wextra -Wshadow -Wformat=2 -Wconversion -Wsign-conversion -Werror -pedantic -fsanitize=address,undefined %s -o %s -lm && %s',
+  cpp = 'c++ -std=c++23 -g -O2 -Wall -Wextra -Wshadow -Wformat=2 -Wconversion -Wsign-conversion -Werror -pedantic -fsanitize=address,undefined %s -o %s && %s',
   python = 'python3 -u %s',
-  rust = 'rustc -g -O %s -o %s && %s',
 }
 -- This runner is intentionally "single-file only"; project-aware build tools should stay in the terminal.
 
@@ -1741,7 +1701,7 @@ end
 local function get_output_files()
   local ft = vim.bo.filetype
 
-  if ft == 'c' or ft == 'rust' then return { vim.fn.expand '%:p:r' } end
+  if ft == 'c' or ft == 'cpp' then return { vim.fn.expand '%:p:r' } end
 
   return {}
 end
@@ -1758,7 +1718,7 @@ local function get_output_cleanup_command()
   local ft = vim.bo.filetype
 
   -- Cleanup mirrors the outputs created by this runner and intentionally stays conservative.
-  if ft == 'c' or ft == 'rust' then
+  if ft == 'c' or ft == 'cpp' then
     return 'rm -f -- ' .. vim.fn.shellescape(vim.fn.expand '%:p:r')
   end
 
@@ -1819,7 +1779,7 @@ local runner_group = vim.api.nvim_create_augroup('UserCodeRunner', { clear = tru
 -- Only expose runner mappings for supported filetypes so the global key space stays quiet.
 vim.api.nvim_create_autocmd('FileType', {
   group = runner_group,
-  pattern = { 'c', 'python', 'rust' },
+  pattern = { 'c', 'cpp', 'python' },
   callback = function()
     local opts = { buffer = true, silent = true }
     vim.keymap.set(
