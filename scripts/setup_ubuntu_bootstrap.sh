@@ -75,10 +75,30 @@ recover_package_state() { # {{{
   fi
 } # }}}
 
-install_basic_packages() { # {{{
+upgrade_packages() { # {{{
   echo ""
-  echo "🔄 Updating APT package cache before installing the base toolset..."
+  echo "🔄 Updating APT package cache and upgrading system packages..."
+
   sudo apt-get update -y
+
+  if sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold"; then
+
+    sudo apt-get autoremove -y
+    sudo apt-get autoclean -y
+  else
+    echo "⚠️ apt-get full-upgrade encountered an issue."
+    return 1
+  fi
+} # }}}
+
+install_basic_packages() { # {{{
+  if ! is_wsl && command -v ubuntu-drivers &>/dev/null; then
+    echo ""
+    echo "🔄 Installing Ubuntu recommended additional drivers..."
+    sudo ubuntu-drivers install
+  fi
 
   echo ""
   echo "🔄 Installing base Ubuntu packages and desktop CLI dependencies..."
@@ -99,20 +119,12 @@ install_basic_packages() { # {{{
     install_package \
       mpv alacritty
 
-    if command -v flatpak &>/dev/null; then
-      flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    if is_nvidia_hardware_present; then
+      install_package nvtop
     fi
 
-    if is_nvidia_hardware_present; then
-      if command -v ubuntu-drivers &>/dev/null && ! lsmod | grep -qE "^nvidia"; then
-        echo ""
-        echo "🔄 Installing Canonical NVIDIA drivers..."
-        sudo ubuntu-drivers install
-      fi
-
-      if ! command -v nvtop &>/dev/null; then
-        install_package nvtop
-      fi
+    if command -v flatpak &>/dev/null; then
+      flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
     fi
   fi
 
@@ -374,22 +386,6 @@ install_nerd_font() { # {{{
   install_jetbrains_nerd_font
 } # }}}
 
-upgrade_packages() { # {{{
-  echo ""
-  echo "🔄 Upgrading system packages..."
-
-  if sudo DEBIAN_FRONTEND=noninteractive apt-get full-upgrade -y \
-    -o Dpkg::Options::="--force-confdef" \
-    -o Dpkg::Options::="--force-confold"; then
-
-    sudo apt-get autoremove -y
-    sudo apt-get autoclean -y
-  else
-    echo "⚠️ apt-get full-upgrade encountered an issue."
-    return 1
-  fi
-} # }}}
-
 setup_locale() { # {{{
   echo ""
   echo "🔄 Configuring system locale to en_US.UTF-8..."
@@ -497,6 +493,7 @@ main() { # {{{
     )
 
     tasks+=(
+      upgrade_packages
       install_basic_packages
       make_default_directories
     )
@@ -512,7 +509,6 @@ main() { # {{{
       setup_locale
       change_shell_to_zsh
       setup_basic_network_privacy
-      upgrade_packages
     )
   else
     echo "❌ Error: Distro mismatch. Ubuntu only."

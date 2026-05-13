@@ -109,7 +109,7 @@ show_reboot_notice() {
   echo "✅ Setup complete. A reboot is recommended."
   echo ""
   echo "Reboot commands:"
-  echo "  Ubuntu/Linux: sudo reboot"
+  echo "  Ubuntu/Linux: sudo reboot OR systemctl reboot -i"
   echo "  WSL:          wsl.exe --shutdown"
   echo "  macOS:        sudo shutdown -r now"
 }
