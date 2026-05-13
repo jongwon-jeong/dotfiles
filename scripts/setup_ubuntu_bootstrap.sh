@@ -112,7 +112,7 @@ install_basic_packages() { # {{{
     ffmpeg jq mat2 \
     wl-clipboard xclip x11-apps \
     python3-full python3-pip python3-venv pipx \
-    build-essential clang lldb clang-format clangd \
+    build-essential clang lldb gdb clang-format clangd clang-tidy \
     flatpak
 
   if ! is_wsl; then
