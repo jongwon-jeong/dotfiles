@@ -48,6 +48,8 @@ end
 
 -- Disable built-in plugins {{{
 -- ---------------------------------------------------------
+vim.g.did_install_default_menus = 1
+
 vim.g.loaded_spellfile_plugin = 1
 vim.g.loaded_gzip = 1
 -- vim.g.loaded_man = 1
