@@ -1391,8 +1391,16 @@ vim.keymap.set('n', 'G', 'Gzz')
 
 -- vim.keymap.set('n', '<leader>/', '<cmd>nohlsearch<CR>', { silent = true })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { silent = true })
-vim.keymap.set('n', '<leader>y', 'maggVGy`a')
-vim.keymap.set('n', '<leader>=', 'magg=G`a')
+vim.keymap.set('n', '<leader>y', function()
+  local view = vim.fn.winsaveview()
+  vim.cmd 'normal! ggVGy'
+  vim.fn.winrestview(view)
+end)
+vim.keymap.set('n', '<leader>=', function()
+  local view = vim.fn.winsaveview()
+  vim.cmd 'normal! gg=G'
+  vim.fn.winrestview(view)
+end)
 vim.keymap.set('n', '<leader>v', '<C-v>')
 vim.keymap.set('i', '{<CR>', '{<CR>}<Esc>O')
 vim.keymap.set('n', '<leader>bb', '<C-^>')
@@ -1406,10 +1414,6 @@ for _, key in ipairs(blackhole_keys) do
 end
 
 vim.keymap.set('x', 'p', [['pgv"'.v:register.'y`>']], { expr = true })
-vim.keymap.set('n', '<leader>rs', [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
-vim.keymap.set('v', '<leader>rs', [[y:<C-u>%s/\V<C-r>=escape(@", '/\')<CR>//g<Left><Left>]])
-vim.keymap.set('v', '*', [[y:let @/ = '\V' .. escape(@", '\/')<CR>]])
-vim.keymap.set('v', '#', [[y:let @/ = '\V' .. escape(@", '\/')<CR>]])
 
 vim.keymap.set('n', '[b', '<cmd>bprevious<CR>', { silent = true })
 vim.keymap.set('n', ']b', '<cmd>bnext<CR>', { silent = true })
