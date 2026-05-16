@@ -301,7 +301,6 @@ do
         ['<Tab>'] = { 'select_and_accept', 'snippet_forward', 'fallback' },
       },
       appearance = {
-        use_nvim_cmp_as_default = true,
         nerd_font_variant = 'mono',
       },
       sources = {
@@ -1136,9 +1135,9 @@ vim.opt.fillchars = {
   vert = '│',
   eob = ' ',
   fold = '-',
-  foldopen = '',
+  foldopen = '▾',
   foldsep = ' ',
-  foldclose = '',
+  foldclose = '▸',
   diff = '╱',
   stl = ' ',
   stlnc = ' ',
