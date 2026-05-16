@@ -483,6 +483,127 @@ dirdiff() {
   diff --brief --recursive "${DIR1}" "${DIR2}" "${@}"
 }
 
+_single_file_run_path() {
+  case "${1}" in
+  */*) printf "%s\n" "${1}" ;;
+  *) printf "./%s\n" "${1}" ;;
+  esac
+}
+
+_run_with_optional_input() {
+  local src="${1}"
+  shift
+
+  local input="${src%.*}.in"
+  if [ -f "${input}" ]; then
+    "${@}" <"${input}"
+  else
+    "${@}"
+  fi
+}
+
+crun() {
+  local src="${1}"
+  if [ -z "${src}" ]; then
+    echo "Usage: crun <file.c>"
+    return 1
+  fi
+
+  local exe="${src%.*}"
+  local run_exe
+  run_exe="$(_single_file_run_path "${exe}")"
+
+  rm -f -- "${exe}"
+  cc -std=c17 \
+    -g -O2 \
+    -Wall -Wextra -Wshadow -Wformat=2 \
+    -Wconversion -Wsign-conversion -Werror -pedantic \
+    -fsanitize=address,undefined -fno-omit-frame-pointer \
+    "${src}" -o "${exe}" -lm || return
+
+  _run_with_optional_input "${src}" "${run_exe}"
+  local status="${?}"
+  rm -f -- "${exe}"
+  return "${status}"
+}
+
+ccrun() {
+  local src="${1}"
+  if [ -z "${src}" ]; then
+    echo "Usage: ccrun <file.cc|file.cpp|file.cxx>"
+    return 1
+  fi
+
+  local exe="${src%.*}"
+  local run_exe
+  run_exe="$(_single_file_run_path "${exe}")"
+
+  rm -f -- "${exe}"
+  c++ -std=c++23 \
+    -g -O2 \
+    -Wall -Wextra -Wshadow -Wformat=2 \
+    -Wconversion -Wsign-conversion -Werror -pedantic \
+    -fsanitize=address,undefined -fno-omit-frame-pointer \
+    "${src}" -o "${exe}" || return
+
+  _run_with_optional_input "${src}" "${run_exe}"
+  local status="${?}"
+  rm -f -- "${exe}"
+  return "${status}"
+}
+
+pyrun() {
+  local src="${1}"
+  if [ -z "${src}" ]; then
+    echo "Usage: pyrun <file.py>"
+    return 1
+  fi
+
+  _run_with_optional_input "${src}" python3 -u "${src}"
+}
+
+javarun() {
+  local src="${1}"
+  if [ -z "${src}" ]; then
+    echo "Usage: javarun <file.java>"
+    return 1
+  fi
+
+  local src_dir
+  src_dir="$(dirname "${src}")"
+
+  local class_name
+  class_name="$(basename "${src}" .java)"
+
+  rm -f -- "${src_dir}/${class_name}.class" "${src_dir}/${class_name}"'$'*.class
+  javac "${src}" || return
+
+  _run_with_optional_input "${src}" java -cp "${src_dir}" "${class_name}"
+  local status="${?}"
+  rm -f -- "${src_dir}/${class_name}.class" "${src_dir}/${class_name}"'$'*.class
+  return "${status}"
+}
+
+rsrun() {
+  local src="${1}"
+  if [ -z "${src}" ]; then
+    echo "Usage: rsrun <file.rs>"
+    return 1
+  fi
+
+  local exe="${src%.*}"
+  local run_exe
+  run_exe="$(_single_file_run_path "${exe}")"
+
+  rm -f -- "${exe}"
+  rustc -C debuginfo=2 -C opt-level=2 "${src}" -o "${exe}" || return
+
+  _run_with_optional_input "${src}" "${run_exe}"
+  local status="${?}"
+  rm -f -- "${exe}"
+  return "${status}"
+}
+
 sshload() {
   if [ -n "${SSH_AGENT_PID}" ] && kill -0 "${SSH_AGENT_PID}" 2>/dev/null; then
     echo "Reusing existing SSH agent (PID: ${SSH_AGENT_PID})."

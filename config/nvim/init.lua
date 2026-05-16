@@ -204,7 +204,6 @@ local plugins = {
   { src = 'https://github.com/ibhagwan/fzf-lua' },
   { src = 'https://github.com/folke/flash.nvim' },
   { src = 'https://github.com/lewis6991/gitsigns.nvim' },
-  { src = 'https://github.com/tpope/vim-fugitive' },
   { src = 'https://github.com/windwp/nvim-autopairs' },
   { src = 'https://github.com/lukas-reineke/indent-blankline.nvim' },
   { src = 'https://github.com/catgoose/nvim-colorizer.lua' },
@@ -968,17 +967,6 @@ do
 end
 -- }}}
 
--- vim-fugitive {{{
--- ---------------------------------------------------------
--- Uppercase <leader>g* is reserved for action-oriented Git commands.
-vim.keymap.set('n', '<leader>gS', '<cmd>Git<CR>', { desc = 'Git Status (Fugitive)' })
-vim.keymap.set('n', '<leader>gB', '<cmd>Git blame<CR>', { desc = 'Git Blame (Fugitive)' })
-vim.keymap.set('n', '<leader>gD', '<cmd>Gdiffsplit<CR>', { desc = 'Git Diff Split (Fugitive)' })
-vim.keymap.set('n', '<leader>gV', '<cmd>Gvdiffsplit<CR>', {
-  desc = 'Git Vertical Diff Split (Fugitive)',
-})
--- }}}
-
 -- nvim-autopairs {{{
 -- ---------------------------------------------------------
 do
@@ -1680,125 +1668,6 @@ for key, opts in pairs(copy_mappings) do
     desc = opts.desc,
   })
 end
--- }}}
-
--- A single file source code runner {{{
-local c_run_command = table.concat({
-  'cc -std=c17',
-  '-g -O2',
-  '-Wall -Wextra -Wshadow -Wformat=2',
-  '-Wconversion -Wsign-conversion -Werror -pedantic',
-  '-fsanitize=address,undefined -fno-omit-frame-pointer',
-  '%s -o %s -lm && %s',
-}, ' ')
-
-local run_commands = {
-  c = c_run_command,
-  python = 'python3 -u %s',
-}
--- This runner is intentionally "single-file only"; project-aware build tools should stay in the terminal.
-
-local function open_input_file()
-  local input_file = vim.fn.expand '%:p:r' .. '.in'
-  vim.cmd('split ' .. vim.fn.fnameescape(input_file))
-end
-
-local function get_output_files()
-  local ft = vim.bo.filetype
-
-  if ft == 'c' then return { vim.fn.expand '%:p:r' } end
-
-  return {}
-end
-
-local function delete_output_files()
-  local files = get_output_files()
-
-  for _, file in ipairs(files) do
-    if vim.fn.filereadable(file) == 1 then vim.fn.delete(file) end
-  end
-end
-
-local function get_output_cleanup_command()
-  local ft = vim.bo.filetype
-
-  -- Cleanup mirrors the outputs created by this runner and intentionally stays conservative.
-  if ft == 'c' then return 'rm -f -- ' .. vim.fn.shellescape(vim.fn.expand '%:p:r') end
-
-  return ''
-end
-
-local function run_code()
-  if vim.bo.modified then vim.cmd 'write' end
-  -- Clear stale artifacts before running so ad-hoc single-file tests stay reproducible.
-  delete_output_files()
-
-  local ft = vim.bo.filetype
-  local cmd_template = run_commands[ft]
-
-  if not cmd_template then
-    vim.notify('Unsupported file type: ' .. ft, vim.log.levels.WARN)
-    return
-  end
-
-  local src = vim.fn.shellescape(vim.fn.expand '%:p')
-  local exe = vim.fn.shellescape(vim.fn.expand '%:p:r')
-  local input_file = vim.fn.expand '%:p:r' .. '.in'
-
-  local cmd = ''
-  if ft == 'python' then
-    cmd = string.format(cmd_template, src)
-  else
-    cmd = string.format(cmd_template, src, exe, exe)
-  end
-
-  if vim.fn.filereadable(input_file) == 1 then
-    cmd = cmd .. ' < ' .. vim.fn.shellescape(input_file)
-  end
-
-  -- Run cleanup after the terminal job exits so single-file binaries/class files do not linger.
-  local cleanup_cmd = get_output_cleanup_command()
-  local final_cmd = cleanup_cmd == '' and cmd or string.format('(%s); %s', cmd, cleanup_cmd)
-
-  vim.cmd 'split'
-  vim.cmd('terminal ' .. final_cmd)
-  vim.bo.bufhidden = 'wipe'
-
-  vim.wo.number = false
-  vim.wo.relativenumber = false
-  vim.wo.signcolumn = 'no'
-
-  vim.cmd 'startinsert'
-end
-
-local function not_supported()
-  vim.notify('Code runner not supported for this filetype', vim.log.levels.WARN)
-end
-
-vim.keymap.set('n', '<leader>rr', not_supported, { desc = 'Run Code (Disabled)' })
-vim.keymap.set('n', '<leader>ri', not_supported, { desc = 'Open Input File (Disabled)' })
-
-local runner_group = vim.api.nvim_create_augroup('UserCodeRunner', { clear = true })
--- Only expose runner mappings for supported filetypes so the global key space stays quiet.
-vim.api.nvim_create_autocmd('FileType', {
-  group = runner_group,
-  pattern = { 'c', 'python' },
-  callback = function()
-    local opts = { buffer = true, silent = true }
-    vim.keymap.set(
-      'n',
-      '<leader>rr',
-      run_code,
-      vim.tbl_extend('force', opts, { desc = 'Run Code' })
-    )
-    vim.keymap.set(
-      'n',
-      '<leader>ri',
-      open_input_file,
-      vim.tbl_extend('force', opts, { desc = 'Open Input File' })
-    )
-  end,
-})
 -- }}}
 
 -- {{{ Large file optimization
