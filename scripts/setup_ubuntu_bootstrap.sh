@@ -27,16 +27,6 @@ is_nvidia_hardware_present() {
 }
 # }}}
 
-keep_sudo_alive() { # {{{
-  sudo -v
-  while true; do
-    sudo -n true 2>/dev/null
-    sleep 30
-  done &
-
-  readonly SUDO_KEEP_ALIVE_PID=$!
-} # }}}
-
 install_package() { # {{{
   local -r pkgs=("${@}")
   local valid_pkgs=()
@@ -473,12 +463,6 @@ EOF
   sudo systemctl reload NetworkManager.service 2>/dev/null || true
 } # }}}
 
-cleanup() { # {{{
-  if [[ -n "${SUDO_KEEP_ALIVE_PID:-}" ]] && kill -0 "${SUDO_KEEP_ALIVE_PID}" 2>/dev/null; then
-    kill "${SUDO_KEEP_ALIVE_PID}" 2>/dev/null
-  fi
-} # }}}
-
 main() { # {{{
   if (($# > 0)); then
     echo "❌ Error: setup_ubuntu_bootstrap.sh does not accept options."
@@ -489,7 +473,6 @@ main() { # {{{
   if is_ubuntu; then
     local -a tasks=(
       show_script_info
-      keep_sudo_alive
     )
 
     tasks+=(
@@ -535,6 +518,5 @@ main() { # {{{
 } # }}}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  trap cleanup EXIT INT TERM ERR
   main "${@}"
 fi
