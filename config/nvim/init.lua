@@ -1215,10 +1215,9 @@ vim.opt.writebackup = false
 vim.opt.swapfile = false
 -- vim.opt.viewoptions = ''
 -- vim.opt.sessionoptions = ''
--- Views are automatic for cursor/fold restore; project sessions stay manual to avoid hidden state.
+-- Views restore cursor position only.
 vim.opt.viewoptions = {
   'cursor',
-  'folds',
 }
 -- Manual project session: ":mksession! .session.vim", restore with ":source .session.vim" or "nvim -S .session.vim".
 vim.opt.sessionoptions = {
