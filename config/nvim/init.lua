@@ -1421,14 +1421,10 @@ vim.keymap.set('n', '<leader>1', '<C-w>h')
 vim.keymap.set('n', '<leader>2', '<C-w>j')
 vim.keymap.set('n', '<leader>3', '<C-w>k')
 vim.keymap.set('n', '<leader>4', '<C-w>l')
-vim.keymap.set('n', '<leader>5', '<C-w>H')
-vim.keymap.set('n', '<leader>6', '<C-w>J')
-vim.keymap.set('n', '<leader>7', '<C-w>K')
-vim.keymap.set('n', '<leader>8', '<C-w>L')
-vim.keymap.set('n', '<leader><leader>1', '<cmd>vertical resize -20<CR>', { silent = true })
-vim.keymap.set('n', '<leader><leader>2', '<cmd>resize -20<CR>', { silent = true })
-vim.keymap.set('n', '<leader><leader>3', '<cmd>resize +20<CR>', { silent = true })
-vim.keymap.set('n', '<leader><leader>4', '<cmd>vertical resize +20<CR>', { silent = true })
+vim.keymap.set('n', '<leader>r1', '<cmd>vertical resize -20<CR>', { silent = true })
+vim.keymap.set('n', '<leader>r2', '<cmd>resize -20<CR>', { silent = true })
+vim.keymap.set('n', '<leader>r3', '<cmd>resize +20<CR>', { silent = true })
+vim.keymap.set('n', '<leader>r4', '<cmd>vertical resize +20<CR>', { silent = true })
 
 -- Quickfix navigation
 vim.keymap.set('n', '<leader>cn', ':cnext<cr>zz', { desc = 'Go to next quickfix item and center' })
@@ -1624,5 +1620,4 @@ for key, opts in pairs(copy_mappings) do
   })
 end
 -- }}}
-
 -- }}}

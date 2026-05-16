@@ -17,6 +17,9 @@ let mapleader="\\"
 
 inoremap jk <Esc>
 
+nnoremap , :
+vnoremap , :
+
 nnoremap j gj
 nnoremap k gk
 nnoremap 0 g0
@@ -37,8 +40,6 @@ nnoremap U <C-r>
 nnoremap Q <Nop>
 nnoremap <Esc> :nohlsearch<CR>
 
-nnoremap <leader>y ggVGy
-nmap <leader>= <Action>(ReformatCode)
 nmap <leader>v <Action>(EditorToggleColumnMode)
 nmap <leader>bb <Action>(RecentFiles)
 nmap <leader>bw <Action>(CloseContent)
@@ -59,8 +60,7 @@ vnoremap s "_s
 vnoremap S "_S
 
 xnoremap p "_dP
-nmap <leader>rs <Action>(RenameElement)
-vmap <leader>rs <Action>(RenameElement)
+nmap <leader>rn <Action>(RenameElement)
 
 nmap [b <Action>(PreviousTab)
 nmap ]b <Action>(NextTab)
@@ -71,14 +71,10 @@ nnoremap <leader>1 <C-w>h
 nnoremap <leader>2 <C-w>j
 nnoremap <leader>3 <C-w>k
 nnoremap <leader>4 <C-w>l
-nnoremap <leader>5 <C-w>H
-nnoremap <leader>6 <C-w>J
-nnoremap <leader>7 <C-w>K
-nnoremap <leader>8 <C-w>L
-nmap <leader><leader>1 <Action>(StretchSplitToLeft)
-nmap <leader><leader>2 <Action>(StretchSplitToBottom)
-nmap <leader><leader>3 <Action>(StretchSplitToTop)
-nmap <leader><leader>4 <Action>(StretchSplitToRight)
+nmap <leader>r1 <Action>(StretchSplitToLeft)
+nmap <leader>r2 <Action>(StretchSplitToBottom)
+nmap <leader>r3 <Action>(StretchSplitToTop)
+nmap <leader>r4 <Action>(StretchSplitToRight)
 
 nmap <leader>cn <Action>(GotoNextError)
 nmap <leader>cp <Action>(GotoPreviousError)
