@@ -522,9 +522,9 @@ crun() {
     "${src}" -o "${exe}" -lm || return
 
   _run_with_optional_input "${src}" "${run_exe}"
-  local status="${?}"
+  local exit_status="${?}"
   rm -f -- "${exe}"
-  return "${status}"
+  return "${exit_status}"
 }
 
 ccrun() {
@@ -547,9 +547,9 @@ ccrun() {
     "${src}" -o "${exe}" || return
 
   _run_with_optional_input "${src}" "${run_exe}"
-  local status="${?}"
+  local exit_status="${?}"
   rm -f -- "${exe}"
-  return "${status}"
+  return "${exit_status}"
 }
 
 pyrun() {
@@ -579,9 +579,9 @@ javarun() {
   javac "${src}" || return
 
   _run_with_optional_input "${src}" java -cp "${src_dir}" "${class_name}"
-  local status="${?}"
+  local exit_status="${?}"
   rm -f -- "${src_dir}/${class_name}.class" "${src_dir}/${class_name}"'$'*.class
-  return "${status}"
+  return "${exit_status}"
 }
 
 rsrun() {
@@ -599,9 +599,9 @@ rsrun() {
   rustc -C debuginfo=2 -C opt-level=2 "${src}" -o "${exe}" || return
 
   _run_with_optional_input "${src}" "${run_exe}"
-  local status="${?}"
+  local exit_status="${?}"
   rm -f -- "${exe}"
-  return "${status}"
+  return "${exit_status}"
 }
 
 sshload() {
