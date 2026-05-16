@@ -3,9 +3,9 @@
 # Keep dotfile deployment centralized here; avoid one-off symlink logic in install.sh.
 
 show_script_info() {
-  echo "basename: ${0##*/}"
-  echo "dirname : $(dirname "${0}")"
-  echo "pwd     : $(pwd)"
+  echo "INFO: basename: ${0##*/}"
+  echo "INFO: dirname : $(dirname "${0}")"
+  echo "INFO: pwd     : $(pwd)"
   echo ""
 }
 
@@ -30,9 +30,9 @@ find_and_move_to_dotfiles_root() {
 
   while [ "${curr_dir}" != "/" ]; do
     if [ -f "${curr_dir}/${target_file}" ]; then
-      echo "Found '${target_file}' in: ${curr_dir}"
+      echo "INFO: Found '${target_file}' in: ${curr_dir}"
       cd "${curr_dir}" || {
-        echo "❌ Error: Unable to move to directory '${curr_dir}'."
+        echo "ERROR: Unable to move to directory '${curr_dir}'."
         return 1
       }
       dotfiles_root="${curr_dir}"
@@ -41,7 +41,7 @@ find_and_move_to_dotfiles_root() {
     curr_dir="$(dirname "${curr_dir}")"
   done
 
-  echo "❌ Error: '${target_file}' not found in any parent directories."
+  echo "ERROR: '${target_file}' not found in any parent directories."
   return 1
 }
 
@@ -52,7 +52,7 @@ create_dir() {
 backup_if_exists() {
   local target_path="${1}"
   if [ -e "${target_path}" ] && [ ! -L "${target_path}" ]; then
-    echo "🔄 Backing up existing file/directory: ${target_path}"
+    echo "INFO: Backing up existing file/directory: ${target_path}"
     mv -fv "${target_path}" "${backup_dir}/${target_path##*/}.$(date +"%Y%m%d_%H%M%S").bak"
   fi
 }
@@ -62,12 +62,12 @@ create_symlink() {
   local target_path="${2}"
 
   if [ ! -e "${source_path}" ]; then
-    echo "❌ Error: Source file/directory not found: ${source_path}"
+    echo "ERROR: Source file/directory not found: ${source_path}"
     return 1
   fi
 
   if [ -L "${target_path}" ] && [ "$(readlink "${target_path}")" = "${source_path}" ]; then
-    echo "✅ Symlink already exists and is correct: ${target_path}"
+    echo "DONE: Symlink already exists and is correct: ${target_path}"
     return 0
   fi
 
@@ -164,7 +164,7 @@ main() {
   find_and_move_to_dotfiles_root
 
   echo ""
-  echo "🚀 Setup dotfiles start"
+  echo "INFO: Setup dotfiles start"
   printf "%0.s-" {1..60}
   echo ""
 
@@ -173,7 +173,7 @@ main() {
 
   echo ""
   printf "%0.s-" {1..60}
-  printf "\n✅ Setup dotfiles done!\n"
+  printf "\nDONE: Setup dotfiles done!\n"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

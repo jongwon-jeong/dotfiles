@@ -154,9 +154,9 @@ alias tmat='tmux attach -t'
 alias tmdt='tmux detach'
 alias tmkl='tmux kill-session'
 
-alias zshrc='test -f ~/.zshrc && vim ~/.zshrc || echo "File does not exist."'
-alias alish='test -f ~/.config/shell/aliases.sh && vim ~/.config/shell/aliases.sh || echo "File does not exist."'
-alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "Directory does not exist."'
+alias zshrc='test -f ~/.zshrc && vim ~/.zshrc || echo "WARN: File does not exist."'
+alias alish='test -f ~/.config/shell/aliases.sh && vim ~/.config/shell/aliases.sh || echo "WARN: File does not exist."'
+alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "WARN: Directory does not exist."'
 alias zsh1='exec zsh'
 
 alias c='clear'
@@ -198,7 +198,7 @@ cargo_update_all() {
   if command -v cargo-install-update >/dev/null 2>&1; then
     cargo install-update -a
   else
-    echo "'cargo-update' is not installed. Run: cargo install cargo-update"
+    echo "WARN: 'cargo-update' is not installed. Run: cargo install cargo-update"
   fi
 }
 
@@ -209,7 +209,7 @@ uv_update_all_tools() {
     if [[ -n "${tools}" ]]; then
       echo "${tools}" | xargs -I {} uv tool install {} --upgrade
     else
-      echo "No uv tools installed."
+      echo "INFO: No uv tools installed."
     fi
   }
 }
@@ -221,7 +221,7 @@ upgrade_all_managers() {
   command -v uv >/dev/null 2>&1 && uv_update_all_tools
 
   if command -v uv >/dev/null 2>&1; then
-    echo "🔄 Updating uv..."
+    echo "INFO: Updating uv..."
     uv self update
   fi
 }
@@ -289,7 +289,7 @@ else
   ffe() { find . -iname "*${@}" "${find_exclude_args[@]}"; }
 
   function fdf { find . -type f -iname "*${1}*" "${find_exclude_args[@]}"; }
-  alias fdf-ext='echo "❌ fd not installed. Use: find . -name \"*.ext\""'
+  alias fdf-ext='echo "ERROR: fd not installed. Use: find . -name \"*.ext\""'
   function fdd { find . -type d -iname "*${1}*" "${find_exclude_args[@]}"; }
 fi
 
@@ -343,7 +343,7 @@ fi
 
 del() {
   if [[ $# -eq 0 ]]; then
-    echo "❌ Error: Please specify a file or directory to delete."
+    echo "ERROR: Please specify a file or directory to delete."
     return 1
   fi
 
@@ -356,14 +356,14 @@ del() {
 }
 
 empty-trash() {
-  echo -n "❓ Are you sure you want to empty the trash? (y/n): "
+  echo -n "WARN: Empty the trash permanently? (y/n): "
   read answer
 
   if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
     rm -rf ~/.trash && mkdir -p ~/.trash
-    echo "✅ Done. All files in trash have been permanently deleted."
+    echo "DONE: All files in trash have been permanently deleted."
   else
-    echo "❌ Operation canceled."
+    echo "INFO: Operation canceled."
   fi
 }
 
@@ -376,9 +376,9 @@ histrm() {
   del ~/.zsh_cache 2>/dev/null
   del ~/.local/share/backups/* 2>/dev/null
 
-  echo "🔄 Cleaning up system traces..."
+  echo "INFO: Cleaning up system traces..."
   sleep 0.5
-  echo "✅ Done. Restarting shell..."
+  echo "DONE: Restarting shell..."
   exec ${SHELL} -l
 }
 
@@ -466,7 +466,7 @@ vimrc() {
     fi
   done
 
-  echo "Error: No Vim/Neovim configuration file found." >&2
+  echo "ERROR: No Vim/Neovim configuration file found." >&2
   return 1
 }
 alias vc='vimrc'
@@ -606,11 +606,11 @@ rsrun() {
 
 sshload() {
   if [ -n "${SSH_AGENT_PID}" ] && kill -0 "${SSH_AGENT_PID}" 2>/dev/null; then
-    echo "Reusing existing SSH agent (PID: ${SSH_AGENT_PID})."
+    echo "INFO: Reusing existing SSH agent (PID: ${SSH_AGENT_PID})."
   else
     unset SSH_AUTH_SOCK SSH_AGENT_PID
     eval $(ssh-agent -s)
-    echo "Started new SSH agent (PID: ${SSH_AGENT_PID})."
+    echo "INFO: Started new SSH agent (PID: ${SSH_AGENT_PID})."
   fi
 
   local exclude_names=(! \( -name "*.pub" -o -name "*.bak" -o -name "*~" -o -name "id_*_" \))
@@ -625,7 +625,7 @@ sshload() {
     done < <(find ~/.ssh -type f "${exclude_names[@]}" "${include_names[@]}" | sort)
 
     if [ "${#keys[@]}" -eq 0 ]; then
-      echo "No SSH keys found in ~/.ssh directory."
+      echo "WARN: No SSH keys found in ~/.ssh directory."
       return 1
     fi
   fi
@@ -636,23 +636,23 @@ sshload() {
   for key in "${keys[@]}"; do
     if [ -f "${key}" ]; then
       if ssh-add "${key}"; then
-        echo "Key '${key}' added successfully."
+        echo "DONE: Key '${key}' added successfully."
         ((success_count++))
       else
-        echo "Failed to add key '${key}'. Check passphrase or permissions."
+        echo "ERROR: Failed to add key '${key}'. Check passphrase or permissions."
         ((failure_count++))
       fi
     else
-      echo "Key file '${key}' does not exist."
+      echo "ERROR: Key file '${key}' does not exist."
       ((failure_count++))
     fi
   done
 
   echo ""
-  echo "Currently loaded SSH keys:"
+  echo "INFO: Currently loaded SSH keys:"
   ssh-add -l
   echo ""
-  echo "Summary: ${success_count} keys added successfully, ${failure_count} failures."
+  echo "INFO: Summary: ${success_count} keys added successfully, ${failure_count} failures."
 }
 
 sshkill() {
@@ -663,13 +663,13 @@ sshkill() {
   done < <(pgrep ssh-agent)
 
   if [ -z "${agent_pids}" ]; then
-    echo "No SSH agents are currently running."
+    echo "INFO: No SSH agents are currently running."
     return 0
   fi
 
-  echo "Stopping all SSH agents..."
+  echo "INFO: Stopping all SSH agents..."
   for pid in "${agent_pids[@]}"; do
-    kill "${pid}" && echo "Stopped agent PID: ${pid}."
+    kill "${pid}" && echo "DONE: Stopped agent PID: ${pid}."
   done
 
   unset SSH_AUTH_SOCK SSH_AGENT_PID

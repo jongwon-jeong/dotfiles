@@ -3,9 +3,9 @@
 # Keep Ubuntu-specific machine bootstrap here; avoid adding unsupported distro setup without an explicit need.
 
 show_script_info() { # {{{
-  echo "basename: ${0##*/}"
-  echo "dirname : $(dirname "${0}")"
-  echo "pwd     : $(pwd)"
+  echo "INFO: basename: ${0##*/}"
+  echo "INFO: dirname : $(dirname "${0}")"
+  echo "INFO: pwd     : $(pwd)"
   echo ""
 } # }}}
 
@@ -36,7 +36,7 @@ install_package() { # {{{
     if apt-cache show "${pkg}" >/dev/null 2>&1; then
       valid_pkgs+=("${pkg}")
     else
-      echo "⚠️ Skipping: ${pkg} (Not found in repository)"
+      echo "WARN: Skipping: ${pkg} (Not found in repository)"
     fi
   done
 
@@ -59,7 +59,7 @@ install_package() { # {{{
 recover_package_state() { # {{{
   if dpkg --audit | grep -q .; then
     echo ""
-    echo "🔄 Recovering interrupted package configuration..."
+    echo "INFO: Recovering interrupted package configuration..."
     sudo dpkg --configure -a
     sudo apt-get -f install -y
   fi
@@ -67,7 +67,7 @@ recover_package_state() { # {{{
 
 upgrade_packages() { # {{{
   echo ""
-  echo "🔄 Updating APT package cache and upgrading system packages..."
+  echo "INFO: Updating APT package cache and upgrading system packages..."
 
   sudo apt-get update -y
 
@@ -78,7 +78,7 @@ upgrade_packages() { # {{{
     sudo apt-get autoremove -y
     sudo apt-get autoclean -y
   else
-    echo "⚠️ apt-get full-upgrade encountered an issue."
+    echo "WARN: apt-get full-upgrade encountered an issue."
     return 1
   fi
 } # }}}
@@ -86,12 +86,12 @@ upgrade_packages() { # {{{
 install_basic_packages() { # {{{
   if ! is_wsl && command -v ubuntu-drivers &>/dev/null; then
     echo ""
-    echo "🔄 Installing Ubuntu recommended additional drivers..."
+    echo "INFO: Installing Ubuntu recommended additional drivers..."
     sudo ubuntu-drivers install
   fi
 
   echo ""
-  echo "🔄 Installing base Ubuntu packages and desktop CLI dependencies..."
+  echo "INFO: Installing base Ubuntu packages and desktop CLI dependencies..."
   install_package \
     zsh tmux \
     git curl wget \
@@ -121,7 +121,7 @@ install_basic_packages() { # {{{
   install_neovim() {
     # Add export PATH="$PATH:/opt/nvim-linux-x86_64/bin" to ~/.zshrc
     if command -v nvim &>/dev/null; then
-      echo "✅ neovim is already installed"
+      echo "DONE: neovim is already installed"
       return 0
     fi
 
@@ -130,17 +130,17 @@ install_basic_packages() { # {{{
       local -r download_dir="${HOME}/proj/tmp/packages"
       mkdir -pv "${download_dir}"
       echo ""
-      echo "🔄 Downloading Neovim archive to ${download_dir}..."
+      echo "INFO: Downloading Neovim archive to ${download_dir}..."
       curl -fLo "${download_dir}/nvim-linux-x86_64.tar.gz" \
         https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
       echo ""
-      echo "🔄 Installing Neovim under /opt and linking /usr/local/bin/nvim..."
+      echo "INFO: Installing Neovim under /opt and linking /usr/local/bin/nvim..."
       sudo rm -rf /opt/nvim-linux-x86_64
       sudo tar -C /opt -xzf "${download_dir}/nvim-linux-x86_64.tar.gz"
 
       sudo ln -sf "/opt/nvim-linux-x86_64/bin/nvim" /usr/local/bin/nvim
     else
-      echo "❌ Unsupported Linux architecture: ${arch_type}"
+      echo "ERROR: Unsupported Linux architecture: ${arch_type}"
       return 1
     fi
   }
@@ -161,14 +161,14 @@ install_basic_packages() { # {{{
       local target="${zsh_dir}/${name}"
       if [[ ! -d "${target}" ]]; then
         echo ""
-        echo "🔄 Cloning ${name}..."
+        echo "INFO: Cloning ${name}..."
         git clone --depth 1 "${plugins[$name]}" "${target}"
       elif [[ -d "${target}/.git" ]]; then
         echo ""
-        echo "🔄 Updating ${name}..."
+        echo "INFO: Updating ${name}..."
         git -C "${target}" pull --ff-only
       else
-        echo "⚠️ Skipping: ${name} (${target} exists but is not a git repository)"
+        echo "WARN: Skipping: ${name} (${target} exists but is not a git repository)"
       fi
     done
   }
@@ -230,12 +230,12 @@ SUDO_SCRIPT
 
       # 2. Check if the option is already active
       if [[ "${current_value}" == *"${option}"* ]]; then
-        echo "✅ Right Alt is already mapped to Hangul (Wayland/X11)."
+        echo "DONE: Right Alt is already mapped to Hangul (Wayland/X11)."
         return 0
       fi
 
       echo ""
-      echo "🔄 Remapping Right Alt to Hangul for Wayland/X11..."
+      echo "INFO: Remapping Right Alt to Hangul for Wayland/X11..."
 
       # 3. Append the option safely
       if [[ "${current_value}" == "@as []" ]] || [[ "${current_value}" == "[]" ]]; then
@@ -249,7 +249,7 @@ SUDO_SCRIPT
         gsettings set "${schema}" "${key}" "${new_value}"
       fi
     else
-      echo "⚠️ 'gsettings' not found. Skipping key remap."
+      echo "WARN: 'gsettings' not found. Skipping key remap."
     fi
   }
 
@@ -277,7 +277,7 @@ SUDO_SCRIPT
 
 install_node() { # {{{
   echo ""
-  echo "Installing Node.js..."
+  echo "INFO: Installing Node.js..."
 
   export NVM_DIR="${HOME}/.nvm"
   export PROFILE="/dev/null"
@@ -301,11 +301,11 @@ install_node() { # {{{
   )
 
   echo ""
-  echo "Installing npm packages..."
+  echo "INFO: Installing npm packages..."
   local package
   for package in "${npm_global_packages[@]}"; do
     if ! npm install -g "${package}"; then
-      echo "⚠️ Failed to install npm package: ${package}"
+      echo "WARN: Failed to install npm package: ${package}"
     fi
   done
 } # }}}
@@ -313,14 +313,14 @@ install_node() { # {{{
 install_global_packages() { # {{{
   if ! command -v uv &>/dev/null; then
     echo ""
-    echo "🔄 Installing uv from the upstream installer..."
+    echo "INFO: Installing uv from the upstream installer..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="${HOME}/.local/bin:${HOME}/.cargo/bin:${PATH}"
   fi
 
   if command -v uv &>/dev/null; then
     echo ""
-    echo "🔄 Installing Python runtime and uv-managed CLI tools..."
+    echo "INFO: Installing Python runtime and uv-managed CLI tools..."
     uv python install
     uv tool install ruff
     uv tool install ty
@@ -330,7 +330,7 @@ install_global_packages() { # {{{
 
   if ! command -v starship &>/dev/null; then
     echo ""
-    echo "🔄 Installing Starship from the upstream installer..."
+    echo "INFO: Installing Starship from the upstream installer..."
     curl -sS https://starship.rs/install.sh | sh -s -- -y
   fi
 } # }}}
@@ -344,22 +344,22 @@ install_nerd_font() { # {{{
 
   install_jetbrains_nerd_font() {
     if find "${font_dir}" -name "*${font_name}*" | grep -q "."; then
-      echo "✅ ${font_name} is already installed. Skipping..."
+      echo "DONE: ${font_name} is already installed. Skipping..."
       return 0
     fi
 
     echo ""
-    echo "🔄 Installing ${font_name} ${version}..."
+    echo "INFO: Installing ${font_name} ${version}..."
 
     local -r temp_dir="${HOME}/proj/tmp/packages/nerd_fonts_setup"
     mkdir -pv "${temp_dir}"
 
     echo ""
-    echo "🔄 Downloading font archive..."
+    echo "INFO: Downloading font archive..."
     curl -fLo "${temp_dir}/JetBrainsMono.zip" "${download_url}" --retry 3
 
     echo ""
-    echo "🔄 Extracting files..."
+    echo "INFO: Extracting files..."
     unzip -o "${temp_dir}/JetBrainsMono.zip" -d "${temp_dir}"
 
     mkdir -pv "${font_dir}"
@@ -367,22 +367,22 @@ install_nerd_font() { # {{{
     find "${temp_dir}" -name "JetBrainsMonoNLNerdFontMono-*.ttf" -exec cp {} "${font_dir}/" \;
 
     echo ""
-    echo "🔄 Updating font cache..."
+    echo "INFO: Updating font cache..."
     fc-cache -f "${font_dir}"
 
     # rm -rf "${temp_dir}"
-    echo "✅ Font installation completed successfully!"
+    echo "DONE: Font installation completed successfully!"
   }
   install_jetbrains_nerd_font
 } # }}}
 
 setup_locale() { # {{{
   echo ""
-  echo "🔄 Configuring system locale to en_US.UTF-8..."
+  echo "INFO: Configuring system locale to en_US.UTF-8..."
   if command -v locale-gen &>/dev/null; then
     sudo locale-gen en_US.UTF-8
   else
-    echo "⚠️ locale-gen not found. Skipping locale setup."
+    echo "WARN: locale-gen not found. Skipping locale setup."
   fi
   sudo update-locale LANG=en_US.UTF-8
 } # }}}
@@ -392,10 +392,10 @@ change_shell_to_zsh() { # {{{
   if [ -n "${zsh_path}" ]; then
     local -r target_user="${SUDO_USER:-${USER}}"
     echo ""
-    echo "🔄 Changing login shell for ${target_user} to ${zsh_path}..."
+    echo "INFO: Changing login shell for ${target_user} to ${zsh_path}..."
     sudo chsh -s "${zsh_path}" "${target_user}"
   else
-    echo "⚠️ Zsh is not installed or not in PATH."
+    echo "WARN: Zsh is not installed or not in PATH."
   fi
 } # }}}
 
@@ -415,7 +415,7 @@ setup_basic_network_privacy() { # {{{
   # - Do not change DNS, systemd-resolved, mDNS, LLMNR, routing, or VPN behavior.
   # - Do not reset existing UFW rules.
   echo ""
-  echo "🔄 Applying basic desktop network privacy settings..."
+  echo "INFO: Applying basic desktop network privacy settings..."
 
   install_package ufw
   # UFW:
@@ -465,7 +465,7 @@ EOF
 
 main() { # {{{
   if (($# > 0)); then
-    echo "❌ Error: setup_ubuntu_bootstrap.sh does not accept options."
+    echo "ERROR: setup_ubuntu_bootstrap.sh does not accept options."
     echo "   Run without arguments."
     exit 1
   fi
@@ -494,7 +494,7 @@ main() { # {{{
       setup_basic_network_privacy
     )
   else
-    echo "❌ Error: Distro mismatch. Ubuntu only."
+    echo "ERROR: Distro mismatch. Ubuntu only."
     exit 1
   fi
 
@@ -505,14 +505,14 @@ main() { # {{{
       echo "${task}"
       echo "============================================================"
       if ! "${task}"; then
-        echo "❌ Task failed, continuing: ${task}"
+        echo "ERROR: Task failed, continuing: ${task}"
         recover_package_state
       fi
       echo ""
       echo ""
       echo ""
     else
-      echo "⚠️ Warning: Function '${task}' not found."
+      echo "WARN: Function '${task}' not found."
     fi
   done
 } # }}}

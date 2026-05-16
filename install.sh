@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 show_script_info() {
-  echo "basename: ${0##*/}"
-  echo "dirname : $(dirname "${0}")"
-  echo "pwd     : $(pwd)"
+  echo "INFO: basename: ${0##*/}"
+  echo "INFO: dirname : $(dirname "${0}")"
+  echo "INFO: pwd     : $(pwd)"
   echo ""
 }
 
@@ -17,23 +17,23 @@ start_logging() {
   local -r log_file="${log_dir}/$(date +%Y%m%d-%H%M%S)-dotfiles-install.log"
 
   if ! command -v tee >/dev/null 2>&1; then
-    echo "❌ Error: tee is required for logging." >&2
+    echo "ERROR: tee is required for logging." >&2
     exit 1
   fi
 
   if ! mkdir -p "${log_dir}"; then
-    echo "❌ Error: Could not create log directory: ${log_dir}" >&2
+    echo "ERROR: Could not create log directory: ${log_dir}" >&2
     exit 1
   fi
 
   if ! touch "${log_file}"; then
-    echo "❌ Error: Could not create log file: ${log_file}" >&2
+    echo "ERROR: Could not create log file: ${log_file}" >&2
     exit 1
   fi
 
   exec > >(tee -a "${log_file}") 2>&1
 
-  echo "Log file: ${log_file}"
+  echo "INFO: Log file: ${log_file}"
   echo ""
 }
 
@@ -61,17 +61,17 @@ run_setup() {
     if is_ubuntu; then
       setup_bootstrap_script="setup_ubuntu_bootstrap.sh"
     else
-      echo "⚠️ Warning: Detected unsupported Linux distribution. Proceeding with caution."
+      echo "WARN: Detected unsupported Linux distribution. Proceeding with caution."
     fi
 
     setup_dotfiles_script="setup_dotfiles.sh"
 
   elif is_mac; then
-    echo "⚠️ Warning: macOS bootstrap is not maintained. Installing dotfiles only."
+    echo "WARN: macOS bootstrap is not maintained. Installing dotfiles only."
     setup_dotfiles_script="setup_dotfiles.sh"
 
   else
-    echo "❌ Error: Unsupported operating system: $(uname)"
+    echo "ERROR: Unsupported operating system: $(uname)"
     exit 1
   fi
 
@@ -85,7 +85,7 @@ run_setup() {
 
       for target in "${search_paths[@]}"; do
         if [[ -f "${target}" ]]; then
-          echo "🔄 Running setup script: ${script_name}"
+          echo "INFO: Running setup script: ${script_name}"
           bash "${target}"
           found=true
           break
@@ -93,7 +93,7 @@ run_setup() {
       done
 
       if [[ "${found}" == "false" ]]; then
-        echo "❌ Error: Could not find '${script_name}'."
+        echo "ERROR: Could not find '${script_name}'."
         echo "   Checked locations:"
         for path in "${search_paths[@]}"; do
           echo "   - ${path}"
@@ -106,7 +106,7 @@ run_setup() {
 
 show_reboot_notice() {
   echo ""
-  echo "✅ Setup complete. A reboot is recommended."
+  echo "DONE: Setup complete. A reboot is recommended."
   echo ""
   echo "Reboot commands:"
   echo "  Ubuntu/Linux: sudo reboot OR systemctl reboot -i"
@@ -116,7 +116,7 @@ show_reboot_notice() {
 
 main() {
   if (($# > 0)); then
-    echo "❌ Error: install.sh does not accept options."
+    echo "ERROR: install.sh does not accept options."
     echo "   Run without arguments: bash install.sh"
     exit 1
   fi

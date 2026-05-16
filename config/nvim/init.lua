@@ -1343,11 +1343,11 @@ local function try_colorscheme(themes)
 end
 if vim.o.background == 'light' then
   if not try_colorscheme { 'paper', 'default' } then
-    vim.notify('⚠️ No light themes found. Using Neovim default.', vim.log.levels.WARN)
+    vim.notify('No light themes found. Using Neovim default.', vim.log.levels.WARN)
   end
 else
   if not try_colorscheme { 'default' } then
-    vim.notify('⚠️ No dark themes found. Using Neovim default.', vim.log.levels.WARN)
+    vim.notify('No dark themes found. Using Neovim default.', vim.log.levels.WARN)
   end
 end
 -- }}}

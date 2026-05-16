@@ -52,6 +52,12 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Prefer stock OS capability, then distro package, then small upstream install.
 - Prefer good readability and strong contrast over softer, trendier visuals.
 
+## Output Style
+
+- Do not use emoji in code, documentation, commits, or runtime output.
+- For application, CI, test, and structured logs, use the project's logging framework and standard log levels such as `DEBUG`, `INFO`, `WARN`, and `ERROR`.
+- For interactive scripts, prefer plain text status labels such as `INFO`, `WARN`, `ERROR`, and `DONE`.
+
 ## Verification
 
 - Run syntax checks for changed shell or zsh files, such as `bash -n` for bash scripts and `zsh -n` for zsh files.

@@ -34,14 +34,14 @@ is_ubuntu() {
 
 require_ubuntu() {
   if ! is_ubuntu; then
-    echo "❌ Error: Ubuntu release upgrades are only supported on Ubuntu-family systems."
+    echo "ERROR: Ubuntu release upgrades are only supported on Ubuntu-family systems."
     exit 1
   fi
 }
 
 warn_if_ssh() {
   if [[ -n "${SSH_CONNECTION:-}" || -n "${SSH_CLIENT:-}" ]]; then
-    echo "⚠️ SSH session detected."
+    echo "WARN: SSH session detected."
     echo "   Run release upgrades inside tmux or another persistent session."
     echo ""
   fi
@@ -49,19 +49,19 @@ warn_if_ssh() {
 
 confirm_release_upgrade() {
   echo ""
-  echo "⚠️ The next step starts Ubuntu's interactive release upgrader."
+  echo "WARN: The next step starts Ubuntu's interactive release upgrader."
   echo "   Make sure backups are current and long-running sessions are protected."
   read -rp "Continue with sudo do-release-upgrade? Type 'yes' to continue: " answer
 
   if [[ "${answer}" != "yes" ]]; then
-    echo "✅ Release upgrade skipped."
+    echo "DONE: Release upgrade skipped."
     exit 0
   fi
 }
 
 print_system_state() {
   echo ""
-  echo "1. Checking current Ubuntu version and disk state"
+  echo "INFO: 1. Checking current Ubuntu version and disk state"
   lsb_release -a
   uname -r
   df -h
@@ -69,15 +69,15 @@ print_system_state() {
 
 upgrade_current_release() {
   echo ""
-  echo "2. Updating current release packages"
+  echo "INFO: 2. Updating current release packages"
   sudo apt update -y
 
   echo ""
-  echo "3. Upgrading installed packages"
+  echo "INFO: 3. Upgrading installed packages"
   sudo apt full-upgrade -y
 
   echo ""
-  echo "4. Removing unnecessary packages"
+  echo "INFO: 4. Removing unnecessary packages"
   sudo apt autoremove -y
   sudo apt clean
 }
@@ -86,25 +86,25 @@ run_release_upgrade() {
   confirm_release_upgrade
 
   echo ""
-  echo "5. Starting interactive release upgrade"
+  echo "INFO: 5. Starting interactive release upgrade"
   sudo do-release-upgrade
 }
 
 post_upgrade_verification() {
   echo ""
-  echo "6. Post-upgrade verification"
+  echo "INFO: 6. Post-upgrade verification"
   lsb_release -a
   sudo apt update -y
   sudo apt full-upgrade -y
   sudo apt autoremove -y
 
   echo ""
-  echo "✅ Upgrade helper complete. Reboot, then check services and desktop/session behavior."
+  echo "DONE: Upgrade helper complete. Reboot, then check services and desktop/session behavior."
 }
 
 main() {
   if (($# > 0)); then
-    echo "❌ Error: ubuntu_upgrade.sh does not accept options."
+    echo "ERROR: ubuntu_upgrade.sh does not accept options."
     echo "   Run without arguments."
     exit 1
   fi
