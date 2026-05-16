@@ -235,7 +235,7 @@ local function should_disable_treesitter(lang, buf)
   if filename == '' then return false end
 
   local uv = vim.uv
-  -- Treesitter stays independent from the large-file mode below on purpose.
+  -- Keep Treesitter conservative for medium/large files.
   local max_filesize = 100 * 1024 -- 100 KB
   local ok, stats = pcall(uv.fs_stat, filename)
 
@@ -635,10 +635,6 @@ do
 
       columns = {},
 
-      win_options = {
-        signcolumn = 'yes:2',
-      },
-
       view_options = {
         show_hidden = true,
       },
@@ -654,7 +650,6 @@ do
         border = 'rounded',
         win_options = {
           winblend = 10,
-          signcolumn = 'yes:2',
         },
       },
     }
@@ -1094,7 +1089,6 @@ do
   end
 end
 -- }}}
-
 -- }}}
 
 -- Options {{{
@@ -1565,47 +1559,9 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 })
 -- }}}
 
--- Highlight on yank {{{
-vim.api.nvim_create_autocmd('TextYankPost', {
-  group = vim.api.nvim_create_augroup('highlight_yank', { clear = true }),
-  callback = function() vim.highlight.on_yank { higroup = 'IncSearch', timeout = 200 } end,
-})
--- }}}
-
--- Toggle some options {{{
--- Toggle Global Statusline (laststatus 2 <-> 3)
-local function toggle_global_statusline()
-  if vim.opt.laststatus:get() == 3 then
-    vim.opt.laststatus = 2
-    print '✅ Local Statusline (laststatus=2)'
-  else
-    vim.opt.laststatus = 3
-    print '🚀 Global Statusline (laststatus=3)'
-  end
-end
-vim.keymap.set(
-  'n',
-  '<leader><leader>s',
-  toggle_global_statusline,
-  { desc = 'Toggle Global Statusline' }
-)
-
--- Toggle cmdheight (0 <-> 1)
-local function toggle_cmdheight()
-  if vim.opt.cmdheight:get() == 1 then
-    vim.opt.cmdheight = 0
-    print '✅ cmdheight=0'
-  else
-    vim.opt.cmdheight = 1
-    print '🚀 cmdheight=1'
-  end
-end
-vim.keymap.set('n', '<leader><leader>c', toggle_cmdheight, { desc = 'Toggle cmdheight' })
--- }}}
-
--- Get Selection Data {{{
+-- Copy File References {{{
 -- These copy helpers are mainly for passing precise file/line references to CLI AI coding tools.
-local function get_selection_data()
+local function get_file_reference_data()
   -- %:. is cwd-relative when possible and falls back to absolute when the file is outside cwd.
   local rel_path = vim.fn.expand '%:.'
 
@@ -1641,7 +1597,7 @@ end
 
 local function create_copy_command(format_type)
   return function()
-    local data = get_selection_data()
+    local data = get_file_reference_data()
     local result = ''
 
     if format_type == 'or' then
@@ -1669,31 +1625,4 @@ for key, opts in pairs(copy_mappings) do
 end
 -- }}}
 
--- {{{ Large file optimization
-local function optimize_for_large_files()
-  -- This is intentionally separate from Treesitter's smaller cutoff: this mode is a stronger fallback.
-  local max_filesize = 10 * 1024 * 1024
-  local filepath = vim.fn.expand '%:p'
-  local fsize = vim.fn.getfsize(filepath)
-
-  if fsize > max_filesize or fsize == -2 then
-    vim.opt_local.relativenumber = false
-    vim.opt_local.number = false
-
-    vim.opt_local.syntax = 'off'
-
-    vim.opt_local.foldmethod = 'manual'
-    vim.opt_local.undofile = false
-    vim.opt_local.swapfile = false
-
-    vim.opt_local.lazyredraw = true
-
-    print 'Large file detected: Performance optimizations applied.'
-  end
-end
-
-vim.api.nvim_create_autocmd({ 'BufReadPre', 'BufNewFile' }, {
-  callback = optimize_for_large_files,
-})
--- }}}
 -- }}}
