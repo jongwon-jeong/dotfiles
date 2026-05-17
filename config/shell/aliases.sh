@@ -502,6 +502,8 @@ _run_with_optional_input() {
   fi
 }
 
+# Single-file source runners for quick experiments.
+# Project builds should use the project's build tool instead.
 crun() {
   local src="${1}"
   if [ -z "${src}" ]; then
@@ -527,10 +529,10 @@ crun() {
   return "${exit_status}"
 }
 
-ccrun() {
+cpprun() {
   local src="${1}"
   if [ -z "${src}" ]; then
-    echo "Usage: ccrun <file.cc|file.cpp|file.cxx>"
+    echo "Usage: cpprun <file.cc|file.cpp|file.cxx>"
     return 1
   fi
 
@@ -575,12 +577,12 @@ javarun() {
   local class_name
   class_name="$(basename "${src}" .java)"
 
-  rm -f -- "${src_dir}/${class_name}.class" "${src_dir}/${class_name}"'$'*.class
+  find "${src_dir}" -maxdepth 1 -type f \( -name "${class_name}.class" -o -name "${class_name}"'$'"*.class" \) -delete
   javac "${src}" || return
 
   _run_with_optional_input "${src}" java -cp "${src_dir}" "${class_name}"
   local exit_status="${?}"
-  rm -f -- "${src_dir}/${class_name}.class" "${src_dir}/${class_name}"'$'*.class
+  find "${src_dir}" -maxdepth 1 -type f \( -name "${class_name}.class" -o -name "${class_name}"'$'"*.class" \) -delete
   return "${exit_status}"
 }
 
@@ -700,23 +702,25 @@ if command -v fzf &>/dev/null; then
     _FD_DIR_CMD="find . -path '*/.*' -prune -o -type d -print"
   fi
 
-  if [[ "$(uname)" == "Darwin" ]]; then
-    if [ -n "${ZSH_VERSION:-}" ]; then
-      source <(fzf --zsh)
-    elif [ -n "${BASH_VERSION:-}" ]; then
-      source <(fzf --bash)
-    fi
-  else
-    if [ -n "${ZSH_VERSION:-}" ] && [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
-      source /usr/share/doc/fzf/examples/key-bindings.zsh
-      source /usr/share/doc/fzf/examples/completion.zsh
-    elif [ -n "${BASH_VERSION:-}" ] && [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
-      source /usr/share/doc/fzf/examples/key-bindings.bash
-      [ -f /usr/share/doc/fzf/examples/completion.bash ] && source /usr/share/doc/fzf/examples/completion.bash
-    elif [ -n "${ZSH_VERSION:-}" ] && [ -f ~/.fzf.zsh ]; then
-      source ~/.fzf.zsh
-    elif [ -n "${BASH_VERSION:-}" ] && [ -f ~/.fzf.bash ]; then
-      source ~/.fzf.bash
+  if [[ $- == *i* ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      if [ -n "${ZSH_VERSION:-}" ]; then
+        source <(fzf --zsh)
+      elif [ -n "${BASH_VERSION:-}" ]; then
+        source <(fzf --bash)
+      fi
+    else
+      if [ -n "${ZSH_VERSION:-}" ] && [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+        source /usr/share/doc/fzf/examples/key-bindings.zsh
+        source /usr/share/doc/fzf/examples/completion.zsh
+      elif [ -n "${BASH_VERSION:-}" ] && [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+        source /usr/share/doc/fzf/examples/key-bindings.bash
+        [ -f /usr/share/doc/fzf/examples/completion.bash ] && source /usr/share/doc/fzf/examples/completion.bash
+      elif [ -n "${ZSH_VERSION:-}" ] && [ -f ~/.fzf.zsh ]; then
+        source ~/.fzf.zsh
+      elif [ -n "${BASH_VERSION:-}" ] && [ -f ~/.fzf.bash ]; then
+        source ~/.fzf.bash
+      fi
     fi
   fi
 

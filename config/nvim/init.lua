@@ -88,18 +88,13 @@ vim.g.loaded_node_provider = 0
 -- ---------------------------------------------------------
 local servers = {
   bashls = {},
-  biome = {},
   clangd = {},
-  cssls = {},
   dockerls = {},
-  emmet_language_server = {},
-  html = {},
   lua_ls = {},
   ruff = {},
-  tailwindcss = {},
+  rust_analyzer = {},
   taplo = {},
   ty = {},
-  vtsls = {},
   yamlls = {},
 }
 -- }}}
@@ -108,24 +103,20 @@ local servers = {
 -- ---------------------------------------------------------
 local mason_packages = {
   -- Formatters
+  'google-java-format',
   'prettier',
   'shfmt',
   'stylua',
 
   -- LSP servers
   'bash-language-server',
-  'biome',
   'clangd',
-  'css-lsp',
   'dockerfile-language-server',
-  'emmet-language-server',
-  'html-lsp',
   'lua-language-server',
   'ruff',
-  'tailwindcss-language-server',
+  'rust-analyzer',
   'taplo',
   'ty',
-  'vtsls',
   'yaml-language-server',
 }
 -- }}}
@@ -135,19 +126,17 @@ local mason_packages = {
 local ts_langs = {
   'c',
   'comment',
-  'css',
+  'cpp',
   'dockerfile',
-  'html',
-  'javascript',
+  'java',
   'json',
   'lua',
   'markdown',
   'markdown_inline',
   'python',
   'regex',
+  'rust',
   'toml',
-  'tsx',
-  'typescript',
   'vim',
   'yaml',
 }
@@ -157,7 +146,6 @@ local ts_langs = {
 -- ---------------------------------------------------------
 local ts_disabled_langs = {
   bash = true,
-  html = true,
   sh = true,
   zsh = true,
 }
@@ -202,7 +190,6 @@ local plugins = {
   { src = 'https://github.com/nvim-tree/nvim-tree.lua' },
   { src = 'https://github.com/nvim-tree/nvim-web-devicons' },
   { src = 'https://github.com/ibhagwan/fzf-lua' },
-  { src = 'https://github.com/folke/flash.nvim' },
   { src = 'https://github.com/lewis6991/gitsigns.nvim' },
   { src = 'https://github.com/windwp/nvim-autopairs' },
   { src = 'https://github.com/lukas-reineke/indent-blankline.nvim' },
@@ -333,20 +320,14 @@ do
         bash = { 'shfmt', stop_after_first = true },
         zsh = { 'shfmt', stop_after_first = true },
 
-        json = { 'biome', 'prettier', stop_after_first = true },
-        jsonc = { 'biome', 'prettier', stop_after_first = true },
+        java = { 'google-java-format', stop_after_first = true },
+        json = { 'prettier', stop_after_first = true },
+        jsonc = { 'prettier', stop_after_first = true },
         markdown = { 'prettier', stop_after_first = true },
         ['markdown.inline'] = { 'prettier', stop_after_first = true },
+        rust = { 'rustfmt', stop_after_first = true },
         yaml = { 'prettier', stop_after_first = true },
         toml = { 'taplo', stop_after_first = true },
-
-        javascript = { 'biome', 'prettier', stop_after_first = true },
-        typescript = { 'biome', 'prettier', stop_after_first = true },
-        javascriptreact = { 'biome', 'prettier', stop_after_first = true },
-        typescriptreact = { 'biome', 'prettier', stop_after_first = true },
-        -- biome.jsonc: { "html": { "formatter": { "enabled": true }, "linter": { "enabled": true }, "assist": { "enabled": true } } }
-        html = { 'biome', 'prettier', stop_after_first = true },
-        css = { 'biome', 'prettier', stop_after_first = true },
       },
 
       -- Return options here; do not call format directly or Conform's contract gets bypassed.
@@ -357,12 +338,6 @@ do
           lsp_format = 'fallback',
         }
       end,
-
-      formatters = {
-        prettier = {
-          prepend_args = { '--html-whitespace-sensitivity', 'ignore' },
-        },
-      },
     }
   end
 end
@@ -392,46 +367,6 @@ local capabilities = vim.lsp.protocol.make_client_capabilities()
 
 if has_blink then capabilities = blink.get_lsp_capabilities(capabilities) end
 
-vim.lsp.config('clangd', {
-  capabilities = capabilities,
-  cmd = {
-    'clangd',
-    '--background-index',
-    '--clang-tidy',
-    '--header-insertion=never',
-    '--completion-style=detailed',
-    '--function-arg-placeholders',
-    '--fallback-style=LLVM',
-    '--offset-encoding=utf-16',
-  },
-  root_markers = {
-    '.clangd',
-    '.clang-tidy',
-    '.clang-format',
-    'Makefile',
-    '.git',
-  },
-})
-
-vim.lsp.config('vtsls', {
-  capabilities = capabilities,
-  settings = {
-    typescript = {
-      updateImportsOnFileMove = { enabled = 'always' },
-      suggest = { completeFunctionCalls = true },
-      inlayHints = {
-        parameterNames = { enabled = 'literals' },
-        parameterTypes = { enabled = true },
-        variableTypes = { enabled = true },
-        propertyDeclarationTypes = { enabled = true },
-        functionLikeReturnTypes = { enabled = true },
-        enumMemberValues = { enabled = true },
-      },
-    },
-  },
-  root_markers = { 'tsconfig.json', 'package.json', '.git' },
-})
-
 vim.lsp.config('lua_ls', {
   capabilities = capabilities,
   settings = {
@@ -448,17 +383,46 @@ vim.lsp.config('lua_ls', {
       telemetry = { enable = false },
     },
   },
-  root_markers = { '.luarc.json', '.stylua.toml', '.git' },
+})
+
+local root_markers = {
+  c = {
+    '.clangd',
+    'compile_commands.json',
+    'compile_flags.txt',
+    'CMakeLists.txt',
+    'Makefile',
+    '.git',
+  },
+  python = {
+    'pyproject.toml',
+    'uv.lock',
+    'poetry.lock',
+    'setup.py',
+    'setup.cfg',
+    'requirements.txt',
+    '.git',
+  },
+}
+
+vim.lsp.config('clangd', {
+  capabilities = capabilities,
+  cmd = {
+    'clangd',
+    '--background-index',
+    '--header-insertion=never',
+  },
+  root_markers = root_markers.c,
 })
 
 vim.lsp.config('ruff', {
   capabilities = capabilities,
-  root_markers = { 'pyproject.toml', 'setup.py', '.git' },
+  root_markers = root_markers.python,
 })
 
 vim.lsp.config('ty', {
   capabilities = capabilities,
-  root_markers = { 'pyproject.toml', 'setup.py', '.git' },
+  root_markers = root_markers.python,
 })
 
 for server_name in pairs(servers) do
@@ -888,17 +852,6 @@ do
 end
 -- }}}
 
--- flash.nvim {{{
--- ---------------------------------------------------------
-do
-  local ok_flash, flash = pcall(require, 'flash')
-  if ok_flash then
-    flash.setup {}
-    vim.keymap.set({ 'n', 'x', 'o' }, 's', flash.jump, { desc = 'Flash' })
-  end
-end
--- }}}
-
 -- gitsigns.nvim {{{
 -- ---------------------------------------------------------
 do
@@ -972,8 +925,8 @@ do
 
     npairs.setup {}
 
-    -- Keep skip-over behavior for the common bracket pairs, but do not
-    -- auto-insert closing characters after the opening key is typed.
+    -- Use autopairs only for skip-over behavior. Opening characters do not
+    -- auto-insert closing pairs, but closing characters can move over matches.
     local skip_over_pairs = {
       { '(', ')' },
       { '[', ']' },
@@ -1056,35 +1009,19 @@ do
   local ok_colorizer, colorizer = pcall(require, 'colorizer')
   if ok_colorizer then
     colorizer.setup {
-      -- Colorizer is broader than LSP/formatter support because it is only a visual aid.
       filetypes = {
-        'css',
-        'html',
-        'javascript',
-        'javascriptreact',
-        'typescript',
-        'typescriptreact',
+        'conf',
         'json',
         'jsonc',
+        'lua',
         'markdown',
         'markdown_inline',
+        'tmux',
         'toml',
         'vim',
         'yaml',
       },
       user_commands = true,
-      options = {
-        parsers = {
-          css = true,
-          tailwind = {
-            enable = true,
-            lsp = {
-              enable = true,
-              disable_document_color = true,
-            },
-          },
-        },
-      },
     }
   end
 end
@@ -1193,7 +1130,7 @@ local sub_dirs = { 'undo', 'backup', 'swap', 'view' }
 
 for _, dir in ipairs(sub_dirs) do
   local path = history_dir .. dir
-  if vim.fn.isdirectory(path) == 0 then vim.fn.mkdir(path, 'p', 448) end
+  if vim.fn.isdirectory(path) == 0 then vim.fn.mkdir(path, 'p', '0700') end
 end
 
 vim.opt.shadafile = history_dir .. 'main.shada'
@@ -1389,7 +1326,6 @@ vim.keymap.set('n', '#', '#zz')
 vim.keymap.set('n', 'gD', 'gDzz')
 vim.keymap.set('n', 'G', 'Gzz')
 
--- vim.keymap.set('n', '<leader>/', '<cmd>nohlsearch<CR>', { silent = true })
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { silent = true })
 vim.keymap.set('n', '<leader>y', function()
   local view = vim.fn.winsaveview()
@@ -1408,7 +1344,7 @@ vim.keymap.set('n', '<leader>bw', '<cmd>bwipeout<CR>')
 vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>')
 vim.keymap.set('n', '<leader>ls', '<cmd>buffers!<CR>')
 
-local blackhole_keys = { 'c', 'C', 'x', 'X', 'S' } -- 's' conflicts with flash.nvim
+local blackhole_keys = { 'c', 'C', 'x', 'X', 's', 'S' }
 for _, key in ipairs(blackhole_keys) do
   vim.keymap.set({ 'n', 'v' }, key, '"_' .. key)
 end
@@ -1623,5 +1559,166 @@ for key, opts in pairs(copy_mappings) do
     desc = opts.desc,
   })
 end
+-- }}}
+
+-- Single-file source code runner {{{
+local c_run_command = table.concat({
+  'cc -std=c17',
+  '-g -O2',
+  '-Wall -Wextra -Wshadow -Wformat=2',
+  '-Wconversion -Wsign-conversion -Werror -pedantic',
+  '-fsanitize=address,undefined -fno-omit-frame-pointer',
+  '%s -o %s -lm && %s',
+}, ' ')
+
+local cpp_run_command = table.concat({
+  'c++ -std=c++23',
+  '-g -O2',
+  '-Wall -Wextra -Wshadow -Wformat=2',
+  '-Wconversion -Wsign-conversion -Werror -pedantic',
+  '-fsanitize=address,undefined -fno-omit-frame-pointer',
+  '%s -o %s && %s',
+}, ' ')
+
+local run_commands = {
+  c = c_run_command,
+  cpp = cpp_run_command,
+  java = 'javac %s && java -cp %s %s',
+  python = 'python3 -u %s',
+  rust = 'rustc -C debuginfo=2 -C opt-level=2 %s -o %s && %s',
+}
+-- This runner is intentionally "single-file only"; project-aware build tools should stay in the terminal.
+
+local function open_input_file()
+  local input_file = vim.fn.expand '%:p:r' .. '.in'
+  vim.cmd('split ' .. vim.fn.fnameescape(input_file))
+end
+
+local function get_output_files()
+  local ft = vim.bo.filetype
+
+  if ft == 'c' or ft == 'cpp' or ft == 'rust' then return { vim.fn.expand '%:p:r' } end
+
+  if ft == 'java' then
+    local src_dir = vim.fn.expand '%:p:h'
+    local class_name = vim.fn.expand '%:t:r'
+    local files = { src_dir .. '/' .. class_name .. '.class' }
+    vim.list_extend(files, vim.fn.glob(src_dir .. '/' .. class_name .. '$*.class', false, true))
+    return files
+  end
+
+  return {}
+end
+
+local function delete_output_files()
+  local files = get_output_files()
+
+  for _, file in ipairs(files) do
+    if vim.fn.filereadable(file) == 1 then vim.fn.delete(file) end
+  end
+end
+
+local function get_output_cleanup_command()
+  local ft = vim.bo.filetype
+
+  -- Cleanup mirrors the outputs created by this runner and intentionally stays conservative.
+  if ft == 'c' or ft == 'cpp' or ft == 'rust' then
+    return 'rm -f -- ' .. vim.fn.shellescape(vim.fn.expand '%:p:r')
+  end
+
+  if ft == 'java' then
+    local src_dir = vim.fn.expand '%:p:h'
+    local class_name = vim.fn.expand '%:t:r'
+    return 'find '
+      .. vim.fn.shellescape(src_dir)
+      .. ' -maxdepth 1 -type f \\( -name '
+      .. vim.fn.shellescape(class_name .. '.class')
+      .. ' -o -name '
+      .. vim.fn.shellescape(class_name .. '$*.class')
+      .. ' \\) -delete'
+  end
+
+  return ''
+end
+
+local function run_code()
+  if vim.bo.modified then vim.cmd 'write' end
+  -- Clear stale artifacts before running so ad-hoc single-file tests stay reproducible.
+  delete_output_files()
+
+  local ft = vim.bo.filetype
+  local cmd_template = run_commands[ft]
+
+  if not cmd_template then
+    vim.notify('Unsupported file type: ' .. ft, vim.log.levels.WARN)
+    return
+  end
+
+  local src = vim.fn.shellescape(vim.fn.expand '%:p')
+  local exe = vim.fn.shellescape(vim.fn.expand '%:p:r')
+  local input_file = vim.fn.expand '%:p:r' .. '.in'
+
+  local cmd = ''
+  if ft == 'python' then
+    cmd = string.format(cmd_template, src)
+  elseif ft == 'java' then
+    cmd = string.format(
+      cmd_template,
+      src,
+      vim.fn.shellescape(vim.fn.expand '%:p:h'),
+      vim.fn.shellescape(vim.fn.expand '%:t:r')
+    )
+  else
+    cmd = string.format(cmd_template, src, exe, exe)
+  end
+
+  if vim.fn.filereadable(input_file) == 1 then
+    cmd = cmd .. ' < ' .. vim.fn.shellescape(input_file)
+  end
+
+  -- Run cleanup after the terminal job exits so single-file binaries/class files do not linger.
+  local cleanup_cmd = get_output_cleanup_command()
+  local final_cmd = cleanup_cmd == '' and cmd
+    or string.format('(%s); run_status=$?; %s; exit $run_status', cmd, cleanup_cmd)
+
+  vim.cmd 'split'
+  vim.cmd('terminal ' .. final_cmd)
+  vim.bo.bufhidden = 'wipe'
+
+  vim.wo.number = false
+  vim.wo.relativenumber = false
+  vim.wo.signcolumn = 'no'
+
+  vim.cmd 'startinsert'
+end
+
+local function not_supported()
+  vim.notify('Code runner not supported for this filetype', vim.log.levels.WARN)
+end
+
+vim.keymap.set('n', '<leader>rr', not_supported, { desc = 'Run Code (Disabled)' })
+vim.keymap.set('n', '<leader>ri', not_supported, { desc = 'Open Input File (Disabled)' })
+
+local runner_group = vim.api.nvim_create_augroup('UserCodeRunner', { clear = true })
+-- Only expose runner mappings for supported filetypes so the global key space stays quiet.
+vim.api.nvim_create_autocmd('FileType', {
+  group = runner_group,
+  pattern = { 'c', 'cpp', 'java', 'python', 'rust' },
+  callback = function()
+    local opts = { buffer = true, silent = true }
+    vim.keymap.set(
+      'n',
+      '<leader>rr',
+      run_code,
+      vim.tbl_extend('force', opts, { desc = 'Run Code' })
+    )
+    vim.keymap.set(
+      'n',
+      '<leader>ri',
+      open_input_file,
+      vim.tbl_extend('force', opts, { desc = 'Open Input File' })
+    )
+  end,
+})
 -- }}}
 -- }}}
