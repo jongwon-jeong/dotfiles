@@ -14,6 +14,13 @@
 - Do not rewrite or restate entire files unless explicitly requested.
 - When modifying files, show only the relevant changed parts with enough file and location context.
 
+## Comments
+
+- Use comments to explain why code is structured a certain way, including intent, ordering constraints, tradeoffs, or operational risks.
+- Avoid comments that merely restate what the code already says.
+- Keep comments general enough to remain accurate when implementation details change.
+- Prefer concise comments near the code they clarify.
+
 ## Git
 
 - Do not commit, amend, rebase, force-push, or push unless explicitly requested.

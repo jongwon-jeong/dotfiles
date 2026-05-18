@@ -34,6 +34,12 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Avoid broad refactors, generated churn, and style-only rewrites.
 - If you intentionally deviate from local conventions or repo defaults, add a short comment explaining why.
 
+## Comments
+
+- Preserve existing `{{{ / }}}` fold markers in long configuration and script files.
+- For large folded sections, name closing markers when it improves navigation.
+- Keep ordinary function closing markers simple unless a name materially improves readability.
+
 ## Neovim
 
 - Keep Neovim configuration as a single-file SSOT in `config/nvim/init.lua`.

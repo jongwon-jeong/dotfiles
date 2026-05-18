@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
 # Keep Ubuntu-specific machine bootstrap here; avoid adding unsupported distro setup without an explicit need.
+#
+# Layout:
+# - Ubuntu package/system setup comes first.
+# - Distro-neutral userland installers stay separate and run after their base dependencies.
+# - Keep main's task order aligned with the section order, except for network policy,
+#   which should run after download-heavy installers.
+
+# Common helpers and environment detection {{{
+# Shared predicates and logging used by both Ubuntu-specific and distro-neutral tasks.
 
 show_script_info() { # {{{
   echo "INFO: basename: ${0##*/}"
@@ -9,7 +18,7 @@ show_script_info() { # {{{
   echo ""
 } # }}}
 
-# Detect functions {{{
+# Detection helpers {{{
 is_wsl() {
   [[ -f /proc/version ]] && grep -qiE "microsoft|wsl" /proc/version
 }
@@ -25,7 +34,11 @@ is_ubuntu() {
 is_nvidia_hardware_present() {
   lspci | grep -qi "nvidia"
 }
-# }}}
+# Detection helpers }}}
+# Common helpers and environment detection }}}
+
+# Ubuntu package and bootstrap foundation {{{
+# Installs and repairs apt-managed system packages before any upstream installers run.
 
 install_package() { # {{{
   local -r pkgs=("${@}")
@@ -83,7 +96,7 @@ upgrade_packages() { # {{{
   fi
 } # }}}
 
-install_basic_packages() { # {{{
+install_ubuntu_foundation_packages() { # {{{
   if ! is_wsl && command -v ubuntu-drivers &>/dev/null; then
     echo ""
     echo "INFO: Installing Ubuntu recommended additional drivers..."
@@ -118,75 +131,41 @@ install_basic_packages() { # {{{
     fi
   fi
 
-  install_neovim() {
-    # Add export PATH="$PATH:/opt/nvim-linux-x86_64/bin" to ~/.zshrc
-    if command -v nvim &>/dev/null; then
-      echo "DONE: neovim is already installed"
-      return 0
-    fi
-
-    local -r arch_type=$(uname -m)
-    if [[ "${arch_type}" == "x86_64" ]]; then
-      local -r download_dir="${HOME}/proj/tmp/packages"
-      mkdir -pv "${download_dir}"
-      echo ""
-      echo "INFO: Downloading Neovim archive to ${download_dir}..."
-      curl -fLo "${download_dir}/nvim-linux-x86_64.tar.gz" \
-        https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-      echo ""
-      echo "INFO: Installing Neovim under /opt and linking /usr/local/bin/nvim..."
-      sudo rm -rf /opt/nvim-linux-x86_64
-      sudo tar -C /opt -xzf "${download_dir}/nvim-linux-x86_64.tar.gz"
-
-      sudo ln -sf "/opt/nvim-linux-x86_64/bin/nvim" /usr/local/bin/nvim
-    else
-      echo "ERROR: Unsupported Linux architecture: ${arch_type}"
-      return 1
-    fi
-  }
-  install_neovim
-
-  install_zsh_plugins() {
-    local -r zsh_dir="${HOME}/.zsh"
-    mkdir -p "${zsh_dir}"
-
-    local -rA plugins=(
-      ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions"
-      ["zsh-completions"]="https://github.com/zsh-users/zsh-completions"
-      ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting"
-    )
-
-    local name
-    for name in "${!plugins[@]}"; do
-      local target="${zsh_dir}/${name}"
-      if [[ ! -d "${target}" ]]; then
-        echo ""
-        echo "INFO: Cloning ${name}..."
-        git clone --depth 1 "${plugins[$name]}" "${target}"
-      elif [[ -d "${target}/.git" ]]; then
-        echo ""
-        echo "INFO: Updating ${name}..."
-        git -C "${target}" pull --ff-only
-      else
-        echo "WARN: Skipping: ${name} (${target} exists but is not a git repository)"
-      fi
-    done
-  }
-  install_zsh_plugins
-
   :
 } # }}}
 
-make_default_directories() { # {{{
-  mkdir -pv ~/Downloads
-  mkdir -pv ~/Documents
-  mkdir -pv ~/proj/personal
-  mkdir -pv ~/proj/public
-  mkdir -pv ~/proj/work
-  mkdir -pv ~/proj/tmp
-} # }}}
+install_neovim() { # {{{
+  # Add export PATH="$PATH:/opt/nvim-linux-x86_64/bin" to ~/.zshrc
+  if command -v nvim &>/dev/null; then
+    echo "DONE: neovim is already installed"
+    return 0
+  fi
 
-make_RALT_to_HNGL() { # {{{
+  local -r arch_type=$(uname -m)
+  if [[ "${arch_type}" == "x86_64" ]]; then
+    local -r download_dir="${HOME}/proj/tmp/packages"
+    mkdir -pv "${download_dir}"
+    echo ""
+    echo "INFO: Downloading Neovim archive to ${download_dir}..."
+    curl -fLo "${download_dir}/nvim-linux-x86_64.tar.gz" \
+      https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+    echo ""
+    echo "INFO: Installing Neovim under /opt and linking /usr/local/bin/nvim..."
+    sudo rm -rf /opt/nvim-linux-x86_64
+    sudo tar -C /opt -xzf "${download_dir}/nvim-linux-x86_64.tar.gz"
+
+    sudo ln -sf "/opt/nvim-linux-x86_64/bin/nvim" /usr/local/bin/nvim
+  else
+    echo "ERROR: Unsupported Linux architecture: ${arch_type}"
+    return 1
+  fi
+} # }}}
+# Ubuntu package and bootstrap foundation }}}
+
+# Ubuntu desktop and system configuration {{{
+# Applies Ubuntu desktop/system policy after the required packages are present.
+
+map_right_alt_to_hangul() { # {{{
   if is_wsl; then
     return 0
   fi
@@ -275,6 +254,69 @@ SUDO_SCRIPT
   # sudo reboot
 } # }}}
 
+setup_locale() { # {{{
+  echo ""
+  echo "INFO: Configuring system locale to en_US.UTF-8..."
+  if command -v locale-gen &>/dev/null; then
+    sudo locale-gen en_US.UTF-8
+  else
+    echo "WARN: locale-gen not found. Skipping locale setup."
+  fi
+  sudo update-locale LANG=en_US.UTF-8
+} # }}}
+
+set_default_shell_to_zsh() { # {{{
+  local -r zsh_path="$(command -v zsh)"
+  if [ -n "${zsh_path}" ]; then
+    local -r target_user="${SUDO_USER:-${USER}}"
+    echo ""
+    echo "INFO: Changing login shell for ${target_user} to ${zsh_path}..."
+    sudo chsh -s "${zsh_path}" "${target_user}"
+  else
+    echo "WARN: Zsh is not installed or not in PATH."
+  fi
+} # }}}
+# Ubuntu desktop and system configuration }}}
+
+# Distro-neutral userland setup {{{
+# Installs user-owned tools that are not inherently tied to apt, after their base dependencies exist.
+
+create_default_directories() { # {{{
+  mkdir -pv ~/Downloads
+  mkdir -pv ~/Documents
+  mkdir -pv ~/proj/personal
+  mkdir -pv ~/proj/public
+  mkdir -pv ~/proj/work
+  mkdir -pv ~/proj/tmp
+} # }}}
+
+install_zsh_plugins() { # {{{
+  local -r zsh_dir="${HOME}/.zsh"
+  mkdir -p "${zsh_dir}"
+
+  local -rA plugins=(
+    ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions"
+    ["zsh-completions"]="https://github.com/zsh-users/zsh-completions"
+    ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting"
+  )
+
+  local name
+  for name in "${!plugins[@]}"; do
+    local target="${zsh_dir}/${name}"
+    if [[ ! -d "${target}" ]]; then
+      echo ""
+      echo "INFO: Cloning ${name}..."
+      git clone --depth 1 "${plugins[$name]}" "${target}"
+    elif [[ -d "${target}/.git" ]]; then
+      echo ""
+      echo "INFO: Updating ${name}..."
+      git -C "${target}" pull --ff-only
+    else
+      echo "WARN: Skipping: ${name} (${target} exists but is not a git repository)"
+    fi
+  done
+} # }}}
+
 install_node() { # {{{
   echo ""
   echo "INFO: Installing Node.js..."
@@ -310,7 +352,7 @@ install_node() { # {{{
   done
 } # }}}
 
-install_global_packages() { # {{{
+install_user_cli_tools() { # {{{
   if ! command -v uv &>/dev/null; then
     echo ""
     echo "INFO: Installing uv from the upstream installer..."
@@ -375,29 +417,10 @@ install_nerd_font() { # {{{
   }
   install_jetbrains_nerd_font
 } # }}}
+# Distro-neutral userland setup }}}
 
-setup_locale() { # {{{
-  echo ""
-  echo "INFO: Configuring system locale to en_US.UTF-8..."
-  if command -v locale-gen &>/dev/null; then
-    sudo locale-gen en_US.UTF-8
-  else
-    echo "WARN: locale-gen not found. Skipping locale setup."
-  fi
-  sudo update-locale LANG=en_US.UTF-8
-} # }}}
-
-change_shell_to_zsh() { # {{{
-  local -r zsh_path="$(command -v zsh)"
-  if [ -n "${zsh_path}" ]; then
-    local -r target_user="${SUDO_USER:-${USER}}"
-    echo ""
-    echo "INFO: Changing login shell for ${target_user} to ${zsh_path}..."
-    sudo chsh -s "${zsh_path}" "${target_user}"
-  else
-    echo "WARN: Zsh is not installed or not in PATH."
-  fi
-} # }}}
+# Ubuntu network policy {{{
+# Runs after download-heavy installers so first-boot setup is less likely to lose network access.
 
 setup_basic_network_privacy() { # {{{
   if is_wsl; then
@@ -462,8 +485,10 @@ EOF
   # Apply now if NetworkManager is running; otherwise it applies on next start.
   sudo systemctl reload NetworkManager.service 2>/dev/null || true
 } # }}}
+# Ubuntu network policy }}}
 
-main() { # {{{
+# Main {{{
+main() {
   if (($# > 0)); then
     echo "ERROR: setup_ubuntu_bootstrap.sh does not accept options."
     echo "   Run without arguments."
@@ -477,20 +502,25 @@ main() { # {{{
 
     tasks+=(
       upgrade_packages
-      install_basic_packages
-      make_default_directories
+      install_ubuntu_foundation_packages
+      install_neovim
     )
 
     tasks+=(
+      map_right_alt_to_hangul
+      setup_locale
+      set_default_shell_to_zsh
+    )
+
+    tasks+=(
+      create_default_directories
+      install_zsh_plugins
       install_node
-      install_global_packages
+      install_user_cli_tools
       install_nerd_font
     )
 
     tasks+=(
-      make_RALT_to_HNGL
-      setup_locale
-      change_shell_to_zsh
       setup_basic_network_privacy
     )
   else
@@ -515,7 +545,8 @@ main() { # {{{
       echo "WARN: Function '${task}' not found."
     fi
   done
-} # }}}
+}
+# Main }}}
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "${@}"
