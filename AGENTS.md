@@ -70,7 +70,6 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 
 ## Git Workflow
 
-- Do not create commits unless explicitly requested.
 - Review `git status` and `git diff` before committing.
 - Run the relevant verification commands before committing.
 - Prefer one commit per clear intent.
@@ -79,4 +78,3 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Keep commit subjects concise, focused, and lowercase after the colon.
 - Do not mix unrelated changes in one commit.
 - Keep commits focused on reviewed working-tree changes only.
-- Do not amend, rebase, force-push, or rewrite history unless explicitly requested.

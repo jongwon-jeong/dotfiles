@@ -1,15 +1,3 @@
----
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
-#
-# USAGE:
-# 1. Save this file as .pre-commit-config.yaml in your project root.
-# 2. Run `pre-commit install` once.
-# 3. It will now run automatically on every `git commit`.
-#
-# TO SKIP HOOKS FOR A SINGLE COMMIT:
-#    git commit -m "Your message" --no-verify
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

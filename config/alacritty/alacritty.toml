@@ -2,54 +2,6 @@
 # ----------------------------------------------------------
 
 [colors]
-# # Paper {{{
-# [colors.primary]
-# background = "#F2EEDE"
-# foreground = "#000000"
-# dim_foreground = "#303030"
-#
-# [colors.cursor]
-# text = "#F2EEDE"
-# cursor = "#000000"
-#
-# [colors.selection]
-# text = "#000000"
-# background = "#9FC5E8"
-#
-# [colors.search.matches]
-# foreground = "#000000"
-# background = "#FFD400"
-#
-# [colors.normal]
-# black = "#000000"
-# red = "#7F1D1D"
-# green = "#3F5F2A"
-# yellow = "#7A3F00"
-# blue = "#2F5F8F"
-# magenta = "#5A3F78"
-# cyan = "#2F6F6A"
-# white = "#F2EEDE"
-#
-# [colors.bright]
-# black = "#303030"
-# red = "#9F3A30"
-# green = "#4F6F3A"
-# yellow = "#FFD400"
-# blue = "#3F6F9F"
-# magenta = "#6A4F8A"
-# cyan = "#3F7F78"
-# white = "#FFFFFF"
-#
-# [colors.dim]
-# black = "#333333"
-# red = "#6F2420"
-# green = "#2F4520"
-# yellow = "#6A4B00"
-# blue = "#254A70"
-# magenta = "#44305C"
-# cyan = "#254F4B"
-# white = "#D8D0B8"
-# # }}}
 
 # https://github.com/alacritty/alacritty-theme/blob/master/themes/papertheme.toml
 # Colors (Paper Theme) {{{
