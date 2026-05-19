@@ -1563,157 +1563,25 @@ for key, opts in pairs(copy_mappings) do
 end
 -- }}}
 
--- Single-file source code runner {{{
-local c_run_command = table.concat({
-  'cc -std=c17',
-  '-g -O2',
-  '-Wall -Wextra -Wshadow -Wformat=2',
-  '-Wconversion -Wsign-conversion -Werror -pedantic',
-  '-fsanitize=address,undefined -fno-omit-frame-pointer',
-  '%s -o %s -lm && %s',
-}, ' ')
-
-local cpp_run_command = table.concat({
-  'c++ -std=c++23',
-  '-g -O2',
-  '-Wall -Wextra -Wshadow -Wformat=2',
-  '-Wconversion -Wsign-conversion -Werror -pedantic',
-  '-fsanitize=address,undefined -fno-omit-frame-pointer',
-  '%s -o %s && %s',
-}, ' ')
-
-local run_commands = {
-  c = c_run_command,
-  cpp = cpp_run_command,
-  java = 'javac %s && java -cp %s %s',
-  python = 'python3 -u %s',
-  rust = 'rustc -C debuginfo=2 -C opt-level=2 %s -o %s && %s',
-}
--- This runner is intentionally "single-file only"; project-aware build tools should stay in the terminal.
-
+-- Source input file helper {{{
 local function open_input_file()
   local input_file = vim.fn.expand '%:p:r' .. '.in'
   vim.cmd('split ' .. vim.fn.fnameescape(input_file))
 end
 
-local function get_output_files()
-  local ft = vim.bo.filetype
-
-  if ft == 'c' or ft == 'cpp' or ft == 'rust' then return { vim.fn.expand '%:p:r' } end
-
-  if ft == 'java' then
-    local src_dir = vim.fn.expand '%:p:h'
-    local class_name = vim.fn.expand '%:t:r'
-    local files = { src_dir .. '/' .. class_name .. '.class' }
-    vim.list_extend(files, vim.fn.glob(src_dir .. '/' .. class_name .. '$*.class', false, true))
-    return files
-  end
-
-  return {}
+local function input_file_not_supported()
+  vim.notify('Input file helper not supported for this filetype', vim.log.levels.WARN)
 end
 
-local function delete_output_files()
-  local files = get_output_files()
+vim.keymap.set('n', '<leader>ri', input_file_not_supported, { desc = 'Open Input File (Disabled)' })
 
-  for _, file in ipairs(files) do
-    if vim.fn.filereadable(file) == 1 then vim.fn.delete(file) end
-  end
-end
-
-local function get_output_cleanup_command()
-  local ft = vim.bo.filetype
-
-  -- Cleanup mirrors the outputs created by this runner and intentionally stays conservative.
-  if ft == 'c' or ft == 'cpp' or ft == 'rust' then
-    return 'rm -f -- ' .. vim.fn.shellescape(vim.fn.expand '%:p:r')
-  end
-
-  if ft == 'java' then
-    local src_dir = vim.fn.expand '%:p:h'
-    local class_name = vim.fn.expand '%:t:r'
-    return 'find '
-      .. vim.fn.shellescape(src_dir)
-      .. ' -maxdepth 1 -type f \\( -name '
-      .. vim.fn.shellescape(class_name .. '.class')
-      .. ' -o -name '
-      .. vim.fn.shellescape(class_name .. '$*.class')
-      .. ' \\) -delete'
-  end
-
-  return ''
-end
-
-local function run_code()
-  if vim.bo.modified then vim.cmd 'write' end
-  -- Clear stale artifacts before running so ad-hoc single-file tests stay reproducible.
-  delete_output_files()
-
-  local ft = vim.bo.filetype
-  local cmd_template = run_commands[ft]
-
-  if not cmd_template then
-    vim.notify('Unsupported file type: ' .. ft, vim.log.levels.WARN)
-    return
-  end
-
-  local src = vim.fn.shellescape(vim.fn.expand '%:p')
-  local exe = vim.fn.shellescape(vim.fn.expand '%:p:r')
-  local input_file = vim.fn.expand '%:p:r' .. '.in'
-
-  local cmd = ''
-  if ft == 'python' then
-    cmd = string.format(cmd_template, src)
-  elseif ft == 'java' then
-    cmd = string.format(
-      cmd_template,
-      src,
-      vim.fn.shellescape(vim.fn.expand '%:p:h'),
-      vim.fn.shellescape(vim.fn.expand '%:t:r')
-    )
-  else
-    cmd = string.format(cmd_template, src, exe, exe)
-  end
-
-  if vim.fn.filereadable(input_file) == 1 then
-    cmd = cmd .. ' < ' .. vim.fn.shellescape(input_file)
-  end
-
-  -- Run cleanup after the terminal job exits so single-file binaries/class files do not linger.
-  local cleanup_cmd = get_output_cleanup_command()
-  local final_cmd = cleanup_cmd == '' and cmd
-    or string.format('(%s); run_status=$?; %s; exit $run_status', cmd, cleanup_cmd)
-
-  vim.cmd 'split'
-  vim.cmd('terminal ' .. final_cmd)
-  vim.bo.bufhidden = 'wipe'
-
-  vim.wo.number = false
-  vim.wo.relativenumber = false
-  vim.wo.signcolumn = 'no'
-
-  vim.cmd 'startinsert'
-end
-
-local function not_supported()
-  vim.notify('Code runner not supported for this filetype', vim.log.levels.WARN)
-end
-
-vim.keymap.set('n', '<leader>rr', not_supported, { desc = 'Run Code (Disabled)' })
-vim.keymap.set('n', '<leader>ri', not_supported, { desc = 'Open Input File (Disabled)' })
-
-local runner_group = vim.api.nvim_create_augroup('UserCodeRunner', { clear = true })
--- Only expose runner mappings for supported filetypes so the global key space stays quiet.
+local input_file_group = vim.api.nvim_create_augroup('UserInputFile', { clear = true })
+-- Only expose the mapping for filetypes that commonly use sidecar .in files.
 vim.api.nvim_create_autocmd('FileType', {
-  group = runner_group,
+  group = input_file_group,
   pattern = { 'c', 'cpp', 'java', 'python', 'rust' },
   callback = function()
     local opts = { buffer = true, silent = true }
-    vim.keymap.set(
-      'n',
-      '<leader>rr',
-      run_code,
-      vim.tbl_extend('force', opts, { desc = 'Run Code' })
-    )
     vim.keymap.set(
       'n',
       '<leader>ri',
