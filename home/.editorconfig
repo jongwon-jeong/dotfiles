@@ -1,0 +1,80 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+[*.{c,h,cc,cpp,cxx,hpp,hxx}]
+indent_size = 2
+max_line_length = 80
+
+[*.{rs,zig}]
+indent_size = 4
+max_line_length = 80
+
+[*.go]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+[*.lua]
+indent_size = 2
+max_line_length = 100
+
+[*.vim]
+indent_size = 2
+max_line_length = 100
+
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,svelte,astro,css,scss,less,html,dart}]
+indent_size = 2
+
+[*.{json,jsonc,json5,yaml,yml,toml,xml}]
+indent_size = 2
+
+[*.{sql,psql,pgsql,mysql}]
+indent_size = 2
+
+[*.{ini,cfg,conf,editorconfig}]
+indent_size = 2
+
+[*.{env,envrc}]
+indent_size = 2
+
+[{.env,.env.*,.envrc}]
+indent_size = 2
+
+[{Dockerfile,Dockerfile.*,Containerfile,*.tf,*.tfvars,*.k8s.yml,*.hcl,*.nomad}]
+indent_size = 2
+
+[*.{java,groovy,gradle,kt,kts}]
+indent_size = 4
+max_line_length = 100
+
+[*.{sh,bash,zsh,ksh,fish}]
+indent_size = 2
+
+[{Makefile,makefile,*.mk}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+[*.md]
+max_line_length = 0
+trim_trailing_whitespace = false
+
+[{COMMIT_EDITMSG,MERGE_MSG,git-rebase-todo}]
+indent_size = 2
+max_line_length = 72
+
+[{.gitattributes,.gitignore}]
+indent_size = 2
+max_line_length = 0
