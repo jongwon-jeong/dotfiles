@@ -707,7 +707,8 @@ vim.keymap.set('n', 'N', 'Nzz')
 vim.keymap.set('n', '*', '*zz')
 vim.keymap.set('n', '#', '#zz')
 
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { silent = true })
+-- Intentionally keep this commented mapping for future rollback/reference.
+-- vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>', { silent = true })
 vim.keymap.set('n', '<leader>v', '<C-v>')
 vim.keymap.set('i', '{<CR>', '{<CR>}<Esc>O')
 vim.keymap.set('n', '<leader>bb', '<C-o>', { desc = 'Jump Back' })
@@ -775,6 +776,73 @@ end, { expr = true, desc = 'Previous completion item' })
 -- }}}
 
 -- Etc. {{{
+-- Hangul input source {{{
+local function reset_input_source()
+  if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then return end
+  if not vim.env.DISPLAY and not vim.env.WAYLAND_DISPLAY then return end
+  if vim.fn.executable 'gsettings' ~= 1 then return end
+
+  -- The Arch bootstrap configures GNOME input sources with US first and Hangul
+  -- second. Read the active source first so Esc stays cheap when English is
+  -- already active and only Hangul is forced back to the ASCII-friendly source.
+  local current = vim
+    .system({
+      'gsettings',
+      'get',
+      'org.gnome.desktop.input-sources',
+      'current',
+    }, { text = true })
+    :wait()
+
+  if current.code ~= 0 then return end
+
+  local current_index = tonumber((current.stdout or ''):match '^%s*(.-)%s*$')
+  if not current_index or current_index == 0 then return end
+
+  local sources = vim
+    .system({
+      'gsettings',
+      'get',
+      'org.gnome.desktop.input-sources',
+      'sources',
+    }, { text = true })
+    :wait()
+
+  if sources.code ~= 0 then return end
+
+  local source_index = 0
+  local current_source_is_hangul = false
+  for source_type, source_name in (sources.stdout or ''):gmatch "%('([^']+)', '([^']+)'%)" do
+    if source_index == current_index then
+      current_source_is_hangul = source_type == 'ibus' and source_name == 'hangul'
+      break
+    end
+    source_index = source_index + 1
+  end
+
+  if not current_source_is_hangul then return end
+
+  vim.system({ 'gsettings', 'set', 'org.gnome.desktop.input-sources', 'current', '0' }, {
+    detach = true,
+  })
+end
+
+vim.keymap.set('n', '<Esc>', function()
+  reset_input_source()
+  vim.cmd.nohlsearch()
+end, { silent = true, desc = 'Clear search and reset input source' })
+
+vim.keymap.set('v', '<Esc>', function()
+  reset_input_source()
+  return '<Esc>'
+end, { expr = true, silent = true, desc = 'Reset input source and escape' })
+
+vim.api.nvim_create_autocmd('InsertLeave', {
+  callback = reset_input_source,
+  desc = 'Reset Hangul input source after insert mode editing',
+})
+-- }}}
+
 -- Toggle quickfix {{{
 -- Quickfix is the shared result UI for diagnostics, grep, and path search.
 local function is_quickfix_window_open()
