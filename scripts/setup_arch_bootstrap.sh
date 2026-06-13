@@ -301,6 +301,7 @@ install_base_packages() { # {{{
     zlib bzip2 readline sqlite libffi xz \
     exfatprogs zip unzip 7zip \
     tree mat2 fontconfig \
+    yazi file poppler resvg imagemagick \
     wl-clipboard \
     base-devel clang lldb
 

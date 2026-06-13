@@ -230,6 +230,27 @@ alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "WARN: Directory d
 alias xbash='exec bash -l'
 alias xzsh='exec zsh -l'
 
+yz() {
+  if ! command -v yazi >/dev/null 2>&1; then
+    echo "ERROR: yazi is not installed." >&2
+    return 1
+  fi
+
+  local tmp cwd status
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")" || return
+  command yazi "${@}" --cwd-file="${tmp}"
+  status="${?}"
+  IFS= read -r -d '' cwd <"${tmp}" 2>/dev/null || cwd="$(cat "${tmp}" 2>/dev/null)"
+  if [ "${cwd}" != "${PWD}" ] && [ -d "${cwd}" ]; then
+    builtin cd -- "${cwd}" || {
+      command rm -f -- "${tmp}"
+      return 1
+    }
+  fi
+  command rm -f -- "${tmp}"
+  return "${status}"
+}
+
 alias c='clear'
 alias h='history | tail -n 20'
 
