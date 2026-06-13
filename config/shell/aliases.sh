@@ -64,6 +64,12 @@ if [[ "$(uname)" = "Linux" ]]; then
     alias pacsi='pacman -Si' # Show repository package details.
     alias pacqi='pacman -Qi' # Show installed package details.
 
+    if command -v yay >/dev/null 2>&1; then
+      alias yayss='yay -Ss' # Search repository and AUR packages.
+      alias yaysi='yay -Si' # Show repository or AUR package details.
+      alias yayqi='yay -Qi' # Show installed package details.
+    fi
+
     if ! _is_remote_shell; then
       bubo() {
         echo "INFO: Checking pacman updates..."

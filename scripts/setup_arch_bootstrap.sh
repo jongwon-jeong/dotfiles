@@ -714,6 +714,30 @@ install_yay() { # {{{
   }
 } # }}}
 
+install_aur_packages() { # {{{
+  # Keep proprietary desktop apps in AUR instead of Flatpak/Snap so they stay
+  # close to the upstream vendor distributions while still being reproducible.
+  if ! run_as_target_user bash -lc "command -v yay >/dev/null 2>&1"; then
+    echo "WARN: yay is not installed. Skipping AUR package setup."
+    return 0
+  fi
+
+  echo ""
+  echo "INFO: Installing AUR packages..."
+
+  local -a aur_packages=(
+    visual-studio-code-bin
+    jetbrains-toolbox
+  )
+
+  local pkg
+  for pkg in "${aur_packages[@]}"; do
+    run_as_target_user yay -S --needed --noconfirm "${pkg}" || {
+      echo "WARN: Failed to install AUR package: ${pkg}"
+    }
+  done
+} # }}}
+
 install_mise_managed_tools() { # {{{
   local mise_config="${dotfiles_root}/config/mise/config.toml"
 
@@ -1052,6 +1076,7 @@ main() { # {{{
     create_default_directories
     install_zsh_plugins
     install_yay
+    install_aur_packages
     install_mise_managed_tools
     install_user_cli_tools
     install_nerd_font
