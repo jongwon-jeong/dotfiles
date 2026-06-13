@@ -47,24 +47,24 @@ white = '#aaaaaa'
 # }}}
 
 [font]
-size = 13.0
+size = 14.0
 builtin_box_drawing = true
 
 [font.normal]
-family = "JetBrainsMonoNL Nerd Font Mono"
+family = "CommitMono Nerd Font Mono"
 style = "Regular"
 
 [font.bold]
-family = "JetBrainsMonoNL Nerd Font Mono"
+family = "CommitMono Nerd Font Mono"
 style = "Bold"
 
 [font.italic]
-family = "JetBrainsMonoNL Nerd Font Mono"
+family = "CommitMono Nerd Font Mono"
 style = "Regular"
 # style = "Italic"
 
 [font.bold_italic]
-family = "JetBrainsMonoNL Nerd Font Mono"
+family = "CommitMono Nerd Font Mono"
 style = "Bold"
 # style = "Bold Italic"
 

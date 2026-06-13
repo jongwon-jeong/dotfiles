@@ -11,7 +11,7 @@
   "editor.cursorStyle": "line",
   "editor.detectIndentation": true,
   "editor.foldingStrategy": "auto",
-  "editor.fontFamily": "JetBrainsMonoNL Nerd Font Mono, monospace",
+  "editor.fontFamily": "CommitMono Nerd Font Mono, monospace",
   "editor.fontLigatures": false,
   "editor.fontSize": 16,
   "editor.formatOnSave": true,
@@ -46,7 +46,7 @@
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "search.smartCase": true,
-  "terminal.integrated.fontFamily": "JetBrainsMonoNL Nerd Font Mono",
+  "terminal.integrated.fontFamily": "CommitMono Nerd Font Mono",
   "terminal.integrated.fontSize": 16,
   "vim.handleKeys": {
     "<C-u>": false

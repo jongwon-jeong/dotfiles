@@ -789,9 +789,9 @@ install_user_cli_tools() { # {{{
 install_nerd_font() { # {{{
   # Windows Font Directory = "/mnt/c/Windows/Fonts"
 
-  local -r font_name="JetBrainsMonoNLNerdFontMono"
+  local -r font_name="CommitMonoNerdFontMono"
   local -r version="v3.4.0"
-  local -r download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/${version}/JetBrainsMono.zip"
+  local -r download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/${version}/CommitMono.zip"
   local home_dir=""
   home_dir="$(target_home)" || {
     echo "WARN: Could not identify a non-root target home. Skipping font setup."
@@ -800,7 +800,7 @@ install_nerd_font() { # {{{
 
   local -r font_dir="${home_dir}/.local/share/fonts"
 
-  install_jetbrains_nerd_font() {
+  install_commit_mono_nerd_font() {
     if find "${font_dir}" -name "*${font_name}*" | grep -q "."; then
       echo "DONE: ${font_name} is already installed. Skipping..."
       return 0
@@ -814,21 +814,21 @@ install_nerd_font() { # {{{
 
     echo ""
     echo "INFO: Downloading font archive..."
-    run_as_target_user curl -fLo "${temp_dir}/JetBrainsMono.zip" "${download_url}" --retry 3 || {
+    run_as_target_user curl -fLo "${temp_dir}/CommitMono.zip" "${download_url}" --retry 3 || {
       echo "WARN: Failed to download ${font_name}."
       return 0
     }
 
     echo ""
     echo "INFO: Extracting files..."
-    run_as_target_user unzip -o "${temp_dir}/JetBrainsMono.zip" -d "${temp_dir}" || {
+    run_as_target_user unzip -o "${temp_dir}/CommitMono.zip" -d "${temp_dir}" || {
       echo "WARN: Failed to extract ${font_name} archive."
       return 0
     }
 
     run_as_target_user mkdir -pv "${font_dir}"
 
-    run_as_target_user bash -lc "find \"${temp_dir}\" -name 'JetBrainsMonoNLNerdFontMono-*.ttf' -exec cp {} \"${font_dir}/\" \;" || {
+    run_as_target_user bash -lc "find \"${temp_dir}\" -name 'CommitMonoNerdFontMono-*.otf' -exec cp {} \"${font_dir}/\" \;" || {
       echo "WARN: Failed to copy ${font_name} files."
       return 0
     }
@@ -842,7 +842,7 @@ install_nerd_font() { # {{{
 
     echo "DONE: Font installation completed successfully!"
   }
-  install_jetbrains_nerd_font
+  install_commit_mono_nerd_font
 } # }}}
 
 # User tool setup }}}
