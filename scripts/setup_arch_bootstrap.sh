@@ -702,7 +702,7 @@ setup_gnome_preferences() { # {{{
     org.gnome.desktop.a11y.keyboard slowkeys-enable "false"
     org.gnome.desktop.a11y.keyboard bouncekeys-enable "false"
 
-    org.gnome.desktop.screensaver lock-enabled "false"
+    org.gnome.desktop.screensaver lock-enabled "true"
     org.gnome.desktop.screensaver lock-delay "0"
 
     org.gnome.system.location enabled "false"
@@ -751,8 +751,8 @@ setup_gnome_preferences() { # {{{
   fi
 
   if command -v powerprofilesctl &>/dev/null; then
-    run_as_root powerprofilesctl set performance || {
-      echo "WARN: Failed to select the GNOME performance power profile."
+    run_as_root powerprofilesctl set balanced || {
+      echo "WARN: Failed to select the GNOME balanced power profile."
       preferences_failed=true
     }
   else
