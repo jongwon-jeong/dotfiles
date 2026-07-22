@@ -1,0 +1,77 @@
+" ~/.ideavimrc
+" ----------------------------------------------------------
+" IdeaVim config for JetBrains IDEs.
+" Mirrors the core editing workflow from config/nvim/init.lua.
+" Keep IDE actions pragmatic; do not chase full Neovim parity.
+" Prefer IDE-native actions where they match the Neovim workflow cleanly.
+
+set clipboard+=unnamedplus
+set clipboard+=ideaput
+set hlsearch
+set ignorecase
+set incsearch
+set scrolloff=8
+set smartcase
+
+let mapleader="\\"
+
+inoremap jk <Esc>
+
+nnoremap , :
+vnoremap , :
+
+nnoremap j gj
+nnoremap k gk
+nnoremap 0 g0
+nnoremap ^ g^
+nnoremap $ g$
+
+vnoremap < <gv
+vnoremap > >gv
+
+nnoremap n nzz
+nnoremap N Nzz
+nnoremap * *zz
+nnoremap # #zz
+
+nnoremap U <C-r>
+nnoremap Q <Nop>
+nnoremap <Esc> :nohlsearch<CR>
+
+nmap <leader>v <Action>(EditorToggleColumnMode)
+nmap <leader>bb <Action>(Back)
+nmap <leader>gg <Action>(Forward)
+nmap <leader>ss <Action>(RecentFiles)
+
+nnoremap c "_c
+nnoremap C "_C
+nnoremap x "_x
+nnoremap X "_X
+nnoremap s "_s
+nnoremap S "_S
+vnoremap c "_c
+vnoremap C "_C
+vnoremap x "_x
+vnoremap X "_X
+vnoremap s "_s
+vnoremap S "_S
+
+xnoremap p P
+nmap <leader>rn <Action>(RenameElement)
+
+nmap [b <Action>(PreviousTab)
+nmap ]b <Action>(NextTab)
+nmap [t <Action>(PreviousTab)
+nmap ]t <Action>(NextTab)
+
+nnoremap <leader>1 <C-w>h
+nnoremap <leader>2 <C-w>j
+nnoremap <leader>3 <C-w>k
+nnoremap <leader>4 <C-w>l
+
+nmap ]d <Action>(GotoNextError)
+nmap [d <Action>(GotoPreviousError)
+nmap ]c <Action>(VcsShowNextChangeMarker)
+nmap [c <Action>(VcsShowPrevChangeMarker)
+
+nnoremap <leader>a ggVG

@@ -1,0 +1,253 @@
+{
+  // VSCodeVim config for Visual Studio Code.
+  // Mirrors the core editing workflow from config/nvim/init.lua.
+  // Keep editor actions pragmatic; do not chase full Neovim parity.
+  // Prefer VSCode-native actions where they match the Neovim workflow cleanly.
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.bracketPairColorization.enabled": false,
+  "editor.codeLens": true,
+  "editor.cursorBlinking": "solid",
+  "editor.cursorSmoothCaretAnimation": "off",
+  "editor.cursorStyle": "line",
+  "editor.detectIndentation": true,
+  "editor.foldingStrategy": "auto",
+  "editor.fontFamily": "CommitMono Nerd Font Mono, monospace",
+  "editor.fontLigatures": false,
+  "editor.fontSize": 16,
+  "editor.formatOnSave": true,
+  "editor.guides.bracketPairs": false,
+  "editor.guides.indentation": true,
+  "editor.guides.highlightActiveIndentation": true,
+  "editor.insertSpaces": true,
+  "editor.lineHeight": 0,
+  "editor.lineNumbers": "on",
+  "editor.matchBrackets": "always",
+  "editor.minimap.enabled": false,
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.renderControlCharacters": false,
+  "editor.renderFinalNewline": "on",
+  "editor.renderLineHighlight": "line",
+  "editor.renderWhitespace": "boundary",
+  "editor.rulers": [101],
+  "editor.scrollBeyondLastLine": false,
+  "editor.smoothScrolling": true,
+  "editor.stickyScroll.enabled": false,
+  "editor.tabSize": 2,
+  "editor.trimAutoWhitespace": true,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.wordWrap": "off",
+  "explorer.confirmDelete": true,
+  "explorer.confirmDragAndDrop": true,
+  "files.autoGuessEncoding": true,
+  "files.autoSave": "off",
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "search.smartCase": true,
+  "terminal.integrated.fontFamily": "CommitMono Nerd Font Mono",
+  "terminal.integrated.fontSize": 16,
+  "vim.handleKeys": {
+    "<C-u>": false
+  },
+  "vim.hlsearch": true,
+  "vim.ignorecase": true,
+  "vim.incsearch": true,
+  "vim.insertModeKeyBindings": [
+    {
+      "before": ["j", "k"],
+      "after": ["<Esc>"]
+    }
+  ],
+  "vim.leader": "\\",
+  "vim.normalModeKeyBindingsNonRecursive": [
+    {
+      "before": [","],
+      "after": [":"]
+    },
+    {
+      "before": ["j"],
+      "after": ["g", "j"]
+    },
+    {
+      "before": ["k"],
+      "after": ["g", "k"]
+    },
+    {
+      "before": ["0"],
+      "after": ["g", "0"]
+    },
+    {
+      "before": ["^"],
+      "after": ["g", "^"]
+    },
+    {
+      "before": ["$"],
+      "after": ["g", "$"]
+    },
+    {
+      "before": ["U"],
+      "commands": ["redo"]
+    },
+    {
+      "before": ["Q"],
+      "commands": []
+    },
+    {
+      "before": ["<leader>", "v"],
+      "commands": ["editor.action.toggleColumnSelection"]
+    },
+    {
+      "before": ["<leader>", "b", "b"],
+      "commands": ["workbench.action.navigateBack"]
+    },
+    {
+      "before": ["<leader>", "g", "g"],
+      "commands": ["workbench.action.navigateForward"]
+    },
+    {
+      "before": ["<leader>", "s", "s"],
+      "commands": [
+        "workbench.action.quickOpenPreviousRecentlyUsedEditorInGroup"
+      ]
+    },
+    {
+      "before": ["c"],
+      "after": ["\"", "_", "c"]
+    },
+    {
+      "before": ["C"],
+      "after": ["\"", "_", "C"]
+    },
+    {
+      "before": ["x"],
+      "after": ["\"", "_", "x"]
+    },
+    {
+      "before": ["X"],
+      "after": ["\"", "_", "X"]
+    },
+    {
+      "before": ["s"],
+      "after": ["\"", "_", "s"]
+    },
+    {
+      "before": ["S"],
+      "after": ["\"", "_", "S"]
+    },
+    {
+      "before": ["<leader>", "r", "n"],
+      "commands": ["editor.action.rename"]
+    },
+    {
+      "before": ["[", "b"],
+      "commands": ["workbench.action.previousEditor"]
+    },
+    {
+      "before": ["]", "b"],
+      "commands": ["workbench.action.nextEditor"]
+    },
+    {
+      "before": ["[", "t"],
+      "commands": ["workbench.action.previousEditorInGroup"]
+    },
+    {
+      "before": ["]", "t"],
+      "commands": ["workbench.action.nextEditorInGroup"]
+    },
+    {
+      "before": ["<leader>", "1"],
+      "commands": ["workbench.action.focusLeftGroup"]
+    },
+    {
+      "before": ["<leader>", "2"],
+      "commands": ["workbench.action.focusBelowGroup"]
+    },
+    {
+      "before": ["<leader>", "3"],
+      "commands": ["workbench.action.focusAboveGroup"]
+    },
+    {
+      "before": ["<leader>", "4"],
+      "commands": ["workbench.action.focusRightGroup"]
+    },
+    {
+      "before": ["]", "d"],
+      "commands": ["editor.action.marker.next"]
+    },
+    {
+      "before": ["[", "d"],
+      "commands": ["editor.action.marker.prev"]
+    },
+    {
+      "before": ["]", "c"],
+      "commands": ["workbench.action.editor.nextChange"]
+    },
+    {
+      "before": ["[", "c"],
+      "commands": ["workbench.action.editor.previousChange"]
+    },
+    {
+      "before": ["<leader>", "a"],
+      "commands": ["editor.action.selectAll"]
+    }
+  ],
+  "vim.smartcase": true,
+  "vim.useCtrlKeys": true,
+  "vim.useSystemClipboard": true,
+  "vim.visualModeKeyBindingsNonRecursive": [
+    {
+      "before": [","],
+      "after": [":"]
+    },
+    {
+      "before": ["<"],
+      "commands": ["editor.action.outdentLines"]
+    },
+    {
+      "before": [">"],
+      "commands": ["editor.action.indentLines"]
+    },
+    {
+      "before": ["c"],
+      "after": ["\"", "_", "c"]
+    },
+    {
+      "before": ["C"],
+      "after": ["\"", "_", "C"]
+    },
+    {
+      "before": ["x"],
+      "after": ["\"", "_", "x"]
+    },
+    {
+      "before": ["X"],
+      "after": ["\"", "_", "X"]
+    },
+    {
+      "before": ["s"],
+      "after": ["\"", "_", "s"]
+    },
+    {
+      "before": ["S"],
+      "after": ["\"", "_", "S"]
+    },
+    {
+      "before": ["p"],
+      "after": ["P"]
+    },
+    {
+      "before": ["*"],
+      "commands": ["editor.action.addSelectionToNextFindMatch"]
+    },
+    {
+      "before": ["#"],
+      "commands": ["editor.action.addSelectionToPreviousFindMatch"]
+    }
+  ],
+  "window.commandCenter": false,
+  "workbench.colorTheme": "Default Light Modern",
+  "workbench.editor.enablePreview": false,
+  "workbench.startupEditor": "none"
+}
