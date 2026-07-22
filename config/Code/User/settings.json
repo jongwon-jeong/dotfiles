@@ -9,6 +9,7 @@
   "editor.cursorBlinking": "solid",
   "editor.cursorSmoothCaretAnimation": "off",
   "editor.cursorStyle": "line",
+  "editor.cursorSurroundingLines": 8,
   "editor.detectIndentation": true,
   "editor.foldingStrategy": "auto",
   "editor.fontFamily": "CommitMono Nerd Font Mono, monospace",
@@ -48,12 +49,10 @@
   "search.smartCase": true,
   "terminal.integrated.fontFamily": "CommitMono Nerd Font Mono",
   "terminal.integrated.fontSize": 16,
-  "vim.handleKeys": {
-    "<C-u>": false
-  },
   "vim.hlsearch": true,
   "vim.ignorecase": true,
   "vim.incsearch": true,
+  "vim.joinspaces": false,
   "vim.insertModeKeyBindings": [
     {
       "before": ["j", "k"],
@@ -87,12 +86,32 @@
       "after": ["g", "$"]
     },
     {
+      "before": ["n"],
+      "after": ["n", "z", "z"]
+    },
+    {
+      "before": ["N"],
+      "after": ["N", "z", "z"]
+    },
+    {
+      "before": ["*"],
+      "after": ["*", "z", "z"]
+    },
+    {
+      "before": ["#"],
+      "after": ["#", "z", "z"]
+    },
+    {
       "before": ["U"],
       "commands": ["redo"]
     },
     {
       "before": ["Q"],
       "commands": []
+    },
+    {
+      "before": ["<Esc>"],
+      "commands": [":nohl"]
     },
     {
       "before": ["<leader>", "v"],
@@ -137,7 +156,7 @@
       "after": ["\"", "_", "S"]
     },
     {
-      "before": ["<leader>", "r", "n"],
+      "before": ["g", "r", "n"],
       "commands": ["editor.action.rename"]
     },
     {

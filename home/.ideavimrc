@@ -57,7 +57,7 @@ vnoremap s "_s
 vnoremap S "_S
 
 xnoremap p P
-nmap <leader>rn <Action>(RenameElement)
+nmap grn <Action>(RenameElement)
 
 nmap [b <Action>(PreviousTab)
 nmap ]b <Action>(NextTab)
