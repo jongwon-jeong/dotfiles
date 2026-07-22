@@ -38,7 +38,7 @@ nnoremap U <C-r>
 nnoremap Q <Nop>
 nnoremap <Esc> :nohlsearch<CR>
 
-nmap <leader>v <Action>(EditorToggleColumnMode)
+nnoremap <leader>v <C-v>
 nmap <leader>bb <Action>(Back)
 nmap <leader>gg <Action>(Forward)
 nmap <leader>ss <Action>(RecentFiles)

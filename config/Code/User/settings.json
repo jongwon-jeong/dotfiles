@@ -103,7 +103,7 @@
     },
     {
       "before": ["U"],
-      "commands": ["redo"]
+      "after": ["<C-r>"]
     },
     {
       "before": ["Q"],
@@ -115,7 +115,7 @@
     },
     {
       "before": ["<leader>", "v"],
-      "commands": ["editor.action.toggleColumnSelection"]
+      "after": ["<C-v>"]
     },
     {
       "before": ["<leader>", "b", "b"],
