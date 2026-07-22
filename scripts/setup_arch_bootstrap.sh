@@ -434,12 +434,15 @@ install_base_packages() { # {{{
   # - setup_networkmanager_privacy: networkmanager
   # Storage wipe workflows need cryptsetup, gptfdisk, hdparm, and nvme-cli for
   # LUKS erase, partition cleanup, SATA secure erase, and NVMe sanitize/format.
+  # fwupd provides distro-managed firmware updates for supported laptops and
+  # peripherals; its D-Bus service starts on demand when a client uses it.
   # Hardware-specific GPU drivers still stay in handle_hardware_drivers because
   # they should be installed only after detecting the actual GPU vendor/kernel.
   install_required_packages \
     glibc util-linux \
     pciutils mesa mesa-utils vulkan-icd-loader vulkan-tools \
     cryptsetup gptfdisk hdparm nvme-cli \
+    fwupd \
     xkeyboard-config \
     networkmanager firewalld
 

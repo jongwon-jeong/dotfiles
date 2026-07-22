@@ -437,6 +437,23 @@ alias .4='cd ../../../../'
 alias .5='cd ../../../../../'
 alias .6='cd ../../../../../../'
 
+firmware_update() {
+  if ! command -v fwupdmgr >/dev/null 2>&1; then
+    echo "ERROR: fwupdmgr is not installed."
+    return 1
+  fi
+
+  # Firmware deployment can require AC power and a reboot, so keep it separate
+  # from routine package and user-tool upgrades.
+  echo "INFO: Refreshing firmware metadata..."
+  command fwupdmgr refresh || return
+
+  echo ""
+  echo "INFO: Installing available firmware updates..."
+  command fwupdmgr update
+}
+alias fwup='firmware_update'
+
 uv_update_all_tools() {
   uv tool upgrade --all 2>/dev/null || {
     local tools
