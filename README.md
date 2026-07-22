@@ -227,7 +227,8 @@ wsl --terminate <DISTRO_NAME>
 
 Codex CLI theme:
 
-Run `/theme` in Codex and select `paper-custom-codex`. This persists as:
+Run `/theme` in Codex and select `paper-custom-codex`. Codex persists the
+selection in `~/.codex/config.toml` as:
 
 ```toml
 [tui]
@@ -237,5 +238,6 @@ theme = "paper-custom-codex"
 Optional desktop apps:
 
 ```sh
-yay -S --needed visual-studio-code-bin jetbrains-toolbox
+yay -S --needed visual-studio-code-bin
+yay -S --needed jetbrains-toolbox
 ```
