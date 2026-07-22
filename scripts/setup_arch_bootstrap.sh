@@ -666,6 +666,14 @@ setup_gnome_preferences() { # {{{
     org.freedesktop.Tracker3.Miner.Files index-recursive-directories "@as []"
     org.freedesktop.Tracker3.Miner.Files index-single-directories "@as []"
     org.freedesktop.Tracker3.Miner.Files enable-monitors "false"
+    org.gtk.Settings.FileChooser show-hidden "true"
+    org.gtk.Settings.FileChooser sort-directories-first "true"
+    org.gtk.Settings.FileChooser date-format "with-time"
+    org.gtk.gtk4.Settings.FileChooser show-hidden "true"
+    org.gtk.gtk4.Settings.FileChooser sort-directories-first "true"
+    org.gtk.gtk4.Settings.FileChooser date-format "with-time"
+    org.gnome.nautilus.preferences default-folder-viewer "list-view"
+    org.gnome.nautilus.preferences date-time-format "detailed"
     org.gnome.nautilus.preferences show-image-thumbnails "never"
     # Keep local directory counts and recursive search available. The stricter
     # alternatives remain here for machines where traversal cost is measurable.
