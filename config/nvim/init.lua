@@ -78,7 +78,17 @@ vim.g.loaded_node_provider = 0
 -- Keep the plugin list small; prefer built-in features and CLI-backed helpers for routine workflows.
 -- Debugging stays terminal/IDE-first; do not add nvim-dap without a repeated Neovim debugging workflow.
 -- If plugin entries are deliberately commented out, keep them; they document considered options.
+-- CloseTag needs an explicit React scope; case-sensitive empty tags keep HTML
+-- void elements such as <link> distinct from React components such as <Link>.
+vim.g.closetag_filenames = '*.html,*.xhtml,*.phtml,*.jsx,*.tsx'
+vim.g.closetag_xhtml_filenames = '*.xhtml,*.jsx,*.tsx'
+vim.g.closetag_filetypes = 'html,xhtml,phtml,javascriptreact,typescriptreact'
+vim.g.closetag_xhtml_filetypes = 'xhtml,javascriptreact,typescriptreact'
+vim.g.closetag_emptyTags_caseSensitive = 1
+
 local plugins = {
+  { src = 'https://github.com/AndrewRadev/tagalong.vim' },
+  { src = 'https://github.com/alvan/vim-closetag' },
   { src = 'https://github.com/neovim/nvim-lspconfig' },
   { src = 'https://github.com/stevearc/oil.nvim' },
 }
