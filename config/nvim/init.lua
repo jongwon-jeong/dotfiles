@@ -15,14 +15,17 @@ vim.opt.termguicolors = true
 
 -- Helpers {{{
 -- ---------------------------------------------------------
--- Formatting intentionally uses LSP only; external formatter orchestration belongs outside Neovim.
+-- Prefer Biome when a project opts into it; otherwise fall back to another attached LSP formatter.
 local function format_buffer(opts)
   opts = opts or {}
+  local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
+  local biome_attached = #vim.lsp.get_clients { bufnr = bufnr, name = 'biome' } > 0
 
   vim.lsp.buf.format {
-    bufnr = opts.bufnr,
+    bufnr = bufnr,
     async = opts.async or false,
     timeout_ms = opts.timeout_ms or 2000,
+    filter = function(client) return not biome_attached or client.name == 'biome' end,
   }
 end
 
@@ -110,12 +113,23 @@ vim.diagnostic.config {
 }
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
+-- HTML, CSS, Emmet, and JSON servers return snippet-shaped completion items.
+-- Neovim's native completion expands them without an additional snippet plugin.
+capabilities.textDocument.completion.completionItem.snippetSupport = true
+
 local servers = {
   bashls = {},
+  biome = {},
   clangd = {},
+  cssls = {},
+  emmet_language_server = {},
+  html = {},
+  jsonls = {},
   lua_ls = {},
   ruff = {},
   rust_analyzer = {},
+  tailwindcss = {},
+  ts_ls = {},
   ty = {},
 }
 
@@ -178,15 +192,44 @@ vim.lsp.config('rust_analyzer', {
   root_markers = root_markers.rust,
 })
 
+vim.lsp.config('tailwindcss', {
+  settings = {
+    tailwindCSS = {
+      classFunctions = {
+        'cn',
+        'clsx',
+        'cva',
+        'tw',
+      },
+      emmetCompletions = true,
+    },
+  },
+})
+
 for server_name in pairs(servers) do
-  -- Most servers stay on the simple path: shared capabilities plus optional server-local overrides.
-  if not vim.lsp.config[server_name] then
-    vim.lsp.config(server_name, {
-      capabilities = capabilities,
-    })
-  end
+  -- Merge shared completion capabilities into both built-in and locally overridden configs.
+  vim.lsp.config(server_name, {
+    capabilities = capabilities,
+  })
   vim.lsp.enable(server_name)
 end
+-- }}}
+
+-- Biome format-on-save {{{
+-- ---------------------------------------------------------
+local biome_format_group = vim.api.nvim_create_augroup('biome_format_on_save', { clear = true })
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = biome_format_group,
+  callback = function(args)
+    local client = vim.lsp.get_clients({ bufnr = args.buf, name = 'biome' })[1]
+    if not client or not client:supports_method 'textDocument/formatting' then return end
+
+    format_buffer {
+      bufnr = args.buf,
+      timeout_ms = 2000,
+    }
+  end,
+})
 -- }}}
 
 -- LSP attach / mappings {{{
@@ -199,9 +242,8 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     enable_lsp_completion(client, args.buf)
 
-    -- Format-on-save stays disabled so writes do not trigger broad, server-dependent
-    -- edits. Use <leader>cf for explicit LSP formatting; repo-wide formatting policy
-    -- belongs to project tools such as pre-commit.
+    -- Biome projects format on save above. Keep <leader>cf available for explicit
+    -- formatting and LSP fallback in projects that use another toolchain.
 
     local function map(mode, lhs, rhs, desc)
       vim.keymap.set(mode, lhs, rhs, {

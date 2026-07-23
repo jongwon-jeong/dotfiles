@@ -238,13 +238,5 @@ theme = "paper-custom-codex"
 Optional desktop apps:
 
 ```sh
-yay -S --needed visual-studio-code-bin
 yay -S --needed jetbrains-toolbox
-```
-
-VS Code extensions:
-
-```sh
-code --install-extension vscodevim.vim
-code --install-extension EditorConfig.EditorConfig
 ```
