@@ -15,17 +15,21 @@ vim.opt.termguicolors = true
 
 -- Helpers {{{
 -- ---------------------------------------------------------
--- Prefer Biome when a project opts into it; otherwise fall back to another attached LSP formatter.
+-- Prefer the formatter selected by the project before falling back to another attached LSP.
 local function format_buffer(opts)
   opts = opts or {}
   local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
-  local biome_attached = #vim.lsp.get_clients { bufnr = bufnr, name = 'biome' } > 0
+  local preferred_client
+  for _, client_name in ipairs { 'biome', 'eslint' } do
+    preferred_client = vim.lsp.get_clients({ bufnr = bufnr, name = client_name })[1]
+    if preferred_client then break end
+  end
 
   vim.lsp.buf.format {
     bufnr = bufnr,
     async = opts.async or false,
     timeout_ms = opts.timeout_ms or 2000,
-    filter = function(client) return not biome_attached or client.name == 'biome' end,
+    filter = function(client) return not preferred_client or client.id == preferred_client.id end,
   }
 end
 
@@ -123,6 +127,7 @@ local servers = {
   clangd = {},
   cssls = {},
   emmet_language_server = {},
+  eslint = {},
   html = {},
   jsonls = {},
   lua_ls = {},
@@ -205,6 +210,22 @@ vim.lsp.config('tailwindcss', {
     },
   },
 })
+
+do
+  local biome_root_dir = vim.lsp.config.biome.root_dir
+  local eslint_root_dir = vim.lsp.config.eslint.root_dir
+
+  vim.lsp.config('eslint', {
+    root_dir = function(bufnr, on_dir)
+      local biome_project = false
+      biome_root_dir(bufnr, function() biome_project = true end)
+
+      -- Biome is the preferred project toolchain; ESLint only covers repositories
+      -- that explicitly configure ESLint without opting into Biome.
+      if not biome_project then eslint_root_dir(bufnr, on_dir) end
+    end,
+  })
+end
 
 for server_name in pairs(servers) do
   -- Merge shared completion capabilities into both built-in and locally overridden configs.
