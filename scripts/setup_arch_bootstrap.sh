@@ -468,6 +468,9 @@ install_base_packages() { # {{{
 
   # Required by setup_ibus_hangul_gnome:
   # ibus, ibus-hangul, noto-fonts-cjk, glib2, dconf, dbus.
+  # Keep shared desktop resources explicit when their GNOME frontend owners
+  # are removed below: emoji fonts, screen recording, modern image formats,
+  # and PDF encoding data remain useful to browsers, the shell, and CLI tools.
   # Audio/video desktop packages stay here so providers such as pipewire-jack
   # are selected explicitly before ffmpeg/mpv pull them in.
   # Keep alsa-utils available for hardware mixer controls such as disabling HDA
@@ -475,10 +478,10 @@ install_base_packages() { # {{{
   replace_package_before_install pipewire-jack jack2 || failed=true
 
   install_required_packages \
-    ibus ibus-hangul noto-fonts-cjk glib2 dconf dbus \
-    pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber \
+    ibus ibus-hangul noto-fonts-cjk noto-fonts-emoji glib2 dconf dbus \
+    pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber gst-plugin-pipewire \
     alsa-utils \
-    ffmpeg \
+    ffmpeg libheif poppler-data \
     gst-libav gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
     mpv alacritty \
     veracrypt \
