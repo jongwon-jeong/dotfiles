@@ -85,7 +85,8 @@ theme only.
 | `state.diffAdd` | `#c5d9b8` | Added diff background | Nvim diff add, Codex inserted diff |
 | `state.diffChange` | `#ffd866` | Changed diff background | Nvim diff change, Codex changed diff |
 | `state.diffText` | `#ffb454` | Focused changed diff text | Nvim diff text |
-| `state.diffDelete` | `#9f3a30` | Deleted diff background | Nvim diff delete, Codex deleted diff |
+| `state.diffDelete` | `#9f3a30` | Strong deleted diff background | Nvim diff delete |
+| `state.diffDeleteSoft` | `#ffebe9` | Syntax-safe deleted diff background | Codex deleted diff |
 
 ## Terminal ANSI Palette
 
@@ -282,7 +283,10 @@ For Codex CLI syntax highlighting, keep an explicit Paper mapping in
 `home/.codex/themes/paper-custom-codex.tmTheme`. The Codex TUI can emit
 truecolor syntax tokens independent of the terminal's ANSI palette, so the
 theme must set those tokens directly instead of relying on Windows Terminal,
-Alacritty, or Neovim terminal ANSI colors.
+Alacritty, or Neovim terminal ANSI colors. Use `state.diffDeleteSoft` with
+`ink.primary` for Codex deleted lines because the TUI overlays syntax colors on
+the diff background; the stronger Neovim deletion surface is not safe for those
+tokens.
 
 ## Alternatives
 

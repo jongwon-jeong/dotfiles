@@ -199,10 +199,11 @@
       <string>markup.deleted, meta.diff.header.from-file</string>
       <key>settings</key>
       <dict>
+        <!-- Codex overlays syntax colors on diff backgrounds, so deleted lines need a light surface. -->
         <key>foreground</key>
-        <string>#ffffff</string>
+        <string>#000000</string>
         <key>background</key>
-        <string>#9f3a30</string>
+        <string>#ffebe9</string>
       </dict>
     </dict>
     <dict>
