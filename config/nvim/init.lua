@@ -21,7 +21,12 @@ local function format_buffer(opts)
   local bufnr = opts.bufnr or vim.api.nvim_get_current_buf()
   local preferred_client
   for _, client_name in ipairs { 'biome', 'eslint' } do
-    preferred_client = vim.lsp.get_clients({ bufnr = bufnr, name = client_name })[1]
+    for _, client in ipairs(vim.lsp.get_clients { bufnr = bufnr, name = client_name }) do
+      if client:supports_method('textDocument/formatting', bufnr) then
+        preferred_client = client
+        break
+      end
+    end
     if preferred_client then break end
   end
 
@@ -166,21 +171,15 @@ vim.lsp.config('lua_ls', {
   },
 })
 
-local root_markers = {
-  c = {
-    'Makefile',
-    '.git',
-  },
-  python = {
-    'pyproject.toml',
-    'uv.lock',
-    '.git',
-  },
-  rust = {
-    'Cargo.toml',
-    '.git',
-  },
-}
+-- Preserve upstream markers as language servers add new project conventions,
+-- and extend only the local markers that upstream does not cover.
+local function extend_root_markers(server_name, additions)
+  local markers = vim.deepcopy(vim.lsp.config[server_name].root_markers or {})
+  for _, marker in ipairs(additions) do
+    if not vim.tbl_contains(markers, marker) then table.insert(markers, marker) end
+  end
+  return markers
+end
 
 vim.lsp.config('clangd', {
   capabilities = capabilities,
@@ -189,22 +188,21 @@ vim.lsp.config('clangd', {
     '--background-index',
     '--header-insertion=never',
   },
-  root_markers = root_markers.c,
+  root_markers = extend_root_markers('clangd', { 'Makefile' }),
 })
 
 vim.lsp.config('ruff', {
   capabilities = capabilities,
-  root_markers = root_markers.python,
+  root_markers = extend_root_markers('ruff', { 'uv.lock' }),
 })
 
 vim.lsp.config('ty', {
   capabilities = capabilities,
-  root_markers = root_markers.python,
+  root_markers = extend_root_markers('ty', { 'uv.lock' }),
 })
 
 vim.lsp.config('rust_analyzer', {
   capabilities = capabilities,
-  root_markers = root_markers.rust,
 })
 
 vim.lsp.config('tailwindcss', {
@@ -253,7 +251,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   group = biome_format_group,
   callback = function(args)
     local client = vim.lsp.get_clients({ bufnr = args.buf, name = 'biome' })[1]
-    if not client or not client:supports_method 'textDocument/formatting' then return end
+    if not client or not client:supports_method('textDocument/formatting', args.buf) then return end
 
     format_buffer {
       bufnr = args.buf,
@@ -571,7 +569,7 @@ vim.opt.nrformats = 'alpha,octal,hex,bin,unsigned'
 -- Autocomplete
 vim.opt.completeopt = {
   'menuone',
-  'noselect',
+  'noinsert',
   'popup',
 }
 vim.opt.pumborder = 'none'
@@ -863,13 +861,24 @@ vim.keymap.set('n', '<leader>a', 'ggVG')
 -- Autocomplete
 vim.keymap.set(
   'i',
-  '<leader><Space>',
+  '<C-Space>',
   function() vim.lsp.completion.get() end,
   { desc = 'Trigger LSP completion' }
 )
 
-vim.keymap.set('i', '<Tab>', function()
+vim.keymap.set('i', '<Down>', function()
   if vim.fn.pumvisible() == 1 then return '<C-n>' end
+  return '<Down>'
+end, { expr = true, desc = 'Select next completion item' })
+vim.keymap.set('i', '<Up>', function()
+  if vim.fn.pumvisible() == 1 then return '<C-p>' end
+  return '<Up>'
+end, { expr = true, desc = 'Select previous completion item' })
+vim.keymap.set('i', '<Tab>', function()
+  if vim.fn.pumvisible() == 1 then
+    local selected = vim.fn.complete_info({ 'selected' }).selected
+    return selected >= 0 and '<C-y>' or '<C-n><C-y>'
+  end
   if vim.snippet.active { direction = 1 } then
     vim.snippet.jump(1)
     return ''
@@ -895,54 +904,99 @@ end, { expr = true, desc = 'Confirm selected completion item' })
 
 -- Etc. {{{
 -- Hangul input source {{{
+local input_sources
+local input_source_reset_in_flight = false
+
+local function run_gsettings(args, callback)
+  local ok = pcall(vim.system, args, { text = true }, function(result)
+    vim.schedule(function() callback(result) end)
+  end)
+  if not ok then vim.schedule(function() callback { code = 1, stdout = '' } end) end
+end
+
+local function parse_input_sources(output)
+  local sources = {}
+  for source_type, source_name in (output or ''):gmatch "%('([^']+)', '([^']+)'%)" do
+    table.insert(sources, {
+      type = source_type,
+      name = source_name,
+    })
+  end
+  return sources
+end
+
 local function reset_input_source()
   if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then return end
   if not vim.env.DISPLAY and not vim.env.WAYLAND_DISPLAY then return end
   if vim.fn.executable 'gsettings' ~= 1 then return end
+  if input_source_reset_in_flight then return end
 
   -- The Arch bootstrap configures GNOME input sources with US first and Hangul
-  -- second. Read the active source first so Esc stays cheap when English is
-  -- already active and only Hangul is forced back to the ASCII-friendly source.
-  local current = vim
-    .system({
+  -- second. Queries stay asynchronous so leaving insert mode never blocks input.
+  input_source_reset_in_flight = true
+
+  local function finish() input_source_reset_in_flight = false end
+
+  local function reset_if_hangul(current_index, sources)
+    local current_source = sources[current_index + 1]
+    if not current_source or current_source.type ~= 'ibus' or current_source.name ~= 'hangul' then
+      finish()
+      return
+    end
+
+    run_gsettings({
       'gsettings',
-      'get',
+      'set',
       'org.gnome.desktop.input-sources',
       'current',
-    }, { text = true })
-    :wait()
+      '0',
+    }, finish)
+  end
 
-  if current.code ~= 0 then return end
+  run_gsettings({
+    'gsettings',
+    'get',
+    'org.gnome.desktop.input-sources',
+    'current',
+  }, function(current)
+    if current.code ~= 0 then
+      finish()
+      return
+    end
 
-  local current_index = tonumber((current.stdout or ''):match '^%s*(.-)%s*$')
-  if not current_index or current_index == 0 then return end
+    local current_index = tonumber((current.stdout or ''):match '(%d+)%s*$')
+    if not current_index or current_index == 0 then
+      finish()
+      return
+    end
 
-  local sources = vim
-    .system({
+    if input_sources then
+      reset_if_hangul(current_index, input_sources)
+      return
+    end
+
+    run_gsettings({
       'gsettings',
       'get',
       'org.gnome.desktop.input-sources',
       'sources',
-    }, { text = true })
-    :wait()
+    }, function(sources)
+      if sources.code ~= 0 then
+        finish()
+        return
+      end
 
-  if sources.code ~= 0 then return end
+      -- GNOME source ordering is stable for a session, so parse it only once.
+      input_sources = parse_input_sources(sources.stdout)
+      if #input_sources == 0 then
+        input_sources = nil
+        finish()
+        return
+      end
 
-  local source_index = 0
-  local current_source_is_hangul = false
-  for source_type, source_name in (sources.stdout or ''):gmatch "%('([^']+)', '([^']+)'%)" do
-    if source_index == current_index then
-      current_source_is_hangul = source_type == 'ibus' and source_name == 'hangul'
-      break
-    end
-    source_index = source_index + 1
-  end
-
-  if not current_source_is_hangul then return end
-
-  vim.system({ 'gsettings', 'set', 'org.gnome.desktop.input-sources', 'current', '0' }, {
-    detach = true,
-  })
+      reset_if_hangul(current_index, input_sources)
+    end)
+  end)
 end
 
 vim.keymap.set('n', '<Esc>', function()
@@ -1045,14 +1099,37 @@ local project_search_exclude_dirs = {
   '.ruff_cache',
 }
 
-local function run_system_command(args)
-  if vim.system then
-    local result = vim.system(args, { text = true }):wait()
-    return result.code, vim.split(result.stdout or '', '\n', { plain = true, trimempty = true })
+local active_project_search
+local project_search_id = 0
+
+local function run_project_search(args, callback)
+  project_search_id = project_search_id + 1
+  local search_id = project_search_id
+
+  if active_project_search then
+    pcall(active_project_search.kill, active_project_search, 15)
+    active_project_search = nil
   end
 
-  local output = vim.fn.systemlist(args)
-  return vim.v.shell_error, output
+  local function on_exit(result)
+    vim.schedule(function()
+      if search_id ~= project_search_id then return end
+      active_project_search = nil
+      callback(
+        result.code,
+        vim.split(result.stdout or '', '\n', { plain = true, trimempty = true }),
+        result.stderr or ''
+      )
+    end)
+  end
+
+  local ok, process = pcall(vim.system, args, { text = true }, on_exit)
+  if not ok then
+    vim.notify('Could not start project search: ' .. tostring(process), vim.log.levels.ERROR)
+    return
+  end
+
+  active_project_search = process
 end
 
 local function build_grep_command(query, case_sensitive)
@@ -1061,7 +1138,6 @@ local function build_grep_command(query, case_sensitive)
       'rg',
       '--vimgrep',
       '--hidden',
-      '--follow',
       '--glob',
       '!.git/**',
     }
@@ -1139,25 +1215,26 @@ local function project_grep(case_sensitive)
     return
   end
 
-  local code, output = run_system_command(args)
-  if code ~= 0 and code ~= 1 then
-    vim.notify(tool .. ' failed with exit code ' .. tostring(code), vim.log.levels.ERROR)
-    return
-  end
+  run_project_search(args, function(code, output)
+    if code ~= 0 and code ~= 1 then
+      vim.notify(tool .. ' failed with exit code ' .. tostring(code), vim.log.levels.ERROR)
+      return
+    end
 
-  local items = parse_grep_results(output, tool)
-  vim.fn.setqflist({}, 'r', {
-    title = tool .. (case_sensitive and ' case-sensitive: ' or ': ') .. query,
-    items = items,
-  })
+    local items = parse_grep_results(output, tool)
+    vim.fn.setqflist({}, 'r', {
+      title = tool .. (case_sensitive and ' case-sensitive: ' or ': ') .. query,
+      items = items,
+    })
 
-  if #items == 0 then
-    vim.notify('No matches: ' .. query, vim.log.levels.INFO)
-    return
-  end
+    if #items == 0 then
+      vim.notify('No matches: ' .. query, vim.log.levels.INFO)
+      return
+    end
 
-  open_quickfix()
-  vim.cmd 'normal! gg'
+    open_quickfix()
+    vim.cmd 'normal! gg'
+  end)
 end
 
 vim.keymap.set('n', '<leader>fg', function() project_grep(false) end, {
@@ -1187,7 +1264,6 @@ local function build_find_command(query, case_sensitive)
       command_name,
       '--color=never',
       '--hidden',
-      '--follow',
     }
     table.insert(args, case_sensitive and '--case-sensitive' or '--ignore-case')
 
@@ -1248,25 +1324,26 @@ local function project_find(case_sensitive)
     return
   end
 
-  local code, output = run_system_command(args)
-  if code ~= 0 and code ~= 1 then
-    vim.notify(tool .. ' failed with exit code ' .. tostring(code), vim.log.levels.ERROR)
-    return
-  end
+  run_project_search(args, function(code, output)
+    if code ~= 0 and code ~= 1 then
+      vim.notify(tool .. ' failed with exit code ' .. tostring(code), vim.log.levels.ERROR)
+      return
+    end
 
-  local items = parse_find_results(output)
-  vim.fn.setqflist({}, 'r', {
-    title = tool .. (case_sensitive and ' case-sensitive: ' or ': ') .. query,
-    items = items,
-  })
+    local items = parse_find_results(output)
+    vim.fn.setqflist({}, 'r', {
+      title = tool .. (case_sensitive and ' case-sensitive: ' or ': ') .. query,
+      items = items,
+    })
 
-  if #items == 0 then
-    vim.notify('No paths found: ' .. query, vim.log.levels.INFO)
-    return
-  end
+    if #items == 0 then
+      vim.notify('No paths found: ' .. query, vim.log.levels.INFO)
+      return
+    end
 
-  open_quickfix()
-  vim.cmd 'normal! gg'
+    open_quickfix()
+    vim.cmd 'normal! gg'
+  end)
 end
 
 vim.keymap.set('n', '<leader>ff', function() project_find(false) end, {
@@ -1454,8 +1531,9 @@ end
 --   <leader>qq            n       Quit all windows
 --
 -- Completion
---   <leader><Space>       i       Trigger LSP completion
---   <Tab> / <S-Tab>       i       Select the next / previous item or snippet stop
+--   <C-Space>             i       Trigger LSP completion
+--   <Up> / <Down>         i       Select the previous / next completion item
+--   <Tab> / <S-Tab>       i       Confirm completion or move between snippet stops
 --   <CR>                  i       Confirm the selected item or insert a newline
 --
 -- Custom LSP mappings (buffer-local after LspAttach)
