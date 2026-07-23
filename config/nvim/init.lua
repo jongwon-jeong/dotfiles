@@ -884,6 +884,13 @@ vim.keymap.set('i', '<S-Tab>', function()
   end
   return '<S-Tab>'
 end, { expr = true, desc = 'Previous completion item' })
+vim.keymap.set('i', '<CR>', function()
+  if vim.fn.pumvisible() == 1 then
+    local selected = vim.fn.complete_info({ 'selected' }).selected
+    if selected >= 0 then return '<C-y>' end
+  end
+  return '<CR>'
+end, { expr = true, desc = 'Confirm selected completion item' })
 -- }}}
 
 -- Etc. {{{
@@ -1449,6 +1456,7 @@ end
 -- Completion
 --   <leader><Space>       i       Trigger LSP completion
 --   <Tab> / <S-Tab>       i       Select the next / previous item or snippet stop
+--   <CR>                  i       Confirm the selected item or insert a newline
 --
 -- Custom LSP mappings (buffer-local after LspAttach)
 --   gd / gD               n       Go to definition / declaration
