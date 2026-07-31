@@ -1,0 +1,11 @@
+.DS_Store
+.localized
+/.codex
+/.agents
+*Brewfile.lock.json
+tags
+.session.vim
+Session.vim
+*.log
+.zshrc.secret
+*.secret

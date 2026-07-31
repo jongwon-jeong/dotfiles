@@ -1,0 +1,84 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: detect-private-key
+
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-merge-conflict
+
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+
+      - id: check-illegal-windows-names
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+      - id: check-yaml
+      - id: check-toml
+      # VS Code settings are JSONC, so validate them with Biome instead of check-json.
+      # - id: check-json
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: biome-check-jsonc
+        name: biome check json/jsonc
+        entry: biome check --json-parse-allow-comments=true --json-parse-allow-trailing-commas=true --json-formatter-indent-style=space --json-formatter-indent-width=2
+        language: system
+        files: \.(json|jsonc)$
+
+      - id: shfmt
+        name: shfmt
+        entry: shfmt -i 2 -ci -w
+        language: system
+        files: ^(install\.sh|scripts/.*\.sh|config/shell/aliases\.sh|home/\.bashrc|home/\.bash_profile)$
+
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck --shell=bash --exclude=SC1090 --exclude=SC1091
+        language: system
+        files: ^(install\.sh|scripts/.*\.sh|home/\.bashrc|home/\.bash_profile|config/shell/aliases\.sh)$
+
+      - id: rustfmt
+        name: rustfmt
+        entry: rustfmt
+        language: system
+        files: \.rs$
+
+      - id: clang-format
+        name: clang-format
+        entry: clang-format -i --style=LLVM
+        language: system
+        files: \.(c|h|cc|hh|cpp|hpp|cxx|hxx)$
+
+      - id: google-java-format
+        name: google-java-format
+        entry: google-java-format --replace
+        language: system
+        files: \.java$
+
+      - id: stylua
+        name: stylua
+        entry: stylua --config-path config/nvim/.stylua.toml
+        language: system
+        files: \.lua$
+
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --fix
+        language: system
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types_or: [python, pyi]

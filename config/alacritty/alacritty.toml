@@ -1,0 +1,79 @@
+# ~/.config/alacritty/alacritty.toml
+# ----------------------------------------------------------
+
+[colors]
+
+# https://github.com/alacritty/alacritty-theme/blob/master/themes/papertheme.toml
+# Colors (Paper Theme) {{{
+
+# Default colors
+[colors.primary]
+background = '#f2eede'
+foreground = '#000000'
+
+[colors.cursor]
+text = "#f2eede"
+cursor = "#000000"
+
+[colors.selection]
+text = "#000000"
+background = "#b7c9dc"
+
+[colors.search.matches]
+foreground = "#000000"
+background = "#ffd400"
+
+# Normal colors
+[colors.normal]
+black = '#000000'
+red = '#cc3e28'
+green = '#216609'
+yellow = '#b58900'
+blue = '#1e6fcc'
+magenta = '#5c21a5'
+cyan = '#158c86'
+white = '#aaaaaa'
+
+# Bright colors
+[colors.bright]
+black = '#555555'
+red = '#cc3e28'
+green = '#216609'
+yellow = '#b58900'
+blue = '#1e6fcc'
+magenta = '#5c21a5'
+cyan = '#158c86'
+white = '#aaaaaa'
+# }}}
+
+[font]
+size = 14.0
+builtin_box_drawing = true
+
+[font.normal]
+family = "CommitMono Nerd Font Mono"
+style = "Regular"
+
+[font.bold]
+family = "CommitMono Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "CommitMono Nerd Font Mono"
+style = "Regular"
+# style = "Italic"
+
+[font.bold_italic]
+family = "CommitMono Nerd Font Mono"
+style = "Bold"
+# style = "Bold Italic"
+
+[scrolling]
+history = 10000
+multiplier = 5
+
+[window]
+decorations = "None"       # "Full" | "None"
+startup_mode = "Maximized" # "Windowed" | "Maximized" | "Fullscreen" | "SimpleFullscreen"(macOS only)
+dynamic_padding = true
+dynamic_title = false
