@@ -225,6 +225,12 @@ wsl --terminate <DISTRO_NAME>
 
 ## After Bootstrap
 
+### Setup Logs and Backups
+
+`scripts/setup_dotfiles.sh` and `scripts/setup_arch_bootstrap.sh` write timestamped logs under `~/tmp/logs`. When dotfiles are deployed from a checkout outside `~/.dotfiles`, deployment moves replaced files and the previous `~/.dotfiles` copy under `~/.local/share/backups/dotfiles-<timestamp>-<pid>/` before creating new symlinks.
+
+These artifacts are not deleted automatically. Keep the relevant backup until the deployed shell, editor, and desktop configuration has been verified, then inspect old backups and logs before removing them manually. Logs can contain usernames, local paths, installed package details, and network or hardware state, so review them before sharing.
+
 Codex CLI theme:
 
 Run `/theme` in Codex and select `paper-custom-codex`. Codex persists the

@@ -42,7 +42,9 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 
 ## Editing Rules
 
+- Treat analysis, diagnosis, review, and improvement proposals as read-only unless the user explicitly requests changes.
 - Setup is run manually from the relevant script.
+- Do not execute `scripts/setup_dotfiles.sh`, bootstrap scripts, or upgrade commands unless explicitly requested. Non-mutating inspection and static checks are allowed.
 - Keep Arch Linux + Sway distro bootstrap behavior in `scripts/setup_arch_bootstrap.sh`.
 - Keep dotfile deployment behavior centralized in `scripts/setup_dotfiles.sh`.
 - Preserve user-owned changes and do not revert unrelated edits.
@@ -50,6 +52,19 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Prefer editing existing files over creating new helpers.
 - Avoid broad refactors, generated churn, and style-only rewrites.
 - If you intentionally deviate from local conventions or repo defaults, add a short comment explaining why.
+
+## User Decision Boundaries
+
+- Require an explicit user decision before materially changing maintained platform support, boot or disk policy, login or authentication, firewall or network privacy, destructive data lifecycle behavior, or another boundary already reserved to the user in this file.
+- Do not add or remove OS packages, persistent system services, or long-running user services unless the requested capability clearly requires the change. When it does, report the owner, lifecycle, network and data impact, hardware behavior, and practical alternative.
+
+## Deployment Ownership
+
+- Treat the checked-out repository as the canonical source. When `scripts/setup_dotfiles.sh` runs from another path, `~/.dotfiles` is a derived deployment copy and home/config entries are symlinks into that copy.
+- Treat files under `config/system/` as canonical source material for the owning bootstrap task. Files installed into `/etc`, `/usr/local/bin`, or `/usr/local/share` are derived system state, not independent sources to edit in place.
+- Update canonical repository files and redeploy through the owning script. When `~/.dotfiles` is a derived deployment copy rather than the checkout itself, direct edits there do not complete a repository change and may be replaced on the next deployment; the same applies to deployed home symlinks and installed system copies.
+- Keep machine-owned state outside the shared deployment source. `~/.config/kanshi/local.conf` is the intentional output-profile exception and must survive replacement of `~/.dotfiles`.
+- Distinguish `repository changed`, `deployed`, and `runtime verified` in completion reports. Do not imply that a committed configuration is active on a machine without deployment evidence.
 
 ## Shell Code
 
@@ -107,7 +122,6 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 
 - Arch Linux + Sway on Wayland is the maintained Linux bootstrap path in this repo.
 - Unsupported Linux distributions may receive dotfile symlinks, but should not get distro-specific package or desktop setup without an explicit request.
-- Do not execute bootstrap or upgrade scripts unless explicitly requested; reading them and running non-mutating syntax/static checks is allowed.
 
 ## Preferences
 
@@ -147,12 +161,24 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Run syntax checks for changed shell or zsh files, such as `bash -n` for bash scripts and `zsh -n` for zsh files.
 - For shell scripts, prefer `shellcheck` and `shfmt -d` when available.
 - For Neovim config changes, run a headless load check when practical.
+- On an Arch Sway environment, validate `config/sway/config` with `WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBINPUT_NO_DEVICES=1 sway -C -c config/sway/config`.
+- On a systemd user environment, validate changed units with `systemd-analyze --user --man=no --generators=no verify` and the relevant files under `config/systemd/user/`.
+- Validate changed XML configuration with `xmllint --noout` when available.
+- Treat deployment and runtime checks as separate from static checks. After an explicitly requested deployment, verify the relevant symlink or installed target against its canonical source and report any target that was not checked.
 - Run `git diff --check` for every change.
 - Report the exact checks run, checks not run, and any system, desktop, hardware, or reboot-dependent behavior that remains unverified.
 - Static checks do not prove that the bootstrap completed on a real system.
 
+## Long-Running Work and Handoff
+
+- For multi-session migrations or hardware-dependent validation, use the owning issue or PR as the persistent handoff location when one exists; do not treat chat-only state as durable evidence.
+- If unfinished multi-session work has no durable handoff location, report that gap and ask the user to choose one instead of inventing a new tracking document or silently relying on conversation history.
+- Record the branch and commit, machine or environment class, completed gates, skipped or invalid results, remaining risks, and the next user decision. Keep generic acceptance criteria in the maintained documentation instead of copying task history into it.
+- Treat the Sway migration checklist in `docs/sway-workflow.md` as acceptance criteria, not as proof that a particular desktop or laptop passed. Store per-machine results in the owning handoff record.
+
 ## Git Workflow
 
+- Do not commit, amend, rebase, force-push, or push unless explicitly requested.
 - Review `git status` and `git diff` before committing.
 - Run the relevant verification commands before committing.
 - Prefer one commit per clear intent.
