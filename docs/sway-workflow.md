@@ -291,6 +291,124 @@ journalctl --user -b -u xdg-desktop-portal -u xdg-desktop-portal-wlr
 
 영상 플레이어나 브라우저가 idle inhibit 프로토콜을 사용하면 재생 중 잠금이 지연될 수 있다. 수동 제어가 필요하면 Waybar의 `IDLE` 항목을 사용한다.
 
+## 설치된 프로그램과 역할
+
+Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지 않는다. GNOME처럼 하나의 데스크톱 묶음이 제공하던 로그인 화면, 패널, 알림, 잠금, 화면 공유, 권한 요청, 저장장치 연결을 각각 작은 프로그램이 맡는다. 아래는 이번 Sway 전환에서 추가했거나 데스크톱 기능에 직접 연결한 주요 패키지다. compiler, 압축 도구, codec과 저수준 공용 library처럼 기존 CLI·개발 환경을 위한 패키지는 제외한다.
+
+모든 프로그램이 계속 실행되는 것은 아니다.
+
+- 시스템 서비스: 부팅 후 하드웨어나 운영체제 기능을 제공한다.
+- Sway 세션 서비스: 로그인한 동안만 `sway-session.target`에 묶여 실행되고 로그아웃하면 함께 종료된다.
+- 필요 시 실행: 단축키, 메뉴, 애플리케이션 요청이 있을 때만 잠깐 실행된다.
+- 호환 계층과 라이브러리: 직접 창을 띄우지 않고 다른 애플리케이션이 Wayland나 시스템 기능을 사용하도록 돕는다.
+
+### 로그인, 화면 구성과 Wayland 기반
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `sway` | Wayland compositor이자 타일링 창 관리자다. 모니터 출력, 입력 장치, 창 배치, 워크스페이스와 전역 단축키를 관리한다. | 로그인 후 실제 데스크톱 세션이 된다. `config/sway/config`가 공용 동작의 기준 파일이다. |
+| `swaybg` | Sway 출력마다 배경 이미지 또는 단색 배경을 그리는 작은 보조 프로그램이다. | 현재는 모든 출력에 고대비 단색 배경을 표시한다. |
+| `swayidle` | 사용자의 입력이 없는 시간을 감시하고 지정된 명령을 실행한다. | 잠금, 모니터 절전, 장시간 미사용 시 시스템 절전을 순서대로 실행하는 세션 서비스다. |
+| `swaylock` | Wayland용 화면 잠금 프로그램이다. | 수동 잠금, idle 잠금, 시스템 절전 직전 잠금에 같은 설정을 사용한다. 인증은 PAM을 사용한다. |
+| `greetd` | 부팅 후 로그인과 사용자 세션 시작을 담당하는 display manager다. | GDM 대신 `tty1`을 소유하고, 인증이 끝나면 선택된 Sway 세션을 시작한다. 현재 세션을 방해하지 않도록 bootstrap에서는 활성화만 하고 다음 부팅부터 사용한다. |
+| `greetd-regreet` | greetd용 GTK4 그래픽 로그인 화면인 ReGreet를 제공한다. 사용자, 비밀번호와 Wayland 세션을 선택한다. | `/usr/local/share/wayland-sessions`의 이 리포 전용 Sway 항목을 우선 발견하고 `/usr/local/bin/start-sway`를 실행한다. |
+| `cage` | 애플리케이션 하나만 전체 화면으로 보여 주는 kiosk Wayland compositor다. | 사용자 데스크톱이 아니라 ReGreet 로그인 창만 안전하게 표시한다. 로그인 후 Cage는 끝나고 Sway가 별도 세션으로 시작된다. |
+| `xorg-xwayland` | Wayland를 직접 지원하지 않는 X11 애플리케이션을 Sway 안에서 실행하는 호환 X 서버다. | 유지 대상은 native Wayland지만, 아직 X11만 지원하는 프로그램이 있을 때 자동으로 경계 역할을 한다. |
+| `qt5-wayland`, `qt6-wayland` | Qt 5·6 애플리케이션이 XWayland를 거치지 않고 Wayland client로 실행되게 하는 platform plugin이다. | `QT_QPA_PLATFORM=wayland;xcb`와 함께 Wayland를 우선하고, 지원하지 않는 앱에는 X11 fallback을 허용한다. |
+| `xdg-user-dirs` | Documents, Downloads, Pictures 같은 표준 사용자 디렉터리 위치를 관리한다. | 스크린샷 저장 위치와 GTK 파일 선택기 등이 동일한 사용자 디렉터리를 찾도록 한다. |
+
+### 화면 공유, 파일 선택과 애플리케이션 연결
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `xdg-desktop-portal` | 브라우저, Flatpak과 일반 데스크톱 앱의 요청을 적절한 portal backend로 전달하는 D-Bus broker다. | 화면 공유, 파일 선택, URI 열기, Secret Service 같은 데스크톱 기능의 공통 입구다. |
+| `xdg-desktop-portal-wlr` | wlroots compositor용 화면 캡처와 화면 공유 backend다. | Sway에서 브라우저와 회의 앱이 모니터 또는 영역을 공유할 때 PipeWire 영상 스트림을 만든다. |
+| `xdg-desktop-portal-gtk` | GTK 기반 범용 portal backend다. | 파일 열기·저장처럼 `wlr` backend가 담당하지 않는 일반 데스크톱 요청을 처리한다. |
+| `xdg-utils` | `xdg-open`, `xdg-mime`, `xdg-settings` 같은 데스크톱 독립 명령을 제공한다. | 터미널이나 애플리케이션이 URL과 파일을 기본 앱으로 열고 기본 브라우저를 조회·설정할 때 사용한다. |
+| `gnome-keyring` | GNOME Shell과 독립적으로 사용할 수 있는 Secret Service와 암호 저장소다. | greetd PAM이 로그인 비밀번호로 keyring을 잠금 해제한다. NetworkManager, Chrome과 Flatpak 앱이 저장한 암호를 세션마다 다시 묻지 않게 한다. |
+| `libsecret` | 애플리케이션이 Secret Service에 암호를 저장하고 읽는 공용 라이브러리와 도구다. | `gnome-keyring` 저장소를 사용하는 GTK·CLI 애플리케이션의 연결 계층이다. |
+
+### 패널, 알림과 일상 조작
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `waybar` | Sway용 패널이다. 워크스페이스, 현재 창, 트레이, 네트워크, 오디오, 배터리, 시계와 세션 메뉴를 표시한다. | `sway-session.target`이 시작하고 로그아웃할 때 종료한다. 모듈은 해당 하드웨어나 서비스가 없으면 숨거나 빈 상태가 된다. |
+| `swaync` | 알림 daemon과 알림센터를 함께 제공한다. | 애플리케이션 알림을 표시하고 `Super+N` 또는 Waybar에서 기록, 방해 금지와 전체 삭제를 제어한다. |
+| `fuzzel` | Wayland native 애플리케이션 실행기이며 dmenu 호환 선택기다. | `Super+D`의 앱 검색뿐 아니라 Cliphist 기록을 고르는 메뉴에도 재사용한다. |
+| `swayosd` | 볼륨, 마이크와 밝기 변경을 화면 중앙의 OSD로 보여 주고 해당 값을 조절한다. | 키보드의 미디어·밝기 키를 `swayosd-client`가 처리하고 세션의 `swayosd-server`가 결과를 표시한다. |
+| `playerctl` | MPRIS 표준을 지원하는 미디어 player를 명령행에서 제어한다. | 재생·일시정지와 이전·다음 미디어 키를 현재 활성 player에 전달한다. player가 없으면 명령만 조용히 실패한다. |
+| `libnotify` | 데스크톱 알림을 보내는 라이브러리와 `notify-send` 명령을 제공한다. | 스크립트와 프로그램이 SwayNC로 표준 알림을 보낼 때 사용한다. 알림을 직접 표시하는 daemon은 아니다. |
+| `papirus-icon-theme` | GTK 앱, 트레이와 파일 형식에 일관된 아이콘을 제공한다. | 완전한 데스크톱 환경을 설치하지 않아도 실행기와 설정창에 아이콘이 빠지지 않게 한다. |
+
+### 스크린샷과 클립보드
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `grim` | Wayland 출력 또는 지정한 좌표 영역을 이미지로 캡처한다. | 전체 화면을 클립보드로 보내거나 선택 영역을 PNG로 저장하는 실제 캡처 도구다. |
+| `slurp` | 마우스로 화면의 사각형 영역을 선택하고 좌표를 출력한다. | `grim -g`에 전달할 영역을 정한다. `Escape`로 취소하면 파일을 만들지 않는다. |
+| `wl-clipboard` | Wayland 클립보드 명령인 `wl-copy`와 `wl-paste`를 제공한다. | 스크린샷·텍스트 복사, Cliphist 감시와 선택 항목 복원에 사용한다. |
+| `cliphist` | Wayland 클립보드 내용을 로컬 데이터베이스에 기록하고 검색·복원한다. | 텍스트와 이미지를 별도 systemd 서비스가 수집한다. `Super+C`로 Fuzzel에서 고르고 `Super+Ctrl+C`로 기록을 지운다. |
+
+### 입력기와 한글
+
+`fcitx5-im`은 하나의 실행 파일이 아니라 Arch 패키지 그룹이며 다음 구성 요소를 함께 설치한다.
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `fcitx5` | 입력기 core daemon, 상태 제어 명령과 기본 모듈을 제공한다. | Sway 세션 서비스로 한 번만 실행되며 `Right Alt`와 `Ctrl+Space` 전환 상태를 관리한다. |
+| `fcitx5-configtool` | 입력기 목록, 전환 키와 addon을 확인·조정하는 그래픽 설정 도구다. | 공용 설정에 없는 장비별 입력 문제를 진단하거나 현재 구성을 확인할 때 사용한다. |
+| `fcitx5-gtk` | GTK 2·3·4 애플리케이션용 입력 모듈과 input method integration을 제공한다. | GTK 파일 관리자, 설정 도구와 XWayland GTK 앱에서도 조합 중인 한글이 정상 전달되게 한다. |
+| `fcitx5-qt` | Qt 애플리케이션용 입력 모듈을 제공한다. | Qt 5·6의 native Wayland와 XWayland fallback 양쪽에서 Fcitx5 입력을 연결한다. |
+| `fcitx5-hangul` | libhangul 기반 한국어 입력 엔진이다. | 두벌식 한글 조합과 한/영 전환의 실제 입력 엔진이다. Fcitx5 core만 설치하면 한글 엔진은 생기지 않는다. |
+
+### 모니터와 랩탑·데스크톱 하드웨어
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `kanshi` | 연결된 모니터 조합을 감지해 저장된 출력 profile을 자동 적용한다. | 데스크톱, 랩탑 단독, docked 구성을 `~/.config/kanshi/local.conf`에서 장비별로 정의한다. profile이 없으면 Sway의 preferred mode를 그대로 둔다. |
+| `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+Ctrl+D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
+| `brightnessctl` | 커널 backlight와 LED 장치를 조회·조절하는 CLI다. | Waybar 밝기 모듈에서 스크롤 조절에 사용한다. 백라이트가 없는 데스크톱에서는 할 일이 없다. |
+| `upower` | 배터리와 전원 장치 정보를 D-Bus로 제공하는 시스템 daemon이다. | Waybar와 데스크톱 앱이 충전량, 충전 상태와 남은 시간을 하드웨어별 구현 없이 읽게 한다. |
+| `power-profiles-daemon` | `power-saver`, `balanced`, `performance` 전원 profile을 제공한다. | bootstrap이 기본값을 `balanced`로 맞추고 Waybar에서 현재 상태를 표시한다. profile 전환은 `powerprofilesctl set`으로 할 수 있으며, 지원하지 않는 하드웨어에서는 가능한 profile만 노출된다. |
+| `switcheroo-control` | 내장 GPU와 외장 GPU가 함께 있는 시스템의 GPU 선택 정보를 D-Bus로 제공한다. | 하이브리드 그래픽 랩탑에서 지원 앱이 고성능 GPU 실행을 요청할 수 있게 한다. 단일 GPU 시스템에서는 사실상 대기한다. |
+
+### 네트워크, Bluetooth, 저장장치와 인쇄
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `networkmanager`, `network-manager-applet` | NetworkManager는 유선·Wi-Fi·VPN 연결을 관리하고 applet 패키지는 트레이 아이콘과 `nm-connection-editor`를 제공한다. | 시스템 NetworkManager는 부팅 후 실행되고 `nm-applet`은 Sway 세션 동안만 실행된다. Waybar 네트워크 항목을 클릭하면 연결 편집기를 연다. |
+| `firewalld` | 네트워크 zone과 입·출력 firewall 정책을 관리하는 시스템 서비스다. | NetworkManager와 연동하고 unsolicited inbound 연결을 기본 차단하는 보수적인 데스크톱 정책을 적용한다. DNS, VPN과 기존 routing은 변경하지 않는다. |
+| `bluez`, `bluez-utils`, `blueman` | BlueZ는 Linux Bluetooth protocol stack과 daemon, utils는 `bluetoothctl` 같은 CLI, Blueman은 그래픽 관리자와 트레이 applet을 제공한다. | `bluetooth.service`는 시스템 기능을 제공하고 `blueman-applet`은 로그인한 동안 장치 연결 상태와 빠른 조작을 제공한다. |
+| `polkit`, `lxqt-policykit` | Polkit은 일반 사용자의 권한 있는 시스템 작업을 중개하고 LXQt agent는 비밀번호 확인창을 표시한다. | 디스크 마운트, 네트워크 변경과 일부 시스템 설정이 필요할 때만 인증창이 나타난다. agent가 없으면 GUI 작업이 설명 없이 실패하거나 터미널 인증이 필요할 수 있다. |
+| `udisks2`, `udiskie` | UDisks2는 디스크와 이동식 저장장치 작업을 D-Bus로 제공하고 Udiskie는 사용자 세션에서 자동 마운트·알림·트레이를 담당한다. | USB 메모리와 외장 디스크를 연결하면 사용자 권한으로 마운트하고 Thunar에서 접근할 수 있게 한다. |
+| `cups`, `system-config-printer`, `bluez-cups` | CUPS는 인쇄 queue와 driver backend, system-config-printer는 그래픽 설정, bluez-cups는 Bluetooth 프린터 연결을 제공한다. | 프린터를 쓰지 않는 장비에서도 서비스는 설치되지만 실제 queue가 없으면 유휴 상태다. |
+
+### 기본 애플리케이션과 파일 통합
+
+| 패키지 | 역할 | 이 구성에서의 사용 방식 |
+|---|---|---|
+| `alacritty` | GPU 가속 터미널 emulator다. | `Super+Enter`의 기본 터미널이며 문서와 터미널 기반 도구를 여는 기반이다. |
+| `pavucontrol` | PulseAudio 호환 API를 사용하는 PipeWire 그래픽 mixer다. | `Super+Ctrl+A` 또는 Waybar 볼륨 클릭으로 앱별 볼륨, 입력·출력 장치와 profile을 조정한다. |
+| `thunar` | 가벼운 GTK 파일 관리자다. | `Super+Ctrl+E`의 기본 파일 관리자다. GVfs, UDisks2와 함께 휴지통과 이동식 장치를 표시한다. |
+| `thunar-volman` | 이동식 미디어가 연결됐을 때 Thunar 동작을 연결하는 volume manager다. | UDisks2가 발견한 USB 저장장치와 미디어를 파일 관리자 workflow에 통합한다. |
+| `thunar-archive-plugin`, `xarchiver` | Thunar의 압축 메뉴와 실제 압축 파일 GUI backend를 제공한다. | 파일 관리자의 오른쪽 클릭 메뉴에서 압축 생성과 해제를 수행한다. plugin만 있고 backend가 없으면 메뉴가 작업을 완료하지 못한다. |
+| `gvfs` | GTK 앱에 휴지통, 최근 파일, 마운트와 여러 가상 파일시스템 기능을 제공한다. | Thunar와 파일 선택기가 로컬 파일 외의 데스크톱 파일 기능을 일관되게 사용하도록 한다. |
+| `imv` | Wayland와 X11을 지원하는 가벼운 이미지 viewer다. | 별도 데스크톱 사진 앱 없이 이미지 파일을 빠르게 확인한다. |
+| `zathura`, `zathura-pdf-mupdf` | Zathura는 키보드 중심 문서 viewer이고 MuPDF plugin은 PDF를 실제로 해석한다. | PDF를 가볍게 열기 위한 조합이다. Zathura 본체만으로는 PDF backend가 없어 문서를 표시할 수 없다. |
+| `mpv` | FFmpeg 기반 영상·음악 player다. | GPU 출력, 하드웨어 decoding과 이 리포의 회전·반전 키 설정을 사용하는 기본 미디어 player다. |
+| `flatpak` | 배포판 패키지와 격리된 데스크톱 애플리케이션 runtime·설치 체계다. | bootstrap이 Flathub remote를 추가한다. Flatpak 앱의 파일 선택과 화면 공유는 위의 portal 계층을 통과한다. |
+
+### 어떤 프로세스가 언제 실행되는가
+
+| 수명주기 | 주요 구성 요소 |
+|---|---|
+| 시스템 서비스 또는 D-Bus 요청으로 실행 | greetd, NetworkManager, firewalld, Bluetooth, CUPS, UDisks2, UPower, power-profiles-daemon, switcheroo-control |
+| 로그인 화면이 보이는 동안 실행 | Cage, ReGreet |
+| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, Fcitx5, Kanshi, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스 |
+| 요청될 때 실행 또는 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Pavucontrol, Thunar, portal backend, 파일·URL 기본 앱 |
+
+Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
+
 ## 문제 해결과 복구
 
 ### Sway가 시작되지 않을 때
