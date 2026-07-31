@@ -86,6 +86,23 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Keep user-facing key bindings synchronized with the Sway workflow documentation.
 - Do not encode machine-specific output identifiers in the shared Sway config. Put reviewed per-machine output layouts in the dedicated output-profile configuration.
 
+## Desktop Philosophy
+
+- Keep recurring desktop network activity opt-in and user-initiated. Do not enable telemetry, analytics, crash uploads, automatic update polling, geolocation, cloud synchronization, or similar background requests unless explicitly requested or required for requested functionality.
+- When recurring outbound access is justified, document its purpose, transmitted data, cadence, and disable path. Prefer established manual update and maintenance workflows over duplicate background checkers.
+- Preserve the reviewed firewall and network privacy policy unless the user explicitly requests a change or a demonstrated critical security or operability issue requires one.
+- Minimize persistent desktop metadata. Before adding history, cache, or state, identify what is stored, where it is stored, how long it is retained, and how it is cleared; prefer session-scoped state when persistence provides no clear benefit.
+- Do not automatically delete user data, trash, browser state, credentials, or broad development caches without an explicit request.
+- Prefer a quiet, non-interrupting desktop: keep audible and visual bells and automatic notification banners disabled by default. Retain passive status indicators and user-invoked controls where useful, and interrupt only for an explicit workflow or safety requirement.
+- Do not add a package or long-running service when an established manual workflow adequately covers the need. For each new daemon, identify its owner, lifecycle, network activity, persistent data, and desktop/laptop behavior.
+- Do not maintain parallel desktop-environment implementations after a replacement is verified. Treat coexistence as a temporary migration state and remove the superseded implementation once the replacement is complete.
+
+## Desktop Configuration Ownership
+
+- Trace each setting to the component that actually consumes it; successful configuration writes alone do not prove that the maintained desktop behavior changed.
+- Treat GSettings schema availability as insufficient evidence that a setting affects Sway. Use GLib or GTK settings for applications that consume them, and use Sway, systemd-logind, swayidle, or the relevant native owner for compositor, input, power, and session behavior.
+- Do not retain GNOME-specific configuration merely because its schemas remain installed. Translate desired behavior to the maintained Sway/Wayland stack or document why a compatibility setting is still required.
+
 ## Linux Bootstrap Path
 
 - Arch Linux + Sway on Wayland is the maintained Linux bootstrap path in this repo.
