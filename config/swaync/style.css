@@ -1,0 +1,67 @@
+* {
+  border-radius: 0;
+  font-family: "CommitMono Nerd Font Mono";
+  color: #000000;
+}
+
+.notification-row,
+.notification-background,
+.control-center {
+  background: transparent;
+}
+
+.notification,
+.control-center {
+  background: #f2eede;
+  border: 2px solid #000000;
+  box-shadow: none;
+}
+
+.notification {
+  margin: 6px;
+  padding: 8px;
+}
+
+.notification.critical {
+  border-color: #cc3e28;
+}
+
+.control-center {
+  padding: 12px;
+}
+
+.widget-title,
+.widget-dnd,
+.widget-mpris,
+.widget-volume,
+.widget-backlight {
+  margin: 6px;
+  padding: 8px;
+  background: #f2eede;
+  border: 1px solid #aaaaaa;
+}
+
+button {
+  background: #b7c9dc;
+  border: 1px solid #000000;
+  color: #000000;
+}
+
+button:hover,
+button:focus {
+  background: #1e6fcc;
+  color: #ffffff;
+}
+
+switch:checked {
+  background: #1e6fcc;
+}
+
+trough {
+  background: #aaaaaa;
+}
+
+highlight,
+progress {
+  background: #1e6fcc;
+}

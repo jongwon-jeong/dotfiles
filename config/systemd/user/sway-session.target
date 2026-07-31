@@ -1,0 +1,11 @@
+[Unit]
+Description=Sway desktop session
+Documentation=man:sway(1)
+# Tie standard graphical-session services to the same logout boundary.
+BindsTo=graphical-session.target
+Wants=graphical-session-pre.target
+Wants=waybar.service swaync.service swayidle.service swayosd.service
+Wants=fcitx5.service network-manager-applet.service blueman-applet.service
+Wants=lxqt-policykit-agent.service kanshi.service udiskie.service
+Wants=cliphist-text.service cliphist-image.service
+After=graphical-session-pre.target

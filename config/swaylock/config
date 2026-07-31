@@ -1,0 +1,22 @@
+color=f2eede
+font=CommitMono Nerd Font Mono
+font-size=24
+indicator-radius=90
+indicator-thickness=8
+inside-color=f2eededd
+inside-clear-color=b7c9dcff
+inside-ver-color=b7c9dcff
+inside-wrong-color=cc3e28ff
+key-hl-color=1e6fccff
+bs-hl-color=cc3e28ff
+ring-color=555555ff
+ring-clear-color=1e6fccff
+ring-ver-color=1e6fccff
+ring-wrong-color=cc3e28ff
+line-color=00000000
+separator-color=00000000
+text-color=000000ff
+text-clear-color=000000ff
+text-ver-color=000000ff
+text-wrong-color=ffffffff
+show-failed-attempts

@@ -1,0 +1,13 @@
+[Unit]
+Description=Sway volume and brightness overlay
+PartOf=sway-session.target
+After=sway-session.target pipewire.service wireplumber.service
+
+[Service]
+ExecStart=/usr/bin/swayosd-server
+Restart=on-failure
+# Bound the impact of an upstream post-suspend spin while retaining desktop OSD.
+CPUQuota=20%
+
+[Install]
+WantedBy=sway-session.target

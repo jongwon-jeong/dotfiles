@@ -1,0 +1,11 @@
+[Unit]
+Description=Sway idle and lock manager
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+ExecStart=/usr/bin/swayidle -w timeout 900 "/usr/bin/swaylock -f" timeout 960 "/usr/bin/swaymsg output * power off" resume "/usr/bin/swaymsg output * power on" timeout 7200 "/usr/bin/systemctl suspend" before-sleep "/usr/bin/swaylock -f" lock "/usr/bin/swaylock -f"
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

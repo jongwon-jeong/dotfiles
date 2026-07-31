@@ -1,4 +1,4 @@
-Personal dotfiles and Arch Linux + GNOME bootstrap scripts.
+Personal dotfiles and Arch Linux + Sway/Wayland bootstrap scripts.
 
 ## Arch Linux Install Notes
 
@@ -29,8 +29,8 @@ Recommended `archinstall` choices for this bootstrap:
   - https://archinstall.archlinux.page/installing/guided.html
   - https://man.archlinux.org/man/extra/archinstall/archinstall.1.en
 - Goal: install a clean terminal/base Arch system, reboot, then run
-  `scripts/setup_arch_bootstrap.sh` to install GNOME, GDM, Hangul input, user
-  tools, and network policy.
+  `scripts/setup_arch_bootstrap.sh` to install Sway, greetd, Fcitx5 Hangul input,
+  user tools, and network policy.
 - Menu names change across archinstall releases. Run `archinstall --dry-run`
   on the live ISO when you need the exact current menu/config keys.
 

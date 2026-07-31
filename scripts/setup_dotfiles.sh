@@ -233,6 +233,25 @@ symlink_dotfiles() {
   [[ "${failed}" == "false" ]]
 }
 
+prepare_local_config_files() {
+  if ! is_linux; then
+    return 0
+  fi
+
+  local -r kanshi_local_config="${HOME}/.config/kanshi/local.conf"
+  if [[ -e "${kanshi_local_config}" || -L "${kanshi_local_config}" ]]; then
+    return 0
+  fi
+
+  # Machine-specific output identities must survive replacement of the
+  # ~/.dotfiles deployment copy on later runs.
+  install -Dm0644 /dev/null "${kanshi_local_config}" || {
+    echo "ERROR: Could not create local Kanshi profile: ${kanshi_local_config}"
+    return 1
+  }
+  echo "INFO: Created local Kanshi profile: ${kanshi_local_config}"
+}
+
 main() {
   start_logging
   refuse_root_execution
@@ -257,6 +276,7 @@ main() {
     echo "ERROR: One or more dotfile symlinks could not be deployed."
     exit 1
   }
+  prepare_local_config_files || exit 1
 
   echo ""
   printf "%0.s-" {1..60}

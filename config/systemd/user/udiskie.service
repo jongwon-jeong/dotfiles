@@ -1,0 +1,11 @@
+[Unit]
+Description=Removable media automount and tray integration
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+ExecStart=/usr/bin/udiskie --automount --notify --tray
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

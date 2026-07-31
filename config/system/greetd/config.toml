@@ -1,0 +1,8 @@
+[terminal]
+vt = 1
+
+[default_session]
+# ReGreet searches /usr/local first so the adaptive launcher shadows Arch's
+# stock Sway entry without modifying a package-owned file.
+command = "env XDG_DATA_DIRS=/usr/local/share:/usr/share GTK_USE_PORTAL=0 GDK_DEBUG=no-portals dbus-run-session cage -s -mlast -d -- regreet"
+user = "greeter"

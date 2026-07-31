@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# ReGreet launches this wrapper for both desktop and laptop installations.
+# The NVIDIA flag is added only when the module is active; supported Intel and
+# AMD paths use Sway's normal startup contract.
+cleanup_session() {
+  systemctl --user stop sway-session.target >/dev/null 2>&1 || true
+  systemctl --user unset-environment \
+    DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH \
+    XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE \
+    MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER \
+    XMODIFIERS QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE \
+    >/dev/null 2>&1 || true
+}
+trap cleanup_session EXIT
+
+# greetd does not source interactive shell startup files. Keep user-installed
+# launchers available to Sway and applications started from desktop entries.
+export PATH="${HOME}/.local/bin:${PATH}"
+export XDG_CURRENT_DESKTOP=sway
+export XDG_SESSION_DESKTOP=sway
+export XDG_SESSION_TYPE=wayland
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM='wayland;xcb'
+export SDL_VIDEODRIVER='wayland,x11'
+export XMODIFIERS=@im=fcitx
+export QT_IM_MODULE=fcitx
+export QT_IM_MODULES='wayland;fcitx'
+export SDL_IM_MODULE=fcitx
+
+if [ -d /sys/module/nvidia_drm ] || [ -d /sys/module/nvidia ]; then
+  /usr/bin/sway --unsupported-gpu "$@"
+else
+  /usr/bin/sway "$@"
+fi

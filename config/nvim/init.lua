@@ -844,99 +844,22 @@ end, { expr = true, desc = 'Confirm selected completion item' })
 
 -- Etc. {{{
 -- Hangul input source {{{
-local input_sources
 local input_source_reset_in_flight = false
-
-local function run_gsettings(args, callback)
-  local ok = pcall(vim.system, args, { text = true }, function(result)
-    vim.schedule(function() callback(result) end)
-  end)
-  if not ok then vim.schedule(function() callback { code = 1, stdout = '' } end) end
-end
-
-local function parse_input_sources(output)
-  local sources = {}
-  for source_type, source_name in (output or ''):gmatch "%('([^']+)', '([^']+)'%)" do
-    table.insert(sources, {
-      type = source_type,
-      name = source_name,
-    })
-  end
-  return sources
-end
 
 local function reset_input_source()
   if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then return end
   if not vim.env.DISPLAY and not vim.env.WAYLAND_DISPLAY then return end
-  if vim.fn.executable 'gsettings' ~= 1 then return end
+  if vim.fn.executable 'fcitx5-remote' ~= 1 then return end
   if input_source_reset_in_flight then return end
 
-  -- The Arch bootstrap configures GNOME input sources with US first and Hangul
-  -- second. Queries stay asynchronous so leaving insert mode never blocks input.
+  -- Fcitx owns the session-wide input state under Sway. Deactivation is
+  -- asynchronous so leaving insert mode never waits for desktop IPC.
   input_source_reset_in_flight = true
-
-  local function finish() input_source_reset_in_flight = false end
-
-  local function reset_if_hangul(current_index, sources)
-    local current_source = sources[current_index + 1]
-    if not current_source or current_source.type ~= 'ibus' or current_source.name ~= 'hangul' then
-      finish()
-      return
-    end
-
-    run_gsettings({
-      'gsettings',
-      'set',
-      'org.gnome.desktop.input-sources',
-      'current',
-      '0',
-    }, finish)
-  end
-
-  run_gsettings({
-    'gsettings',
-    'get',
-    'org.gnome.desktop.input-sources',
-    'current',
-  }, function(current)
-    if current.code ~= 0 then
-      finish()
-      return
-    end
-
-    local current_index = tonumber((current.stdout or ''):match '(%d+)%s*$')
-    if not current_index or current_index == 0 then
-      finish()
-      return
-    end
-
-    if input_sources then
-      reset_if_hangul(current_index, input_sources)
-      return
-    end
-
-    run_gsettings({
-      'gsettings',
-      'get',
-      'org.gnome.desktop.input-sources',
-      'sources',
-    }, function(sources)
-      if sources.code ~= 0 then
-        finish()
-        return
-      end
-
-      -- GNOME source ordering is stable for a session, so parse it only once.
-      input_sources = parse_input_sources(sources.stdout)
-      if #input_sources == 0 then
-        input_sources = nil
-        finish()
-        return
-      end
-
-      reset_if_hangul(current_index, input_sources)
-    end)
+  local ok = pcall(vim.system, { 'fcitx5-remote', '-c' }, { text = true }, function()
+    vim.schedule(function() input_source_reset_in_flight = false end)
   end)
+
+  if not ok then input_source_reset_in_flight = false end
 end
 
 vim.keymap.set('n', '<Esc>', function()

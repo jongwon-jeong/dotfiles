@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Sway
+Comment=Wayland desktop session
+Exec=/usr/local/bin/start-sway
+Type=Application
+DesktopNames=sway

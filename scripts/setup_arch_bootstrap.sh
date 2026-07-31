@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Bootstrap Arch Linux from a minimal/non-graphical install to a personal GNOME desktop.
-# Keep desktop setup close to stock GNOME; add user workflow tooling only after the OS baseline works.
+# Bootstrap Arch Linux from a minimal/non-graphical install to a personal Sway desktop.
+# Keep the OS baseline Arch-native and the graphical session Wayland-first.
 
 # Common helpers and environment detection {{{
 
@@ -228,23 +228,6 @@ install_package_group() { # {{{
   done
 } # }}}
 
-remove_package_if_installed() { # {{{
-  local pkg
-
-  for pkg in "${@}"; do
-    if ! pacman -Qq "${pkg}" >/dev/null 2>&1; then
-      echo "DONE: Package is not installed: ${pkg}"
-      continue
-    fi
-
-    echo ""
-    echo "INFO: Removing package: ${pkg}"
-    run_as_root pacman -Rns --noconfirm "${pkg}" || {
-      echo "WARN: Failed to remove package: ${pkg}"
-    }
-  done
-} # }}}
-
 upgrade_packages() { # {{{
   echo ""
   echo "INFO: Upgrading Arch Linux packages..."
@@ -361,10 +344,8 @@ install_base_packages() { # {{{
     if [[ ${#available_packages[@]} -gt 0 ]]; then
       install_package "${available_packages[@]}" || failed=true
 
-      # Packages declared by this bootstrap remain workstation requirements
-      # even when a package group installed them first as dependencies. Mark
-      # installed entries explicit so later pacman -Rns cleanup cannot remove
-      # them as orphaned dependencies of an unwanted GNOME application.
+      # Desktop requirements stay explicit even when another package pulled
+      # them in first. This protects the Sway baseline during orphan cleanup.
       local -a installed_packages=()
       for pkg in "${available_packages[@]}"; do
         if pacman -Qq "${pkg}" >/dev/null 2>&1; then
@@ -380,6 +361,7 @@ install_base_packages() { # {{{
       fi
     fi
   }
+
   install_required_package_groups() {
     local -a available_groups=()
     local group_name
@@ -397,14 +379,7 @@ install_base_packages() { # {{{
     fi
   }
 
-  # Base CLI and build packages that belong to the central package phase.
-  # Required by follow-up user tool setup:
-  # - install_zsh_plugins: git
-  # - install_yay: base-devel, git
-  # - install_mise_managed_tools: curl
-  # - install_nerd_font: curl, unzip, fontconfig
-  # VeraCrypt workflows need fuse2 for legacy FUSE integration and exfatprogs
-  # for exFAT volumes.
+  # Portable CLI and development packages shared by Arch desktops and WSL.
   install_required_packages \
     zsh tmux \
     git curl wget ca-certificates \
@@ -417,27 +392,12 @@ install_base_packages() { # {{{
     util-linux
 
   if is_wsl; then
-    # WSL skips the desktop media phase below, but ffmpeg is still useful as a
-    # CLI media tool there.
     install_required_packages ffmpeg
     [[ "${failed}" == "false" ]]
     return
   fi
 
-  # Required by follow-up OS setup tasks. Keep the package installation here so
-  # those tasks only configure state, enable services, or run user-level installers:
-  # - handle_hardware_drivers: pciutils, mesa, mesa-utils, vulkan-icd-loader, vulkan-tools
-  # - setup_locale: glibc
-  # - set_default_shell_to_zsh: util-linux
-  # - setup_ibus_hangul_gnome: xkeyboard-config
-  # - setup_basic_firewall: firewalld
-  # - setup_networkmanager_privacy: networkmanager
-  # Storage wipe workflows need cryptsetup, gptfdisk, hdparm, and nvme-cli for
-  # LUKS erase, partition cleanup, SATA secure erase, and NVMe sanitize/format.
-  # fwupd provides distro-managed firmware updates for supported laptops and
-  # peripherals; its D-Bus service starts on demand when a client uses it.
-  # Hardware-specific GPU drivers still stay in handle_hardware_drivers because
-  # they should be installed only after detecting the actual GPU vendor/kernel.
+  # OS-owned hardware, storage, firmware, and network foundations.
   install_required_packages \
     glibc util-linux \
     pciutils mesa mesa-utils vulkan-icd-loader vulkan-tools \
@@ -446,46 +406,46 @@ install_base_packages() { # {{{
     xkeyboard-config \
     networkmanager firewalld
 
-  # Required by setup_gnome_desktop. That function only enables services and
-  # sets the graphical boot target.
-  install_required_package_groups gnome
-
+  # Wayland compositor, login, portal, and compatibility boundary.
   install_required_packages \
-    gdm \
-    gnome-shell \
-    gnome-session \
-    gnome-control-center \
-    gnome-settings-daemon \
-    nautilus \
-    gnome-keyring \
-    gnome-tweaks \
-    gnome-shell-extension-appindicator \
-    power-profiles-daemon \
-    switcheroo-control \
-    bluez bluez-utils \
+    sway swaybg swayidle swaylock \
+    greetd greetd-regreet cage \
+    xorg-xwayland \
+    xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk \
+    xdg-utils xdg-user-dirs \
+    qt5-wayland qt6-wayland
+
+  # Desktop shell and hardware-adaptive conveniences. Battery and backlight
+  # clients remain inert when their matching laptop hardware does not exist.
+  install_required_packages \
+    waybar swaync fuzzel swayosd \
+    kanshi wdisplays \
+    grim slurp cliphist \
+    brightnessctl playerctl \
+    network-manager-applet \
+    bluez bluez-utils blueman \
+    polkit lxqt-policykit \
+    gnome-keyring libsecret \
+    upower power-profiles-daemon switcheroo-control \
+    udisks2 udiskie \
     cups system-config-printer bluez-cups \
-    xdg-desktop-portal-gnome
+    libnotify papirus-icon-theme
 
-  # Required by setup_ibus_hangul_gnome:
-  # ibus, ibus-hangul, noto-fonts-cjk, glib2, dconf, dbus.
-  # Keep shared desktop resources explicit when their GNOME frontend owners
-  # are removed below: emoji fonts, screen recording, modern image formats,
-  # and PDF encoding data remain useful to browsers, the shell, and CLI tools.
-  # Audio/video desktop packages stay here so providers such as pipewire-jack
-  # are selected explicitly before ffmpeg/mpv pull them in.
-  # Keep alsa-utils available for hardware mixer controls such as disabling HDA
-  # Auto-Mute Mode; PipeWire does not own those codec-level switches.
+  # Fcitx modules cover native GTK/Qt Wayland clients and XWayland fallbacks.
+  install_required_package_groups fcitx5-im
+  install_required_packages fcitx5-hangul
+
+  # Audio, media, and user-facing applications selected for this workstation.
   replace_package_before_install pipewire-jack jack2 || failed=true
-
   install_required_packages \
-    ibus ibus-hangul noto-fonts-cjk noto-fonts-emoji glib2 dconf dbus \
+    noto-fonts-cjk noto-fonts-emoji glib2 dbus \
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber gst-plugin-pipewire \
-    alsa-utils \
+    alsa-utils pavucontrol \
     ffmpeg libheif poppler-data \
     gst-libav gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
-    mpv alacritty \
+    mpv alacritty thunar thunar-volman thunar-archive-plugin xarchiver gvfs \
+    imv zathura zathura-pdf-mupdf \
     veracrypt \
-    xdg-utils \
     flatpak
 
   if command -v flatpak &>/dev/null; then
@@ -494,79 +454,6 @@ install_base_packages() { # {{{
     }
   fi
 
-  if [[ "${failed}" == "true" ]]; then
-    echo "WARN: Skipping GNOME application cleanup because required package setup did not complete."
-    return 1
-  fi
-
-  # Keep the stock GNOME group as the install source, then remove applications
-  # that are replaced by preferred tools or outside this workstation's workflow.
-  # Install replacements first so rerunning this script from a removable app,
-  # such as GNOME Console, does not leave the desktop without its preferred replacement.
-  # Keep dependent frontends before their backends so each removal transaction remains valid.
-
-  # Applications replaced by preferred desktop and CLI tools.
-  remove_package_if_installed \
-    baobab \
-    decibels \
-    epiphany \
-    gnome-console \
-    gnome-font-viewer \
-    gnome-logs \
-    gnome-music \
-    grilo-plugins \
-    gnome-software \
-    gnome-system-monitor \
-    gnome-text-editor \
-    showtime
-
-  # Remove desktop features that are outside this workstation's workflow.
-  remove_package_if_installed \
-    gnome-backgrounds \
-    gnome-calculator \
-    gnome-calendar \
-    gnome-characters \
-    gnome-clocks \
-    gnome-connections \
-    gnome-contacts \
-    gnome-maps \
-    gnome-remote-desktop \
-    gnome-tour \
-    gnome-user-docs \
-    gnome-user-share \
-    gnome-weather \
-    loupe \
-    malcontent \
-    orca \
-    rygel \
-    simple-scan \
-    snapshot \
-    yelp
-
-  # File and document previews are intentionally disabled. Keep sushi before
-  # evince so the previewer no longer blocks removal of its document backend;
-  # Papers is the current standalone GNOME document viewer.
-  remove_package_if_installed \
-    gst-thumbnailers \
-    sushi \
-    evince \
-    papers
-
-  # Online account storage is unused; remove the OneDrive frontend before its GOA backend.
-  remove_package_if_installed \
-    gvfs-onedrive \
-    gvfs-goa
-
-  # Nautilus does not need integration for external devices or network shares on this workstation.
-  remove_package_if_installed \
-    gvfs-afc \
-    gvfs-dnssd \
-    gvfs-gphoto2 \
-    gvfs-mtp \
-    gvfs-nfs \
-    gvfs-smb \
-    gvfs-wsdd
-
   [[ "${failed}" == "false" ]]
 } # }}}
 
@@ -574,341 +461,169 @@ install_base_packages() { # {{{
 
 # Arch Linux desktop and system configuration {{{
 
-setup_gnome_desktop() { # {{{
-  if is_wsl; then
-    return 0
-  fi
+deploy_dotfiles() { # {{{
+  local -r setup_script="${dotfiles_root}/scripts/setup_dotfiles.sh"
 
-  echo ""
-  echo "INFO: Enabling GNOME desktop services..."
-
-  if ! pacman -Qq gdm >/dev/null 2>&1; then
-    echo "ERROR: gdm is not installed. Skipping display manager changes."
+  if [[ ! -x "${setup_script}" ]]; then
+    echo "ERROR: Dotfile deployment script is missing or not executable: ${setup_script}"
     return 1
   fi
 
-  if ! command -v systemctl &>/dev/null; then
-    echo "WARN: systemctl is not available. Skipping GNOME display manager setup."
-    return 0
-  fi
-
-  # Display managers own the same display-manager.service alias. Disable common
-  # alternatives first so enabling GDM has a predictable owner after reboot.
-  run_as_root systemctl disable sddm.service lightdm.service lxdm.service ly.service 2>/dev/null || true
-  run_as_root systemctl enable --force gdm.service || {
-    echo "WARN: Failed to enable gdm.service."
-  }
-  run_as_root systemctl enable --now power-profiles-daemon.service || {
-    echo "WARN: Failed to enable power-profiles-daemon.service."
-  }
-  run_as_root systemctl enable --now switcheroo-control.service || {
-    echo "WARN: Failed to enable switcheroo-control.service."
-  }
-  run_as_root systemctl enable --now bluetooth.service || {
-    echo "WARN: Failed to enable bluetooth.service."
-  }
-  run_as_root systemctl enable --now cups.service || {
-    echo "WARN: Failed to enable cups.service."
-  }
-  run_as_root systemctl set-default graphical.target || {
-    echo "WARN: Failed to set graphical.target as the default boot target."
-  }
+  echo ""
+  echo "INFO: Deploying user configuration..."
+  run_as_target_user "${setup_script}"
 } # }}}
 
-setup_gnome_preferences() { # {{{
+setup_sway_desktop() { # {{{
   if is_wsl; then
     return 0
   fi
 
-  if ! command -v gsettings &>/dev/null; then
-    echo "WARN: gsettings is not installed. Skipping GNOME preference setup."
-    return 0
-  fi
-
   echo ""
-  echo "INFO: Configuring GNOME preferences..."
+  echo "INFO: Configuring the Sway desktop session..."
 
-  # Keep the reviewed Settings-app choices explicit so a fresh workstation
-  # starts with the same desktop behavior. GNOME-owned activity history,
-  # indexing, and telemetry are disabled; operational and application logs
-  # remain available for diagnostics.
-  local -r disabled_search_providers="['org.gnome.Settings.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Calculator.desktop', 'org.gnome.Characters.desktop', 'org.gnome.clocks.desktop']"
+  local -r greetd_config="${dotfiles_root}/config/system/greetd/config.toml"
+  local -r greetd_pam_config="${dotfiles_root}/config/system/pam.d/greetd"
+  local -r sway_session_file="${dotfiles_root}/config/system/wayland-sessions/sway.desktop"
+  local -r sway_launcher="${dotfiles_root}/config/system/sway/start-sway"
 
-  # Entries are schema, key, and serialized GVariant value triplets.
-  local -a settings=(
-    org.gnome.desktop.wm.preferences button-layout "appmenu:minimize,maximize,close"
+  local target_user_name=""
+  target_user_name="$(target_user)" || {
+    echo "ERROR: Could not determine the target desktop user."
+    return 1
+  }
 
-    org.gnome.settings-daemon.plugins.power power-button-action "suspend"
-    org.gnome.desktop.session idle-delay "900"
-    org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type "suspend"
-    org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout "7200"
+  local target_user_home=""
+  target_user_home="$(target_home "${target_user_name}")" || {
+    echo "ERROR: Could not determine the home directory for ${target_user_name}."
+    return 1
+  }
 
-    org.gnome.desktop.interface enable-hot-corners "false"
-    org.gnome.mutter edge-tiling "true"
-    org.gnome.mutter dynamic-workspaces "false"
-    org.gnome.desktop.wm.preferences num-workspaces "2"
-    org.gnome.mutter workspaces-only-on-primary "false"
-    org.gnome.shell.app-switcher current-workspace-only "false"
+  local -r sway_config="${target_user_home}/.config/sway/config"
+  local -r sway_user_unit_dir="${target_user_home}/.config/systemd/user"
 
-    org.gnome.desktop.interface color-scheme "default"
-    org.gnome.desktop.interface accent-color "blue"
+  local source_file
+  for source_file in "${greetd_config}" "${greetd_pam_config}" "${sway_session_file}" "${sway_launcher}"; do
+    if [[ ! -f "${source_file}" ]]; then
+      echo "ERROR: Required Sway system configuration is missing: ${source_file}"
+      return 1
+    fi
+  done
 
-    org.gnome.desktop.interface clock-format "24h"
-    org.gnome.desktop.interface clock-show-weekday "true"
-    org.gnome.desktop.interface clock-show-date "true"
-    org.gnome.desktop.interface clock-show-seconds "true"
-    org.gnome.desktop.calendar show-weekdate "true"
-    org.gnome.desktop.calendar week-start-day "sunday"
-    org.gnome.desktop.datetime automatic-timezone "false"
+  if ! command -v systemctl &>/dev/null; then
+    echo "ERROR: systemctl is required for the maintained Sway desktop."
+    return 1
+  fi
+  if ! command -v systemd-analyze &>/dev/null; then
+    echo "ERROR: systemd-analyze is required to validate the Sway user session."
+    return 1
+  fi
+  if ! command -v sway &>/dev/null; then
+    echo "ERROR: sway is required to validate the deployed desktop configuration."
+    return 1
+  fi
+  if [[ ! -f "${sway_config}" ]]; then
+    echo "ERROR: Deployed Sway configuration is missing: ${sway_config}"
+    return 1
+  fi
 
-    org.gnome.desktop.notifications show-banners "true"
-    org.gnome.desktop.notifications show-in-lock-screen "false"
+  if ! bash -n "${sway_launcher}"; then
+    echo "ERROR: Sway session launcher failed shell syntax validation."
+    return 1
+  fi
 
-    org.gnome.desktop.search-providers disable-external "true"
-    org.gnome.desktop.search-providers disabled "${disabled_search_providers}"
-    org.freedesktop.Tracker3.Miner.Files index-recursive-directories "@as []"
-    org.freedesktop.Tracker3.Miner.Files index-single-directories "@as []"
-    org.freedesktop.Tracker3.Miner.Files enable-monitors "false"
-    org.gtk.Settings.FileChooser show-hidden "true"
-    org.gtk.Settings.FileChooser sort-directories-first "true"
-    org.gtk.Settings.FileChooser date-format "with-time"
-    org.gtk.gtk4.Settings.FileChooser show-hidden "true"
-    org.gtk.gtk4.Settings.FileChooser sort-directories-first "true"
-    org.gtk.gtk4.Settings.FileChooser date-format "with-time"
-    org.gnome.nautilus.preferences default-folder-viewer "list-view"
-    org.gnome.nautilus.preferences date-time-format "detailed"
-    org.gnome.nautilus.preferences show-image-thumbnails "never"
-    # Keep local directory counts and recursive search available. The stricter
-    # alternatives remain here for machines where traversal cost is measurable.
-    # org.gnome.nautilus.preferences show-directory-item-counts "never"
-    # org.gnome.nautilus.preferences recursive-search "never"
-    org.gnome.nautilus.preferences fts-enabled "false"
-    org.gnome.desktop.thumbnailers disable-all "true"
-    org.gnome.desktop.thumbnail-cache maximum-age "0"
-    org.gnome.desktop.thumbnail-cache maximum-size "0"
+  local -a sway_check_command=(sway -C -c "${sway_config}")
+  if [[ -d /sys/module/nvidia_drm || -d /sys/module/nvidia ]]; then
+    sway_check_command=(sway --unsupported-gpu -C -c "${sway_config}")
+  fi
+  if ! run_as_target_user env \
+    WLR_BACKENDS=headless \
+    WLR_RENDERER=pixman \
+    WLR_LIBINPUT_NO_DEVICES=1 \
+    "${sway_check_command[@]}"; then
+    echo "ERROR: Deployed Sway configuration failed validation."
+    return 1
+  fi
 
-    org.gnome.desktop.screen-time-limits history-enabled "false"
-    org.gnome.desktop.screen-time-limits daily-limit-enabled "false"
-    org.gnome.desktop.screen-time-limits daily-limit-seconds "28800"
-    org.gnome.desktop.screen-time-limits grayscale "true"
-    org.gnome.desktop.break-reminders selected-breaks "@as []"
+  local -a sway_user_units=()
+  local unit_file
+  for unit_file in "${sway_user_unit_dir}"/*.service "${sway_user_unit_dir}"/*.target; do
+    if [[ -f "${unit_file}" ]]; then
+      sway_user_units+=("${unit_file}")
+    fi
+  done
+  if ((${#sway_user_units[@]} == 0)); then
+    echo "ERROR: Deployed Sway user units are missing: ${sway_user_unit_dir}"
+    return 1
+  fi
+  if ! run_as_target_user systemd-analyze --user --man=no --generators=no verify "${sway_user_units[@]}"; then
+    echo "ERROR: Deployed Sway user units failed validation."
+    return 1
+  fi
 
-    org.gnome.desktop.a11y.applications screen-reader-enabled "false"
-    org.gnome.desktop.a11y.interface high-contrast "false"
-    org.gnome.desktop.a11y.interface show-status-shapes "false"
-    org.gnome.desktop.a11y.interface reduced-motion "reduce"
-    org.gnome.desktop.interface text-scaling-factor "1.0"
-    org.gnome.desktop.interface cursor-size "24"
-    org.gnome.desktop.a11y.keyboard togglekeys-enable "false"
-    org.gnome.desktop.interface overlay-scrolling "false"
+  local failed=false
 
-    org.gnome.desktop.a11y.applications screen-keyboard-enabled "false"
-    org.gnome.desktop.a11y.keyboard enable "false"
-    org.gnome.desktop.interface cursor-blink "true"
-    org.gnome.desktop.interface cursor-blink-time "1200"
-    org.gnome.desktop.peripherals.keyboard repeat "true"
-    org.gnome.desktop.peripherals.keyboard repeat-interval "30"
-    org.gnome.desktop.peripherals.keyboard delay "199"
-    org.gnome.desktop.a11y.keyboard stickykeys-enable "false"
-    org.gnome.desktop.a11y.keyboard slowkeys-enable "false"
-    org.gnome.desktop.a11y.keyboard bouncekeys-enable "false"
+  run_as_root install -Dm0644 "${greetd_config}" /etc/greetd/config.toml || {
+    echo "ERROR: Failed to install the greetd configuration."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${greetd_pam_config}" /etc/pam.d/greetd || {
+    echo "ERROR: Failed to install the greetd PAM configuration."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${sway_session_file}" /usr/local/share/wayland-sessions/sway.desktop || {
+    echo "ERROR: Failed to install the Sway session descriptor."
+    failed=true
+  }
+  run_as_root install -Dm0755 "${sway_launcher}" /usr/local/bin/start-sway || {
+    echo "ERROR: Failed to install the Sway session launcher."
+    failed=true
+  }
 
-    org.gnome.desktop.screensaver lock-enabled "true"
-    org.gnome.desktop.screensaver lock-delay "0"
+  if [[ "${failed}" == "true" ]]; then
+    return 1
+  fi
 
-    org.gnome.system.location enabled "false"
-    org.gnome.desktop.privacy disable-camera "true"
-    org.gnome.desktop.privacy remember-recent-files "false"
-    org.gnome.desktop.privacy recent-files-max-age "0"
-    org.gnome.desktop.privacy remember-app-usage "false"
-    org.gnome.desktop.privacy send-software-usage-stats "false"
-    org.gnome.desktop.privacy report-technical-problems "false"
-    org.gnome.desktop.privacy remove-old-trash-files "true"
-    org.gnome.desktop.privacy remove-old-temp-files "true"
-    org.gnome.desktop.privacy old-files-age "1"
+  run_as_root systemctl set-default graphical.target || {
+    echo "ERROR: Failed to set graphical.target as the default boot target."
+    return 1
+  }
 
-    org.gnome.desktop.sound event-sounds "false"
-    org.gnome.desktop.sound theme-name "__custom"
-    org.gnome.system.proxy mode "none"
-  )
-
-  # Positional parameters are expanded by the child Bash process.
-  # shellcheck disable=SC2016
-  local -a gsettings_command=(bash -c '
-    failed=false
-    while (($# >= 3)); do
-      schema="${1}"
-      key="${2}"
-      value="${3}"
-      shift 3
-
-      if ! gsettings set "${schema}" "${key}" "${value}"; then
-        echo "WARN: Failed to set ${schema} ${key}."
-        failed=true
+  enable_desktop_service() {
+    local unit_name
+    for unit_name in "${@}"; do
+      if ! systemctl list-unit-files "${unit_name}" >/dev/null 2>&1; then
+        echo "WARN: Service unit is unavailable: ${unit_name}"
+        continue
       fi
+
+      run_as_root systemctl enable --now "${unit_name}" || {
+        echo "WARN: Failed to enable desktop service: ${unit_name}"
+      }
     done
+  }
 
-    [[ "${failed}" == "false" ]]
-  ' bash "${settings[@]}")
-
-  if command -v dbus-run-session &>/dev/null; then
-    gsettings_command=(dbus-run-session -- "${gsettings_command[@]}")
-  fi
-
-  local preferences_failed=false
-  if ! run_as_target_user "${gsettings_command[@]}"; then
-    echo "WARN: Some GNOME preferences could not be configured."
-    preferences_failed=true
-  fi
+  enable_desktop_service \
+    power-profiles-daemon.service \
+    switcheroo-control.service \
+    bluetooth.service \
+    cups.service
 
   if command -v powerprofilesctl &>/dev/null; then
     run_as_root powerprofilesctl set balanced || {
-      echo "WARN: Failed to select the GNOME balanced power profile."
-      preferences_failed=true
-    }
-  else
-    echo "WARN: powerprofilesctl is not available. Skipping GNOME power profile setup."
-    preferences_failed=true
-  fi
-
-  if [[ "${preferences_failed}" == "false" ]]; then
-    echo "DONE: GNOME preferences are configured."
-  fi
-} # }}}
-
-setup_ibus_hangul_gnome() { # {{{
-  if is_wsl; then
-    return 0
-  fi
-
-  echo ""
-  echo "INFO: Configuring IBus Hangul for GNOME..."
-
-  if ! command -v gsettings &>/dev/null; then
-    echo "WARN: gsettings is not installed. Skipping GNOME input source setup."
-    return 0
-  fi
-
-  local -r schema="org.gnome.desktop.input-sources"
-  local -r sources_key="sources"
-  local -r xkb_key="xkb-options"
-  local -r hangul_source="('ibus', 'hangul')"
-  local -r default_sources="[('xkb', 'us'), ${hangul_source}]"
-  local -r hangul_option="'korean:ralt_hangul'"
-
-  user_gsettings() {
-    local command_text="${1}"
-    if command -v dbus-run-session &>/dev/null; then
-      run_as_target_user dbus-run-session -- bash -lc "${command_text}"
-    else
-      run_as_target_user bash -lc "${command_text}"
-    fi
-  }
-
-  HNGL_Wayland() {
-    # GNOME defaults to Wayland, and this path only changes user GNOME settings.
-    # Use the X11 keycode patch only when the current session is explicitly X11.
-    if [[ "${XDG_SESSION_TYPE:-}" == "x11" ]]; then
-      return 0
-    fi
-
-    # 1. Get current XKB options
-    local current_value
-    current_value="$(user_gsettings "gsettings get ${schema} ${xkb_key}" 2>/dev/null || true)"
-
-    # 2. Check if the option is already active
-    if [[ "${current_value}" == *"${hangul_option}"* ]]; then
-      echo "DONE: Right Alt is already mapped to Hangul (Wayland/X11)."
-      return 0
-    fi
-
-    echo ""
-    echo "INFO: Remapping Right Alt to Hangul for Wayland/X11..."
-
-    # 3. Append the option safely
-    if [[ "${current_value}" == "@as []" || "${current_value}" == "[]" || -z "${current_value}" ]]; then
-      # If empty, set it directly
-      user_gsettings "gsettings set ${schema} ${xkb_key} \"['korean:ralt_hangul']\"" || {
-        echo "WARN: Failed to configure GNOME XKB options."
-      }
-    else
-      # If not empty, append it (removing the closing bracket ']')
-      # e.g., ['caps:escape'] -> ['caps:escape', 'korean:ralt_hangul']
-      local new_value="${current_value%]}"
-      new_value="${new_value}, ${hangul_option}]"
-      user_gsettings "gsettings set ${schema} ${xkb_key} \"${new_value}\"" || {
-        echo "WARN: Failed to append GNOME Hangul XKB option."
-      }
-    fi
-  }
-
-  HNGL_X11() {
-    # The X11 fallback intentionally patches xkeyboard-config only when this
-    # script is run from an active X11 session. A future switch from GNOME
-    # Wayland to GNOME on Xorg needs this script to be run again, or the backup
-    # and sed steps below to be applied manually.
-    if [[ "${XDG_SESSION_TYPE:-}" != "x11" ]]; then
-      return 0
-    fi
-
-    local -r target_file="/usr/share/X11/xkb/keycodes/evdev"
-
-    if ! [ -f "${target_file}" ]; then
-      return 0
-    fi
-    if grep -q "^[[:space:]]*<HNGL>[[:space:]]*=[[:space:]]*108;" "${target_file}"; then
-      return 0
-    fi
-
-    run_as_root bash <<SUDO_SCRIPT
-  cp "${target_file}" "${target_file}.$(date +%Y%m%d-%H%M%S).bak"
-  # 1. Comment out '<RALT> = 108;' and add '<HNGL> = 108;' right below it
-  sed -i '/^[[:space:]]*<RALT>[[:space:]]*=[[:space:]]*108;/c\// <RALT> = 108;\n<HNGL> = 108;' "${target_file}"
-  # 2. Comment out the existing '<HNGL> = 130;' line
-  sed -i 's/^[[:space:]]*<HNGL>[[:space:]]*=[[:space:]]*130;/ \/\/ <HNGL> = 130;/g' "${target_file}"
-SUDO_SCRIPT
-  }
-
-  local current_sources=""
-  current_sources="$(user_gsettings "gsettings get ${schema} ${sources_key}" 2>/dev/null || true)"
-
-  # Configure the GNOME input source list first so IBus Hangul is available in
-  # the desktop UI. The Right Alt mapping is handled separately below because
-  # Wayland and X11 need different mechanisms.
-  if [[ "${current_sources}" == *"${hangul_source}"* ]]; then
-    echo "DONE: GNOME IBus Hangul input source is already configured."
-  elif [[ "${current_sources}" == "@a(ss) []" || "${current_sources}" == "[]" || -z "${current_sources}" ]]; then
-    user_gsettings "gsettings set ${schema} ${sources_key} \"${default_sources}\"" || {
-      echo "WARN: Failed to configure GNOME input sources."
-    }
-  else
-    local new_sources="${current_sources%]}"
-    new_sources="${new_sources}, ${hangul_source}]"
-    user_gsettings "gsettings set ${schema} ${sources_key} \"${new_sources}\"" || {
-      echo "WARN: Failed to append GNOME IBus Hangul input source."
+      echo "WARN: Failed to select the balanced power profile."
     }
   fi
 
-  HNGL_Wayland
-  HNGL_X11
+  # Display managers own the same display-manager.service alias. Switch it only
+  # after required validation and installation have completed, and do not start
+  # greetd inside the current graphical session.
+  run_as_root systemctl enable --force greetd.service || {
+    echo "ERROR: Failed to enable greetd.service."
+    return 1
+  }
 
-  # How to rollback
-  # --------------------------------------------------------
-  # **Wayland**
-  # Step 1) Check current state
-  # gsettings get org.gnome.desktop.input-sources xkb-options
-  # Step 2)
-  # gsettings set org.gnome.desktop.input-sources xkb-options "[]"
-  # Step 3)
-  # sudo reboot
-  #
-  # **X11**
-  # Step 1) Check if backup files exist
-  # ls /usr/share/X11/xkb/keycodes/evdev.*.bak
-  # Step 2)
-  # sudo cp /usr/share/X11/xkb/keycodes/evdev.<BACKUP_DATE>.bak /usr/share/X11/xkb/keycodes/evdev
-  # Step 3)
-  # sudo reboot
+  echo "DONE: Sway, greetd, and adaptive desktop services are configured."
 } # }}}
 
 setup_locale() { # {{{
@@ -1450,7 +1165,7 @@ setup_basic_firewall() { # {{{
     run_as_root ufw status 2>/dev/null | grep -qi "^Status: active"
   }
 
-  # firewalld is the default for Arch GNOME/NetworkManager desktops. Prefer it
+  # firewalld is the selected default for this Arch/NetworkManager setup. Prefer it
   # when installed, disable UFW if both exist, and install firewalld when no
   # firewall backend exists. Use UFW only when it is active/enabled and firewalld
   # is not installed.
@@ -1536,8 +1251,8 @@ show_reboot_notice() { # {{{
   fi
 
   echo ""
-  echo "DONE: Bootstrap complete. A reboot is recommended."
-  echo "INFO: If WARN lines appeared, reboot or start a fresh login shell, then rerun this script."
+  echo "DONE: Bootstrap complete. Reboot to start greetd and select Sway."
+  echo "INFO: If WARN lines appeared, review them before removing the previous desktop."
   echo ""
   echo "Reboot command:"
   echo "  sudo reboot"
@@ -1571,11 +1286,10 @@ main() { # {{{
     handle_hardware_drivers
     setup_locale
     setup_date_and_time
-    setup_gnome_desktop
-    setup_gnome_preferences
-    setup_ibus_hangul_gnome
     set_default_shell_to_zsh
     create_default_directories
+    deploy_dotfiles
+    setup_sway_desktop
     install_zsh_plugins
     install_yay
     install_aur_packages
@@ -1600,6 +1314,10 @@ main() { # {{{
         fi
         if [[ "${task}" == "install_base_packages" ]]; then
           echo "ERROR: Required package installation failed. Stop before applying dependent configuration."
+          exit 1
+        fi
+        if [[ "${task}" == "deploy_dotfiles" || "${task}" == "setup_sway_desktop" ]]; then
+          echo "ERROR: Required Sway deployment failed. Stop before reporting a bootable desktop."
           exit 1
         fi
         echo "ERROR: Task failed, continuing: ${task}"

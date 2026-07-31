@@ -4,7 +4,7 @@
 
 This repository manages personal dotfiles and OS bootstrap scripts.
 
-- Arch Linux + GNOME bootstrap: `scripts/setup_arch_bootstrap.sh`
+- Arch Linux + Sway/Wayland bootstrap: `scripts/setup_arch_bootstrap.sh`
 - Dotfile deployment: `scripts/setup_dotfiles.sh`
 - Neovim config: `config/nvim/init.lua`
 
@@ -24,7 +24,8 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 
 ## Platform Support
 
-- Arch Linux + GNOME is the fully maintained desktop and bootstrap target.
+- Arch Linux + Sway on Wayland is the fully maintained desktop and bootstrap target.
+- The maintained Sway configuration must support both desktop and laptop hardware. Keep shared behavior independent of fixed output names, PCI addresses, batteries, backlights, and lid switches; isolate unavoidable machine-specific output profiles.
 - Arch Linux on WSL supports the explicitly gated CLI subset; do not assume desktop services, systemd integration, or Linux GUI clipboard tools are available.
 - macOS supports dotfile deployment and shared user-owned shell workflows, but has no OS bootstrap path in this repo.
 - Other Linux distributions may receive portable dotfile symlinks only; do not add package-manager, service, or desktop behavior for them without an explicit request.
@@ -42,7 +43,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## Editing Rules
 
 - Setup is run manually from the relevant script.
-- Keep Arch Linux + GNOME distro bootstrap behavior in `scripts/setup_arch_bootstrap.sh`.
+- Keep Arch Linux + Sway distro bootstrap behavior in `scripts/setup_arch_bootstrap.sh`.
 - Keep dotfile deployment behavior centralized in `scripts/setup_dotfiles.sh`.
 - Preserve user-owned changes and do not revert unrelated edits.
 - Prefer small, explicit changes that match the existing style.
@@ -77,9 +78,17 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Preserve the existing `{{{ / }}}` fold structure.
 - Do not split the Neovim config into modules unless explicitly requested.
 
+## Sway
+
+- Keep the shared Sway compositor configuration in `config/sway/config` as its SSOT.
+- Prefer native Wayland paths for maintained desktop applications and services. Keep XWayland as a compatibility boundary for applications that still require X11.
+- Manage session services with clear Sway/systemd user-session ownership so reloads do not create duplicate processes and logout does not leave desktop services running.
+- Keep user-facing key bindings synchronized with the Sway workflow documentation.
+- Do not encode machine-specific output identifiers in the shared Sway config. Put reviewed per-machine output layouts in the dedicated output-profile configuration.
+
 ## Linux Bootstrap Path
 
-- Arch Linux + GNOME is the maintained Linux bootstrap path in this repo.
+- Arch Linux + Sway on Wayland is the maintained Linux bootstrap path in this repo.
 - Unsupported Linux distributions may receive dotfile symlinks, but should not get distro-specific package or desktop setup without an explicit request.
 - Do not execute bootstrap or upgrade scripts unless explicitly requested; reading them and running non-mutating syntax/static checks is allowed.
 

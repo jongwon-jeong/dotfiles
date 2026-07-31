@@ -35,7 +35,7 @@ export XDG_CACHE_HOME="${HOME}/.cache"
 setopt NO_BEEP
 bindkey -v
 
-# Normalize common terminal editing keys across GNOME Terminal, Alacritty, tmux,
+# Normalize common terminal editing keys across local terminal emulators, tmux,
 # and SSH sessions. In zsh vi mode, unbound escape sequences can leak into vi
 # command widgets, so bind both insert and command keymaps explicitly.
 zmodload -i zsh/terminfo 2>/dev/null || true

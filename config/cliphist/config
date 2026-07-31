@@ -1,0 +1,5 @@
+# Clipboard history may contain sensitive text. Keep the local cache bounded.
+max-items 100
+max-dedupe-search 100
+max-store-size 1MiB
+preview-width 100

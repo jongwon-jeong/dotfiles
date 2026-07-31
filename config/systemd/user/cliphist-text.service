@@ -1,0 +1,11 @@
+[Unit]
+Description=Wayland text clipboard history
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+ExecStart=/usr/bin/wl-paste --type text --watch /usr/bin/cliphist store
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

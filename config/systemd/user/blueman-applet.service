@@ -1,0 +1,11 @@
+[Unit]
+Description=Bluetooth tray applet
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+ExecStart=/usr/bin/blueman-applet
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

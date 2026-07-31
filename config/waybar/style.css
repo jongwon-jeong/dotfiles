@@ -1,0 +1,91 @@
+* {
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  font-family: "CommitMono Nerd Font Mono";
+  font-size: 13px;
+}
+
+window#waybar {
+  background: #f2eede;
+  border-bottom: 2px solid #000000;
+  color: #000000;
+}
+
+#workspaces button {
+  padding: 0 10px;
+  background: transparent;
+  color: #555555;
+}
+
+#workspaces button.focused,
+#workspaces button.active {
+  background: #1e6fcc;
+  color: #ffffff;
+}
+
+#workspaces button.urgent {
+  background: #cc3e28;
+  color: #ffffff;
+}
+
+#mode {
+  padding: 0 12px;
+  background: #ffd400;
+  color: #000000;
+  font-weight: bold;
+}
+
+#window {
+  padding: 0 12px;
+  color: #000000;
+}
+
+#tray,
+#idle_inhibitor,
+#network,
+#bluetooth,
+#pulseaudio,
+#backlight,
+#battery,
+#power-profiles-daemon,
+#custom-notification,
+#clock,
+#custom-power {
+  padding: 0 9px;
+}
+
+#network.disconnected,
+#bluetooth.disabled,
+#pulseaudio.muted {
+  color: #555555;
+}
+
+#battery.warning {
+  background: #ffd400;
+  color: #000000;
+}
+
+#battery.critical {
+  background: #cc3e28;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+#idle_inhibitor.activated,
+#custom-notification.notification,
+#custom-notification.dnd-notification {
+  background: #b7c9dc;
+  color: #000000;
+}
+
+#custom-power {
+  background: #000000;
+  color: #ffffff;
+}
+
+tooltip {
+  background: #f2eede;
+  border: 2px solid #000000;
+  color: #000000;
+}

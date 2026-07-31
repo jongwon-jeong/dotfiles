@@ -1,0 +1,149 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 4,
+  "reload_style_on_change": true,
+  "modules-left": ["sway/workspaces", "sway/mode"],
+  "modules-center": ["sway/window"],
+  "modules-right": [
+    "tray",
+    "idle_inhibitor",
+    "network",
+    "bluetooth",
+    "pulseaudio",
+    "backlight",
+    "battery",
+    "power-profiles-daemon",
+    "custom/notification",
+    "clock",
+    "custom/power"
+  ],
+  "sway/workspaces": {
+    "disable-scroll": false,
+    "all-outputs": true,
+    "format": "{name}",
+    "persistent-workspaces": {
+      "1": [],
+      "2": [],
+      "3": [],
+      "4": [],
+      "5": []
+    }
+  },
+  "sway/mode": {
+    "format": "{}",
+    "tooltip": false
+  },
+  "sway/window": {
+    "format": "{title}",
+    "max-length": 80,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "$1",
+      "(.*) - Google Chrome": "$1"
+    }
+  },
+  "tray": {
+    "icon-size": 18,
+    "spacing": 8
+  },
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+      "activated": "INHIBIT",
+      "deactivated": "IDLE"
+    },
+    "tooltip-format-activated": "Automatic idle actions are paused",
+    "tooltip-format-deactivated": "Automatic lock and sleep are enabled"
+  },
+  "network": {
+    "interval": 5,
+    "format-wifi": "WIFI {essid}",
+    "format-ethernet": "LAN {ifname}",
+    "format-linked": "LINK {ifname}",
+    "format-disconnected": "OFFLINE",
+    "tooltip-format": "{ifname}\n{ipaddr}/{cidr}\nGateway: {gwaddr}",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}\n{ipaddr}/{cidr}",
+    "on-click": "nm-connection-editor"
+  },
+  "bluetooth": {
+    "format": "BT",
+    "format-disabled": "BT OFF",
+    "format-no-controller": "",
+    "format-connected": "BT {num_connections}",
+    "tooltip-format": "Bluetooth: {status}",
+    "tooltip-format-connected": "{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "on-click": "blueman-manager"
+  },
+  "pulseaudio": {
+    "scroll-step": 5,
+    "format": "VOL {volume}%",
+    "format-bluetooth": "BT VOL {volume}%",
+    "format-muted": "MUTED",
+    "tooltip-format": "{desc}",
+    "on-click": "pavucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+  "backlight": {
+    "format": "BRI {percent}%",
+    "tooltip": false,
+    "on-scroll-up": "brightnessctl set +5%",
+    "on-scroll-down": "brightnessctl set 5%-"
+  },
+  "battery": {
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "BAT {capacity}%",
+    "format-charging": "BAT {capacity}%+",
+    "format-plugged": "AC {capacity}%",
+    "format-full": "AC FULL",
+    "tooltip-format": "{time} at {power:.1f} W"
+  },
+  "power-profiles-daemon": {
+    "format": "{profile}",
+    "tooltip-format": "Power profile: {profile}",
+    "format-icons": {
+      "default": "balanced",
+      "performance": "performance",
+      "balanced": "balanced",
+      "power-saver": "power saver"
+    }
+  },
+  "custom/notification": {
+    "return-type": "json",
+    "exec-if": "command -v swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "NOTIFY!",
+      "none": "NOTIFY",
+      "dnd-notification": "DND!",
+      "dnd-none": "DND",
+      "inhibited-notification": "PAUSED!",
+      "inhibited-none": "PAUSED",
+      "dnd-inhibited-notification": "DND!",
+      "dnd-inhibited-none": "DND"
+    },
+    "escape": true
+  },
+  "clock": {
+    "interval": 1,
+    "format": "{:%a %Y-%m-%d %H:%M:%S}",
+    "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    "calendar": {
+      "mode": "month",
+      "weeks-pos": "left",
+      "on-scroll": 1
+    }
+  },
+  "custom/power": {
+    "format": "POWER",
+    "tooltip": false,
+    "on-click": "swaynag -t warning -m 'Session controls' -b 'Lock' 'swaylock -f' -b 'Suspend' 'systemctl suspend' -b 'Logout' 'swaymsg exit' -b 'Reboot' 'systemctl reboot' -b 'Power off' 'systemctl poweroff'"
+  }
+}

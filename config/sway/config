@@ -1,0 +1,206 @@
+# Sway is the single source of truth for the shared desktop workflow.
+# Device-specific output layouts belong in ~/.config/kanshi/local.conf.
+
+set $mod Mod4
+set $left h
+set $down j
+set $up k
+set $right l
+set $term alacritty
+set $menu fuzzel
+
+font pango:CommitMono Nerd Font Mono 11
+
+floating_modifier $mod normal
+focus_follows_mouse no
+focus_wrapping workspace
+mouse_warping container
+workspace_auto_back_and_forth yes
+
+default_border pixel 2
+default_floating_border normal 2
+gaps inner 6
+gaps outer 3
+smart_gaps on
+smart_borders no_gaps
+
+client.focused #1e6fcc #1e6fcc #ffffff #1e6fcc #1e6fcc
+client.focused_inactive #aaaaaa #f2eede #000000 #aaaaaa #aaaaaa
+client.unfocused #aaaaaa #f2eede #555555 #aaaaaa #aaaaaa
+client.urgent #cc3e28 #cc3e28 #ffffff #cc3e28 #cc3e28
+
+# Shared input defaults apply only to matching device classes, so desktops
+# without touchpads and laptops without external pointers remain valid.
+input type:keyboard {
+  xkb_layout us
+  xkb_options korean:ralt_hangul
+  repeat_delay 200
+  repeat_rate 33
+}
+
+input type:touchpad {
+  tap enabled
+  tap_button_map lrm
+  drag enabled
+  drag_lock sticky
+  dwt enabled
+  middle_emulation enabled
+  natural_scroll enabled
+}
+
+input type:pointer {
+  accel_profile adaptive
+}
+
+seat * hide_cursor 5000
+
+# Sway selects preferred modes and discovers outputs. Do not set positions or
+# scale here because fixed output names make the config non-portable.
+output * bg #f2eede solid_color
+
+# Launchers and daily desktop tools.
+bindsym $mod+Return exec $term
+bindsym $mod+d exec $menu
+bindsym $mod+Ctrl+b exec google-chrome-stable
+bindsym $mod+Ctrl+e exec thunar
+bindsym $mod+Ctrl+a exec pavucontrol
+bindsym $mod+Ctrl+d exec wdisplays
+bindsym $mod+F1 exec alacritty --class sway-help -e sh -lc 'less "$HOME/.dotfiles/docs/sway-workflow.md"'
+
+# Session and shell controls.
+bindsym $mod+Shift+q kill
+bindsym $mod+Shift+c reload
+bindsym $mod+Ctrl+l exec swaylock -f
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Session controls' -b 'Lock' 'swaylock -f' -b 'Suspend' 'systemctl suspend' -b 'Logout' 'swaymsg exit' -b 'Reboot' 'systemctl reboot' -b 'Power off' 'systemctl poweroff'
+
+# Focus and move windows. Arrow bindings keep the first week approachable;
+# the home-row bindings provide the long-term workflow.
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+bindsym Mod1+Tab focus next
+bindsym Mod1+Shift+Tab focus prev
+
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+bindsym $mod+a focus parent
+bindsym $mod+space focus mode_toggle
+bindsym $mod+Shift+space floating toggle
+
+# Layouts.
+bindsym $mod+b splith
+bindsym $mod+v splitv
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+f fullscreen toggle
+
+# Scratchpad.
+bindsym $mod+minus scratchpad show
+bindsym $mod+Shift+minus move scratchpad
+
+# Workspaces.
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+
+bindsym $mod+Ctrl+$left focus output left
+bindsym $mod+Ctrl+$right focus output right
+bindsym $mod+Ctrl+Shift+$left move workspace to output left
+bindsym $mod+Ctrl+Shift+$right move workspace to output right
+
+# Desktop conveniences.
+bindsym $mod+n exec swaync-client -t -sw
+bindsym $mod+c exec sh -c 'cliphist list | fuzzel --dmenu --prompt="Clipboard> " | cliphist decode | wl-copy'
+bindsym $mod+Ctrl+c exec swaynag -t warning -m 'Clear all clipboard history?' -b 'Clear' 'cliphist wipe'
+bindsym $mod+Shift+b exec pkill -SIGUSR1 waybar
+
+bindsym Print exec sh -c 'grim - | wl-copy'
+bindsym Shift+Print exec sh -c 'geometry="$(slurp)" && grim -g "$geometry" - | wl-copy'
+bindsym $mod+Print exec sh -c 'directory="$HOME/Pictures/Screenshots"; mkdir -p "$directory" && geometry="$(slurp)" && grim -g "$geometry" "$directory/$(date +%Y%m%d-%H%M%S).png"'
+
+bindsym --locked XF86AudioRaiseVolume exec swayosd-client --output-volume raise
+bindsym --locked XF86AudioLowerVolume exec swayosd-client --output-volume lower
+bindsym --locked XF86AudioMute exec swayosd-client --output-volume mute-toggle
+bindsym --locked XF86AudioMicMute exec swayosd-client --input-volume mute-toggle
+bindsym --locked XF86MonBrightnessUp exec swayosd-client --brightness raise
+bindsym --locked XF86MonBrightnessDown exec swayosd-client --brightness lower
+bindsym --locked XF86AudioPlay exec playerctl play-pause
+bindsym --locked XF86AudioPause exec playerctl play-pause
+bindsym --locked XF86AudioNext exec playerctl next
+bindsym --locked XF86AudioPrev exec playerctl previous
+
+# Resize mode is visible through Waybar's sway/mode module.
+mode "resize" {
+  bindsym $left resize shrink width 10 px
+  bindsym $down resize grow height 10 px
+  bindsym $up resize shrink height 10 px
+  bindsym $right resize grow width 10 px
+  bindsym Left resize shrink width 10 px
+  bindsym Down resize grow height 10 px
+  bindsym Up resize shrink height 10 px
+  bindsym Right resize grow width 10 px
+  bindsym Return mode "default"
+  bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+# Dialogs and utility windows should behave like desktop dialogs instead of
+# consuming a full tile. Criteria stay application-based, never device-based.
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [title="Open File"] floating enable
+for_window [title="Save File"] floating enable
+for_window [app_id="sway-help"] floating enable, resize set 1200 800
+for_window [app_id="pavucontrol"] floating enable, resize set 1000 700
+for_window [app_id="blueman-manager"] floating enable, resize set 900 650
+for_window [app_id="nm-connection-editor"] floating enable, resize set 1000 700
+
+# Arch ships portal and systemd environment integration here. Keep this include
+# so distro updates can adjust the session contract without duplicating it.
+include /etc/sway/config.d/*
+
+# The session target owns Sway-specific applets and UI daemons. The launcher
+# stops it when Sway exits, preventing those processes from surviving logout.
+exec sh -c 'dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER XMODIFIERS QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE && systemctl --user start sway-session.target'

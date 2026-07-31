@@ -251,7 +251,7 @@ if [[ "$(uname)" = "Linux" ]]; then
 
       bubc() {
         # Keep Arch updates as a full-system transaction. AUR and Flatpak updates
-        # run after pacman so repo packages, kernels, and GNOME libraries settle first.
+        # run after pacman so repo packages, kernels, and desktop libraries settle first.
         sudo pacman -Syu || return
 
         if command -v yay >/dev/null 2>&1; then

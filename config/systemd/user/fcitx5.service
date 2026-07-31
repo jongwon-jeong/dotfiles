@@ -1,0 +1,11 @@
+[Unit]
+Description=Fcitx 5 input method
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+ExecStart=/usr/bin/fcitx5 --replace
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

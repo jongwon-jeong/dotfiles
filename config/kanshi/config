@@ -1,0 +1,11 @@
+# Shared Sway behavior intentionally has no fixed output names. Machine-specific
+# profiles live outside the deployed repo copy so dotfile redeployment preserves
+# them.
+include ~/.config/kanshi/local.conf
+
+# Add a local profile only after identifying stable make/model/serial strings with:
+#
+#   swaymsg -t get_outputs
+#
+# See docs/sway-workflow.md for desktop, laptop, and docked examples. The local
+# file can remain empty while Sway manages connected outputs with preferred modes.
