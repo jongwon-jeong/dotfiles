@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch for GTK recent-file metadata
+PartOf=sway-session.target
+
+[Path]
+PathExists=%h/.local/share/recently-used.xbel
+Unit=desktop-data-cleanup.service
+
+[Install]
+WantedBy=sway-session.target

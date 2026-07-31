@@ -420,7 +420,8 @@ install_base_packages() { # {{{
   install_required_packages \
     waybar swaync fuzzel swayosd \
     kanshi wdisplays \
-    grim slurp cliphist \
+    grim slurp cliphist wf-recorder \
+    batsignal wlsunset \
     brightnessctl playerctl \
     network-manager-applet \
     bluez bluez-utils blueman \
@@ -474,6 +475,58 @@ deploy_dotfiles() { # {{{
   run_as_target_user "${setup_script}"
 } # }}}
 
+setup_sway_user_preferences() { # {{{
+  if is_wsl; then
+    return 0
+  fi
+
+  echo ""
+  echo "INFO: Applying GTK file chooser preferences..."
+
+  if ! command -v gsettings &>/dev/null || ! command -v dbus-run-session &>/dev/null; then
+    echo "ERROR: gsettings and dbus-run-session are required for GTK preferences."
+    return 1
+  fi
+
+  local failed=false
+
+  set_file_chooser_setting() {
+    local -r schema="${1}"
+    local -r key="${2}"
+    local -r value="${3}"
+
+    if ! run_as_target_user gsettings list-keys "${schema}" 2>/dev/null | grep -Fxq "${key}"; then
+      echo "ERROR: Required GLib setting is unavailable: ${schema} ${key}"
+      failed=true
+      return
+    fi
+
+    run_as_target_user dbus-run-session -- gsettings set "${schema}" "${key}" "${value}" || {
+      echo "ERROR: Failed to set GLib preference: ${schema} ${key}"
+      failed=true
+    }
+  }
+
+  local schema
+  for schema in org.gtk.Settings.FileChooser org.gtk.gtk4.Settings.FileChooser; do
+    set_file_chooser_setting "${schema}" clock-format 24h
+    set_file_chooser_setting "${schema}" date-format with-time
+    set_file_chooser_setting "${schema}" location-mode path-bar
+    set_file_chooser_setting "${schema}" show-hidden true
+    set_file_chooser_setting "${schema}" show-size-column true
+    set_file_chooser_setting "${schema}" show-type-column true
+    set_file_chooser_setting "${schema}" sort-column name
+    set_file_chooser_setting "${schema}" sort-directories-first true
+    set_file_chooser_setting "${schema}" sort-order ascending
+    # Starting in the current directory avoids exposing a cross-application
+    # recent-files view each time a file chooser opens.
+    set_file_chooser_setting "${schema}" startup-mode cwd
+  done
+  set_file_chooser_setting org.gtk.gtk4.Settings.FileChooser view-type list
+
+  [[ "${failed}" == "false" ]]
+} # }}}
+
 setup_sway_desktop() { # {{{
   if is_wsl; then
     return 0
@@ -486,6 +539,8 @@ setup_sway_desktop() { # {{{
   local -r greetd_pam_config="${dotfiles_root}/config/system/pam.d/greetd"
   local -r sway_session_file="${dotfiles_root}/config/system/wayland-sessions/sway.desktop"
   local -r sway_launcher="${dotfiles_root}/config/system/sway/start-sway"
+  local -r logind_config="${dotfiles_root}/config/system/systemd/logind.conf.d/60-sway-desktop.conf"
+  local -r system_sound_config="${dotfiles_root}/config/system/modprobe.d/60-silent-system-sounds.conf"
 
   local target_user_name=""
   target_user_name="$(target_user)" || {
@@ -503,7 +558,7 @@ setup_sway_desktop() { # {{{
   local -r sway_user_unit_dir="${target_user_home}/.config/systemd/user"
 
   local source_file
-  for source_file in "${greetd_config}" "${greetd_pam_config}" "${sway_session_file}" "${sway_launcher}"; do
+  for source_file in "${greetd_config}" "${greetd_pam_config}" "${sway_session_file}" "${sway_launcher}" "${logind_config}" "${system_sound_config}"; do
     if [[ ! -f "${source_file}" ]]; then
       echo "ERROR: Required Sway system configuration is missing: ${source_file}"
       return 1
@@ -547,7 +602,7 @@ setup_sway_desktop() { # {{{
 
   local -a sway_user_units=()
   local unit_file
-  for unit_file in "${sway_user_unit_dir}"/*.service "${sway_user_unit_dir}"/*.target; do
+  for unit_file in "${sway_user_unit_dir}"/*.service "${sway_user_unit_dir}"/*.target "${sway_user_unit_dir}"/*.path "${sway_user_unit_dir}"/*.timer; do
     if [[ -f "${unit_file}" ]]; then
       sway_user_units+=("${unit_file}")
     fi
@@ -577,6 +632,14 @@ setup_sway_desktop() { # {{{
   }
   run_as_root install -Dm0755 "${sway_launcher}" /usr/local/bin/start-sway || {
     echo "ERROR: Failed to install the Sway session launcher."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${logind_config}" /etc/systemd/logind.conf.d/60-sway-desktop.conf || {
+    echo "ERROR: Failed to install the systemd-logind desktop policy."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${system_sound_config}" /etc/modprobe.d/60-silent-system-sounds.conf || {
+    echo "ERROR: Failed to install the silent system sound policy."
     failed=true
   }
 
@@ -1289,6 +1352,7 @@ main() { # {{{
     set_default_shell_to_zsh
     create_default_directories
     deploy_dotfiles
+    setup_sway_user_preferences
     setup_sway_desktop
     install_zsh_plugins
     install_yay
@@ -1316,8 +1380,8 @@ main() { # {{{
           echo "ERROR: Required package installation failed. Stop before applying dependent configuration."
           exit 1
         fi
-        if [[ "${task}" == "deploy_dotfiles" || "${task}" == "setup_sway_desktop" ]]; then
-          echo "ERROR: Required Sway deployment failed. Stop before reporting a bootable desktop."
+        if [[ "${task}" == "deploy_dotfiles" || "${task}" == "setup_sway_user_preferences" || "${task}" == "setup_sway_desktop" ]]; then
+          echo "ERROR: Required Sway preferences or deployment failed. Stop before reporting a bootable desktop."
           exit 1
         fi
         echo "ERROR: Task failed, continuing: ${task}"

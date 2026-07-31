@@ -11,6 +11,7 @@ export XDG_CACHE_HOME="${HOME}/.cache"
 export PATH="${HOME}/.local/bin:${PATH}"
 
 if [[ $- == *i* ]]; then
+  bind "set bell-style none"
   bind "set completion-ignore-case on"
   bind "set show-all-if-ambiguous on"
   bind "set colored-stats on"

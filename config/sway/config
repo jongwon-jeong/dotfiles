@@ -27,7 +27,7 @@ smart_borders no_gaps
 client.focused #1e6fcc #1e6fcc #ffffff #1e6fcc #1e6fcc
 client.focused_inactive #aaaaaa #f2eede #000000 #aaaaaa #aaaaaa
 client.unfocused #aaaaaa #f2eede #555555 #aaaaaa #aaaaaa
-client.urgent #cc3e28 #cc3e28 #ffffff #cc3e28 #cc3e28
+client.urgent #aaaaaa #b7c9dc #000000 #aaaaaa #aaaaaa
 
 # Shared input defaults apply only to matching device classes, so desktops
 # without touchpads and laptops without external pointers remain valid.
@@ -152,6 +152,7 @@ bindsym $mod+Ctrl+Shift+$right move workspace to output right
 
 # Desktop conveniences.
 bindsym $mod+n exec swaync-client -t -sw
+bindsym $mod+Ctrl+n exec pkill -SIGUSR1 -x wlsunset
 bindsym $mod+c exec sh -c 'cliphist list | fuzzel --dmenu --prompt="Clipboard> " | cliphist decode | wl-copy'
 bindsym $mod+Ctrl+c exec swaynag -t warning -m 'Clear all clipboard history?' -b 'Clear' 'cliphist wipe'
 bindsym $mod+Shift+b exec pkill -SIGUSR1 waybar
@@ -159,6 +160,7 @@ bindsym $mod+Shift+b exec pkill -SIGUSR1 waybar
 bindsym Print exec sh -c 'grim - | wl-copy'
 bindsym Shift+Print exec sh -c 'geometry="$(slurp)" && grim -g "$geometry" - | wl-copy'
 bindsym $mod+Print exec sh -c 'directory="$HOME/Pictures/Screenshots"; mkdir -p "$directory" && geometry="$(slurp)" && grim -g "$geometry" "$directory/$(date +%Y%m%d-%H%M%S).png"'
+bindsym $mod+Shift+Print exec $HOME/.config/sway/scripts/toggle-recording
 
 bindsym --locked XF86AudioRaiseVolume exec swayosd-client --output-volume raise
 bindsym --locked XF86AudioLowerVolume exec swayosd-client --output-volume lower

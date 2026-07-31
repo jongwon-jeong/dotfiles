@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+battery_names=()
+for power_supply_path in /sys/class/power_supply/*; do
+  if [[ ! -r "${power_supply_path}/type" ]]; then
+    continue
+  fi
+
+  if [[ "$(<"${power_supply_path}/type")" == "Battery" ]]; then
+    battery_names+=("${power_supply_path##*/}")
+  fi
+done
+
+# A desktop without batteries has no monitoring work to perform.
+if ((${#battery_names[@]} == 0)); then
+  exit 0
+fi
+
+battery_name_list="$(
+  IFS=,
+  printf "%s" "${battery_names[*]}"
+)"
+exec /usr/bin/batsignal -i -e -w 20 -c 10 -d 0 -n "${battery_name_list}"

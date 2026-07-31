@@ -5,6 +5,7 @@ After=sway-session.target
 
 [Service]
 ExecStart=/usr/bin/swaync
+ExecStartPost=/usr/bin/swaync-client --dnd-on
 Restart=on-failure
 
 [Install]

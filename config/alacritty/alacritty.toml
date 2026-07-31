@@ -1,6 +1,9 @@
 # ~/.config/alacritty/alacritty.toml
 # ----------------------------------------------------------
 
+[bell]
+duration = 0
+
 [colors]
 
 # https://github.com/alacritty/alacritty-theme/blob/master/themes/papertheme.toml

@@ -1,0 +1,10 @@
+[Unit]
+Description=Remove short-lived desktop privacy data
+Documentation=man:find(1)
+
+[Service]
+Type=oneshot
+# GTK recent-file metadata is disabled, but remove data left by other clients.
+ExecStart=/usr/bin/rm -f %h/.local/share/recently-used.xbel
+# A missing thumbnail directory is expected when previews remain disabled.
+ExecStart=-/usr/bin/find %h/.cache/thumbnails -depth -mindepth 1 -mmin +1440 -delete

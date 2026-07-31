@@ -1,0 +1,14 @@
+[Unit]
+Description=Battery charge warning notifications
+Documentation=man:batsignal(1)
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bash %h/.config/sway/scripts/start-batsignal
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=sway-session.target

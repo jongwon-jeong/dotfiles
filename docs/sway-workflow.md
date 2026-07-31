@@ -127,15 +127,18 @@ Waybar에는 모든 출력의 워크스페이스가 표시된다. 워크스페�
 | 키 | 동작 |
 |---|---|
 | `Super+N` | 알림센터 열기/닫기 |
+| `Super+Ctrl+N` | 야간 색온도 모드 수동 전환 |
 | `Super+C` | 클립보드 기록 검색 및 붙여넣기 준비 |
 | `Super+Ctrl+C` | 확인 후 클립보드 기록 전체 삭제 |
 | `Super+Shift+B` | Waybar 표시/숨김 |
 
 알림센터 안에서는 `Shift+D`로 방해 금지를 전환하고 `Shift+C`로 알림을 모두 지울 수 있다. `Escape`로 닫는다.
 
+방해 금지는 로그인할 때 항상 켜지므로 팝업 배너가 자동으로 나타나지 않는다. 알림은 현재 세션의 알림센터에만 쌓이고 `Super+N`으로 직접 확인할 수 있으며, 로그아웃할 때 모두 지운다. 필요한 동안만 `Shift+D` 또는 Waybar 알림 항목의 오른쪽 클릭으로 팝업을 다시 허용할 수 있다.
+
 클립보드 검색에서 항목을 선택하면 해당 내용이 시스템 클립보드로 복사된다. 이후 애플리케이션의 일반 붙여넣기 키를 사용한다.
 
-Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 복사한 비밀번호 같은 민감한 내용도 기록될 수 있다. 기본값은 최대 100개, 항목당 1 MiB로 제한한다. 민감한 내용을 복사한 뒤에는 `Super+Ctrl+C`로 기록을 지운다.
+Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 복사한 비밀번호 같은 민감한 내용도 기록될 수 있다. 기본값은 최대 100개, 항목당 1 MiB로 제한하고 Sway에서 로그아웃할 때 전체 기록을 자동 삭제한다. 현재 세션에서도 즉시 지워야 하면 `Super+Ctrl+C`를 사용한다.
 
 ### 스크린샷
 
@@ -144,8 +147,11 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 | `Print` | 전체 화면을 클립보드로 복사 |
 | `Shift+Print` | 선택 영역을 클립보드로 복사 |
 | `Super+Print` | 선택 영역을 `~/Pictures/Screenshots`에 저장 |
+| `Super+Shift+Print` | 선택 영역 녹화 시작/종료 |
 
 영역 선택을 취소하려면 `Escape`를 누른다.
+
+화면 녹화는 `~/Videos/Recordings`에 MP4로 저장한다. 같은 키를 다시 누르면 실행 중인 녹화를 정상 종료한다. 마이크나 시스템 오디오를 실수로 수집하지 않도록 기본 녹화에는 소리를 포함하지 않는다.
 
 ### 오디오, 밝기, 미디어
 
@@ -161,6 +167,10 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 | 이전/다음 트랙 | 현재 MPRIS 플레이어 제어 |
 
 데스크톱처럼 배터리나 백라이트가 없는 시스템에서는 관련 Waybar 모듈과 키 동작이 조용히 비활성화된다.
+
+화면 색온도는 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용한다. 매일 19:00부터 4000 K로 서서히 낮아지고 07:00부터 6500 K로 돌아온다. `Super+Ctrl+N`은 주간·야간·자동 상태를 수동으로 순환한다.
+
+배터리 경고도 기본 방해 금지 정책을 따르므로 팝업으로 나타나지 않고 현재 세션의 알림센터에 쌓인다. 평소에는 Waybar의 배터리 상태를 확인하고, 경고 팝업이 필요한 동안만 `Super+N`을 열어 `Shift+D`로 방해 금지를 해제한다.
 
 ### 세션
 
@@ -249,7 +259,20 @@ profile docked {
 systemctl --user reload-or-restart kanshi.service
 ```
 
-랩탑 덮개 동작은 systemd-logind의 Arch 기본 정책을 따른다. 일반적으로 배터리 사용 중 덮개를 닫으면 절전하고, 도킹 상태에서는 외부 모니터 사용을 방해하지 않는다. 공용 설정에서 특정 내장 패널 이름을 끄는 규칙을 만들지 않는다.
+전원 버튼은 실수로 즉시 종료하지 않도록 시스템 절전을 요청한다. 랩탑 덮개는 배터리와 외부 전원에서 모두 절전하고, 도킹됐거나 여러 출력이 연결된 상태에서는 외부 모니터 사용을 방해하지 않도록 무시한다. 이 정책은 systemd-logind가 담당하며 다음 부팅부터 적용된다. 공용 설정에서 특정 내장 패널 이름을 끄는 규칙은 만들지 않는다.
+
+## GTK, 파일 관리자와 기본 애플리케이션
+
+Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하지 않는다. 이 리포는 역할에 따라 다음처럼 분리한다.
+
+- GTK 3·4의 밝은 테마, 고대비 아이콘·글꼴, 애니메이션, 시스템 이벤트음과 최근 파일 기록 여부는 각각의 `settings.ini`가 관리한다. 버튼·경고·입력 피드백음은 끄되 영상·음악의 일반 출력은 음소거하지 않는다.
+- GTK 3·4 파일 선택기의 24시간 시계, 숨김 파일 표시, 폴더 우선 정렬, 목록 보기와 현재 디렉터리 시작은 GLib `gsettings`로 bootstrap 시 적용한다.
+- Thunar는 상세 목록 보기, 숨김 파일 표시, 폴더 우선 정렬을 사용하고 이미지 미리보기와 썸네일 생성을 비활성화한다.
+- 디렉터리는 Thunar, 이미지는 Imv, 영상·음악은 mpv, PDF는 Zathura, 웹 URL은 Google Chrome으로 연다.
+
+`gsettings`는 GNOME Shell 전용 도구가 아니라 GLib 설정 저장 인터페이스이므로 Sway에서도 GTK 파일 선택기 설정에 사용하는 것이 맞다. 다만 Sway 설정을 다시 읽을 때마다 실행하지 않고, 설치 단계에서 한 번 적용해 compositor 수명주기와 분리한다.
+
+기본 시스템 사운드는 계층별로 끈다. GTK 이벤트·경고·입력 피드백음은 GTK 3·4 설정에서, Zsh와 Bash 터미널 벨은 각 셸에서, 커널의 레거시 PC 스피커 비프음은 `pcspkr`와 `snd_pcsp` 모듈 차단으로 비활성화한다. Alacritty와 GTK의 visual bell도 끄고, Sway 창과 Waybar 워크스페이스의 urgent 상태는 빨간색 대신 차분한 파란색으로만 구분한다. SwayNC는 항상 방해 금지 상태로 시작하므로 팝업 배너는 표시하지 않고 대기 중인 알림만 Waybar의 `DND!`로 알린다. 브라우저·메신저·알람 앱이 일반 미디어 스트림이나 자체 창으로 직접 표시하는 동작까지 막지는 않는다.
 
 ## Waybar 사용법
 
@@ -290,6 +313,31 @@ journalctl --user -b -u xdg-desktop-portal -u xdg-desktop-portal-wlr
 - systemd가 절전에 들어가기 직전에 항상 잠금
 
 영상 플레이어나 브라우저가 idle inhibit 프로토콜을 사용하면 재생 중 잠금이 지연될 수 있다. 수동 제어가 필요하면 Waybar의 `IDLE` 항목을 사용한다.
+
+## 개인정보와 로컬 데이터 수명주기
+
+이 데스크톱 구성은 백그라운드 텔레메트리나 자동 업데이트 조회를 추가하지 않는다. 패키지 갱신은 기존 `bubu`, `upall` 명령으로 사용자가 명시적으로 실행한다. Arch가 제공하는 NetworkManager의 주기적 HTTP 연결 상태 확인도 끄며, captive portal은 Wi-Fi 연결 후 브라우저를 직접 열어 사용한다. 야간 색온도는 위치를 조회하지 않고, 배터리 경고는 로컬 전원 정보만 읽으며, 화면 녹화는 기본적으로 오디오를 수집하지 않는다.
+
+로컬 정리 작업은 다음 항목만 대상으로 한다.
+
+- GTK 최근 파일 기록은 생성 자체를 비활성화하고, 이를 무시하는 앱이 기록 파일을 만들면 path 감시가 즉시 삭제한다.
+- 24시간이 지난 썸네일 캐시를 삭제한다. Thunar의 새 썸네일 생성 자체도 비활성화한다.
+- 클립보드 기록은 Sway 로그아웃 시 모두 삭제한다.
+
+휴지통, 셸 명령 기록, 브라우저 방문 기록, 로그인 정보, 애플리케이션 데이터, 개발 도구의 빌드 캐시와 일반 다운로드 파일은 자동 삭제하지 않는다. 범위를 넓히면 복구 기회를 잃거나 로그인 상태가 풀리고 반복 다운로드·재빌드가 발생할 수 있어, 개인정보 보호 효과가 분명한 데스크톱 메타데이터만 정리한다. 기존 NetworkManager MAC 무작위화, IPv6 privacy 주소와 firewalld 정책은 그대로 유지한다. Chrome이나 Flatpak 앱이 자체적으로 제공하는 동기화·사용 통계 전송은 각 애플리케이션의 설정 범위이며, 이 데스크톱 정책이 모든 앱의 외부 통신까지 차단한다고 가정하지 않는다.
+
+## 수동 업데이트와 유지관리
+
+자동 업데이트 확인을 대신해 다음 명령을 사용자가 필요할 때 직접 실행한다. 예약 timer나 로그인 시 자동 실행은 구성하지 않으며, 각 명령은 실행한 시점에만 저장소나 vendor 서버에 접속한다.
+
+| 명령 | 범위 | 참고 |
+|---|---|---|
+| `bubo` | Pacman, AUR, Flatpak의 사용 가능한 업데이트 확인 | 확인만 수행하며 실제 패키지를 변경하지 않는다. |
+| `bubu` | `bubo` 확인 후 Pacman 전체 시스템, AUR, Flatpak 순서로 갱신 | Arch 시스템과 그래픽 애플리케이션의 일반 유지관리 명령이다. |
+| `upall` | Mise, uv와 리포가 `cargo-binstall`로 관리하는 사용자 도구 갱신 | OS 패키지와 분리된 개발 도구만 다룬다. |
+| `fwup` | 펌웨어 metadata 갱신과 사용 가능한 장치 firmware 설치 | AC 전원이나 재부팅이 필요할 수 있어 일반 패키지 갱신과 분리한다. |
+
+이 명령들은 서로 범위가 다르다. `bubu`만으로 개발 도구와 firmware까지 모두 갱신되거나, `upall`만으로 Arch 시스템이 갱신된다고 가정하지 않는다.
 
 ## 설치된 프로그램과 역할
 
@@ -333,7 +381,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
 | `waybar` | Sway용 패널이다. 워크스페이스, 현재 창, 트레이, 네트워크, 오디오, 배터리, 시계와 세션 메뉴를 표시한다. | `sway-session.target`이 시작하고 로그아웃할 때 종료한다. 모듈은 해당 하드웨어나 서비스가 없으면 숨거나 빈 상태가 된다. |
-| `swaync` | 알림 daemon과 알림센터를 함께 제공한다. | 애플리케이션 알림을 표시하고 `Super+N` 또는 Waybar에서 기록, 방해 금지와 전체 삭제를 제어한다. |
+| `swaync` | 알림 daemon과 알림센터를 함께 제공한다. | 기본 방해 금지 상태에서 팝업 없이 현재 세션의 알림만 모으며, `Super+N` 또는 Waybar에서 직접 확인·삭제하거나 필요할 때 팝업을 허용한다. |
 | `fuzzel` | Wayland native 애플리케이션 실행기이며 dmenu 호환 선택기다. | `Super+D`의 앱 검색뿐 아니라 Cliphist 기록을 고르는 메뉴에도 재사용한다. |
 | `swayosd` | 볼륨, 마이크와 밝기 변경을 화면 중앙의 OSD로 보여 주고 해당 값을 조절한다. | 키보드의 미디어·밝기 키를 `swayosd-client`가 처리하고 세션의 `swayosd-server`가 결과를 표시한다. |
 | `playerctl` | MPRIS 표준을 지원하는 미디어 player를 명령행에서 제어한다. | 재생·일시정지와 이전·다음 미디어 키를 현재 활성 player에 전달한다. player가 없으면 명령만 조용히 실패한다. |
@@ -346,6 +394,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 |---|---|---|
 | `grim` | Wayland 출력 또는 지정한 좌표 영역을 이미지로 캡처한다. | 전체 화면을 클립보드로 보내거나 선택 영역을 PNG로 저장하는 실제 캡처 도구다. |
 | `slurp` | 마우스로 화면의 사각형 영역을 선택하고 좌표를 출력한다. | `grim -g`에 전달할 영역을 정한다. `Escape`로 취소하면 파일을 만들지 않는다. |
+| `wf-recorder` | wlroots compositor의 화면을 영상 파일로 녹화한다. | `Super+Shift+Print`로 선택 영역을 녹화하고 같은 키로 종료한다. 개인정보 보호를 위해 기본 명령은 오디오를 포함하지 않는다. |
 | `wl-clipboard` | Wayland 클립보드 명령인 `wl-copy`와 `wl-paste`를 제공한다. | 스크린샷·텍스트 복사, Cliphist 감시와 선택 항목 복원에 사용한다. |
 | `cliphist` | Wayland 클립보드 내용을 로컬 데이터베이스에 기록하고 검색·복원한다. | 텍스트와 이미지를 별도 systemd 서비스가 수집한다. `Super+C`로 Fuzzel에서 고르고 `Super+Ctrl+C`로 기록을 지운다. |
 
@@ -368,6 +417,8 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `kanshi` | 연결된 모니터 조합을 감지해 저장된 출력 profile을 자동 적용한다. | 데스크톱, 랩탑 단독, docked 구성을 `~/.config/kanshi/local.conf`에서 장비별로 정의한다. profile이 없으면 Sway의 preferred mode를 그대로 둔다. |
 | `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+Ctrl+D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
 | `brightnessctl` | 커널 backlight와 LED 장치를 조회·조절하는 CLI다. | Waybar 밝기 모듈에서 스크롤 조절에 사용한다. 백라이트가 없는 데스크톱에서는 할 일이 없다. |
+| `batsignal` | 배터리 충전량을 가볍게 감시해 표준 데스크톱 알림을 보낸다. | 발견한 모든 배터리를 대상으로 20%에서 경고하고 10%에서 긴급 알림을 보낸다. 자동 종료·절전 동작은 하지 않으며 배터리가 없는 데스크톱에서는 조용히 종료한다. |
+| `wlsunset` | Wayland 출력의 색온도를 현지 시각에 따라 조절한다. | 위치나 네트워크를 사용하지 않고 07:00과 19:00 고정 시각을 기준으로 전환한다. |
 | `upower` | 배터리와 전원 장치 정보를 D-Bus로 제공하는 시스템 daemon이다. | Waybar와 데스크톱 앱이 충전량, 충전 상태와 남은 시간을 하드웨어별 구현 없이 읽게 한다. |
 | `power-profiles-daemon` | `power-saver`, `balanced`, `performance` 전원 profile을 제공한다. | bootstrap이 기본값을 `balanced`로 맞추고 Waybar에서 현재 상태를 표시한다. profile 전환은 `powerprofilesctl set`으로 할 수 있으며, 지원하지 않는 하드웨어에서는 가능한 profile만 노출된다. |
 | `switcheroo-control` | 내장 GPU와 외장 GPU가 함께 있는 시스템의 GPU 선택 정보를 D-Bus로 제공한다. | 하이브리드 그래픽 랩탑에서 지원 앱이 고성능 GPU 실행을 요청할 수 있게 한다. 단일 GPU 시스템에서는 사실상 대기한다. |
@@ -404,10 +455,22 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 |---|---|
 | 시스템 서비스 또는 D-Bus 요청으로 실행 | greetd, NetworkManager, firewalld, Bluetooth, CUPS, UDisks2, UPower, power-profiles-daemon, switcheroo-control |
 | 로그인 화면이 보이는 동안 실행 | Cage, ReGreet |
-| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, Fcitx5, Kanshi, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스 |
-| 요청될 때 실행 또는 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Pavucontrol, Thunar, portal backend, 파일·URL 기본 앱 |
+| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, Fcitx5, Kanshi, wlsunset, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
+| 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, wf-recorder, Pavucontrol, Thunar, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
 Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
+
+개인정보나 백그라운드 동작과 직접 관련된 구성 요소의 범위는 다음과 같다.
+
+| 구성 요소 | 외부 네트워크 | 로컬 데이터와 종료 동작 | 하드웨어가 없을 때 |
+|---|---|---|---|
+| SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
+| Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 제한된 로컬 DB에 저장하고 로그아웃 시 전체 삭제 | 하드웨어와 무관하게 동작 |
+| wlsunset | 사용하지 않음 | 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
+| batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않음 | 배터리가 없으면 조용히 종료 |
+| 개인정보 정리 path·timer·service | 사용하지 않음 | `~/.local/share/recently-used.xbel`과 24시간이 지난 `~/.cache/thumbnails` 항목만 정리 | 대상 경로가 없으면 변경하지 않음 |
+| NetworkManager | 실제 연결에 필요한 네트워크만 사용 | 연결 profile은 NetworkManager가 관리하며 주기적 HTTP 연결 확인은 비활성화 | Wi-Fi가 없어도 유선·VPN 관리에 사용 가능 |
+| firewalld | 자체적인 외부 요청 없음 | 검토된 zone과 firewall 정책을 시스템에 유지 | 네트워크 장치 종류와 무관하게 정책 적용 |
 
 ## 문제 해결과 복구
 
@@ -457,6 +520,38 @@ swaymsg -t get_outputs
 swaymsg -t get_inputs
 ```
 
+### 설정 적용 시점
+
+설정 파일을 고친 뒤 필요한 적용 방법은 소유 구성 요소에 따라 다르다.
+
+| 변경 대상 | 적용 방법 |
+|---|---|
+| `config/sway/config` | `swaymsg reload` 또는 `Super+Shift+C` |
+| Waybar·SwayNC 등 개별 user service 설정 | `systemctl --user daemon-reload` 후 해당 service 재시작 |
+| 여러 Sway 세션 service와 unit 관계 | `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
+| GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |
+| GTK 파일 선택기 GLib 설정 | bootstrap에서 적용하며, 이미 실행 중인 애플리케이션은 다시 실행 |
+| NetworkManager privacy 설정 | bootstrap으로 `/etc`에 설치한 뒤 NetworkManager reload 또는 다음 부팅 |
+| systemd-logind 전원·덮개 정책, greetd, kernel module 차단 | bootstrap으로 설치한 뒤 재부팅 |
+
+`systemctl --user restart sway-session.target`은 Sway 창 자체는 유지하지만 세션에 묶인 알림, 입력기, applet과 보조 service를 다시 시작한다. systemd-logind를 현재 그래픽 세션에서 강제로 재시작하는 대신 안전하게 재부팅한다.
+
+### GNOME 제거 전 완료 확인
+
+GNOME 제거는 다음 검증을 실제 사용하는 데스크톱과 랩탑에서 모두 통과한 뒤 별도의 검토된 변경으로 진행한다. 해당 장비에 없는 하드웨어 항목은 건너뛸 수 있지만 한 종류의 장비에서 성공한 결과를 다른 종류의 검증으로 대신하지 않는다.
+
+- [ ] 재부팅 후 ReGreet 로그인, Sway 시작과 GNOME Keyring 잠금 해제가 정상이다.
+- [ ] 한글 입력, 키 반복, 터미널과 브라우저의 기본 키 동작이 정상이다.
+- [ ] 단일·다중 모니터, hotplug, 해상도·배율·회전과 Kanshi profile이 정상이다.
+- [ ] 랩탑의 밝기, 배터리 상태, 덮개, 전원 버튼, 절전과 복귀가 정상이다.
+- [ ] 유선·Wi-Fi·VPN, Bluetooth, 오디오 입출력과 미디어 키가 정상이다.
+- [ ] 화면 공유, 파일 선택기, 기본 파일·URL 연결과 권한 요청창이 정상이다.
+- [ ] USB 저장장치, 휴지통과 필요한 경우 프린터가 정상이다.
+- [ ] 수동·자동 화면 잠금, 알림센터, 클립보드 정리와 로그아웃 후 재로그인이 정상이다.
+- [ ] `Ctrl+Alt+F3` TTY 로그인과 `/usr/local/bin/start-sway` 진단 경로를 사용할 수 있다.
+
+체크가 끝나기 전에는 GDM을 복구 수단으로 남길 수 있지만, 완료 후에는 GNOME과 Sway의 이중 데스크톱 구성을 정상 상태로 유지하지 않는다.
+
 ### GNOME 제거 전 임시 복구
 
 최종 검증 전까지 GDM이 아직 설치돼 있다면 TTY에서 로그인 관리자를 되돌릴 수 있다.
@@ -488,11 +583,16 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 알림센터 | `~/.config/swaync/` |
 | 실행기 | `~/.config/fuzzel/fuzzel.ini` |
 | 클립보드 기록 | `~/.config/cliphist/config` |
+| GTK 3·4 외형과 최근 파일 정책 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` |
+| 기본 파일·URL 연결 | `~/.config/mimeapps.list` |
+| Thunar 동작 | `~/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml` |
 | 화면 잠금 | `~/.config/swaylock/config` |
 | 공용 모니터 설정 | `~/.config/kanshi/config` |
 | 장비별 모니터 프로필 | `~/.config/kanshi/local.conf` |
 | 한글 입력 | `~/.config/fcitx5/` |
 | 세션 서비스 | `~/.config/systemd/user/` |
+| 전원 버튼과 랩탑 덮개 정책 | `/etc/systemd/logind.conf.d/60-sway-desktop.conf` |
+| 레거시 PC 스피커 비프음 차단 | `/etc/modprobe.d/60-silent-system-sounds.conf` |
 
 각 프로그램의 상세 문법은 Arch에 설치된 매뉴얼에서 확인한다.
 

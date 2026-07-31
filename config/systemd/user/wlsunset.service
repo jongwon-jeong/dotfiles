@@ -1,0 +1,15 @@
+[Unit]
+Description=Local-time Wayland night color adjustment
+Documentation=man:wlsunset(1)
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+Type=simple
+# Fixed local times avoid network-based geolocation and remain portable.
+ExecStart=/usr/bin/wlsunset -T 6500 -t 4000 -S 07:00 -s 19:00 -d 1800
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=sway-session.target

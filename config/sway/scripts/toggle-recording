@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+if ! command -v wf-recorder >/dev/null 2>&1 || ! command -v slurp >/dev/null 2>&1; then
+  notify-send "Screen recording" "wf-recorder or slurp is unavailable."
+  exit 1
+fi
+
+if pgrep -x wf-recorder >/dev/null 2>&1; then
+  if pkill -INT -x wf-recorder; then
+    notify-send "Screen recording" "Stopping the active recording."
+    exit 0
+  fi
+
+  notify-send "Screen recording" "Could not stop the active recording."
+  exit 1
+fi
+
+recording_dir="${HOME}/Videos/Recordings"
+if ! mkdir -p "${recording_dir}"; then
+  notify-send "Screen recording" "Could not create ${recording_dir}."
+  exit 1
+fi
+
+geometry="$(slurp)" || exit 0
+recording_file="${recording_dir}/$(date +%Y%m%d-%H%M%S).mp4"
+
+notify-send "Screen recording" "Recording the selected region without audio."
+if wf-recorder -g "${geometry}" -f "${recording_file}"; then
+  notify-send "Screen recording" "Saved to ${recording_file}."
+  exit 0
+fi
+
+notify-send "Screen recording" "Recording failed; any partial file was preserved."
+exit 1

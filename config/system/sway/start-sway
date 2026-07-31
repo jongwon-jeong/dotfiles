@@ -4,7 +4,15 @@
 # The NVIDIA flag is added only when the module is active; supported Intel and
 # AMD paths use Sway's normal startup contract.
 cleanup_session() {
+  # Notifications are session-scoped and should not survive logout.
+  if command -v swaync-client >/dev/null 2>&1; then
+    swaync-client --close-all --skip-wait >/dev/null 2>&1 || true
+  fi
   systemctl --user stop sway-session.target >/dev/null 2>&1 || true
+  # Clipboard history must not survive the graphical login boundary.
+  if command -v cliphist >/dev/null 2>&1; then
+    cliphist wipe >/dev/null 2>&1 || true
+  fi
   systemctl --user unset-environment \
     DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH \
     XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE \
