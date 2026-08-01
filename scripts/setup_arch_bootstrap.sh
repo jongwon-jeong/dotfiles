@@ -599,6 +599,8 @@ setup_sway_desktop() { # {{{
   echo "INFO: Configuring the Sway desktop session..."
 
   local -r greetd_config="${dotfiles_root}/config/system/greetd/config.toml"
+  local -r regreet_config="${dotfiles_root}/config/system/greetd/regreet.toml"
+  local -r regreet_style="${dotfiles_root}/config/system/greetd/regreet.css"
   local -r greetd_pam_config="${dotfiles_root}/config/system/pam.d/greetd"
   local -r sway_session_file="${dotfiles_root}/config/system/wayland-sessions/sway.desktop"
   local -r sway_launcher="${dotfiles_root}/config/system/sway/start-sway"
@@ -621,7 +623,7 @@ setup_sway_desktop() { # {{{
   local -r sway_user_unit_dir="${target_user_home}/.config/systemd/user"
 
   local source_file
-  for source_file in "${greetd_config}" "${greetd_pam_config}" "${sway_session_file}" "${sway_launcher}" "${logind_config}" "${system_sound_config}"; do
+  for source_file in "${greetd_config}" "${regreet_config}" "${regreet_style}" "${greetd_pam_config}" "${sway_session_file}" "${sway_launcher}" "${logind_config}" "${system_sound_config}"; do
     if [[ ! -f "${source_file}" ]]; then
       echo "ERROR: Required Sway system configuration is missing: ${source_file}"
       return 1
@@ -683,6 +685,14 @@ setup_sway_desktop() { # {{{
 
   run_as_root install -Dm0644 "${greetd_config}" /etc/greetd/config.toml || {
     echo "ERROR: Failed to install the greetd configuration."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${regreet_config}" /etc/greetd/regreet.toml || {
+    echo "ERROR: Failed to install the ReGreet configuration."
+    failed=true
+  }
+  run_as_root install -Dm0644 "${regreet_style}" /etc/greetd/regreet.css || {
+    echo "ERROR: Failed to install the ReGreet stylesheet."
     failed=true
   }
   run_as_root install -Dm0644 "${greetd_pam_config}" /etc/pam.d/greetd || {

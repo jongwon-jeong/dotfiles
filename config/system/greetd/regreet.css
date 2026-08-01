@@ -1,0 +1,53 @@
+window {
+  background: #f2eede;
+  color: #000000;
+}
+
+frame.background {
+  background: #ffffff;
+  border: 2px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+entry,
+passwordentry,
+combobox button {
+  background: #ffffff;
+  border: 1px solid #aaaaaa;
+  border-radius: 0;
+  color: #000000;
+  box-shadow: none;
+}
+
+entry:focus,
+passwordentry:focus-within,
+combobox button:focus {
+  border-color: #1e6fcc;
+}
+
+button {
+  background: #b7c9dc;
+  border: 1px solid #000000;
+  border-radius: 0;
+  color: #000000;
+  box-shadow: none;
+}
+
+button:hover,
+button:focus {
+  background: #1e6fcc;
+  color: #ffffff;
+}
+
+button.destructive-action {
+  background: #ffffff;
+  border-color: #cc3e28;
+  color: #000000;
+}
+
+button.destructive-action:hover,
+button.destructive-action:focus {
+  background: #cc3e28;
+  color: #ffffff;
+}

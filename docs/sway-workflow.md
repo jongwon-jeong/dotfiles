@@ -412,7 +412,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `swayidle` | 사용자의 입력이 없는 시간을 감시하고 지정된 명령을 실행한다. | 잠금, 모니터 절전, 장시간 미사용 시 시스템 절전을 순서대로 실행하는 세션 서비스다. |
 | `swaylock` | Wayland용 화면 잠금 프로그램이다. | 수동 잠금, idle 잠금, 시스템 절전 직전 잠금에 같은 설정을 사용한다. 인증은 PAM을 사용한다. |
 | `greetd` | 부팅 후 로그인과 사용자 세션 시작을 담당하는 display manager다. | GDM 대신 `tty1`을 소유하고, 인증이 끝나면 선택된 Sway 세션을 시작한다. 현재 세션을 방해하지 않도록 bootstrap에서는 활성화만 하고 다음 부팅부터 사용한다. |
-| `greetd-regreet` | greetd용 GTK4 그래픽 로그인 화면인 ReGreet를 제공한다. 사용자, 비밀번호와 Wayland 세션을 선택한다. | `/usr/local/share/wayland-sessions`의 이 리포 전용 Sway 항목을 우선 발견하고 `/usr/local/bin/start-sway`를 실행한다. |
+| `greetd-regreet` | greetd용 GTK4 그래픽 로그인 화면인 ReGreet를 제공한다. 사용자, 비밀번호와 Wayland 세션을 선택한다. | Paper 팔레트의 단색 배경과 상단 시계, 하단의 재부팅·종료 버튼을 표시한다. `/usr/local/share/wayland-sessions`의 이 리포 전용 Sway 항목을 우선 발견하고 `/usr/local/bin/start-sway`를 실행한다. |
 | `cage` | 애플리케이션 하나만 전체 화면으로 보여 주는 kiosk Wayland compositor다. | 사용자 데스크톱이 아니라 ReGreet 로그인 창만 안전하게 표시한다. 로그인 후 Cage는 끝나고 Sway가 별도 세션으로 시작된다. |
 | `xorg-xwayland` | Wayland를 직접 지원하지 않는 X11 애플리케이션을 Sway 안에서 실행하는 호환 X 서버다. | 유지 대상은 native Wayland지만, 아직 X11만 지원하는 프로그램이 있을 때 자동으로 경계 역할을 한다. |
 | `qt5-wayland`, `qt6-wayland` | Qt 5·6 애플리케이션이 XWayland를 거치지 않고 Wayland client로 실행되게 하는 platform plugin이다. | `QT_QPA_PLATFORM=wayland;xcb`와 함께 Wayland를 우선하고, 지원하지 않는 앱에는 X11 fallback을 허용한다. |
@@ -646,6 +646,7 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 장비별 모니터 프로필 | `~/.config/kanshi/local.conf` |
 | 한글 입력 | `~/.config/fcitx5/` |
 | 세션 서비스 | `~/.config/systemd/user/` |
+| 로그인 화면과 ReGreet 외형 | `/etc/greetd/config.toml`, `/etc/greetd/regreet.toml`, `/etc/greetd/regreet.css` |
 | 전원 버튼과 랩탑 덮개 정책 | `/etc/systemd/logind.conf.d/60-sway-desktop.conf` |
 | 레거시 PC 스피커 비프음 차단 | `/etc/modprobe.d/60-silent-system-sounds.conf` |
 

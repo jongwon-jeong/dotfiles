@@ -1,0 +1,22 @@
+skip_selection = false
+
+[GTK]
+application_prefer_dark_theme = false
+cursor_theme_name = "Adwaita"
+cursor_blink = true
+font_name = "Noto Sans 12"
+icon_theme_name = "Papirus"
+theme_name = "Adwaita"
+
+[commands]
+reboot = ["systemctl", "reboot"]
+poweroff = ["systemctl", "poweroff"]
+
+[appearance]
+greeting_msg = "Sign in"
+
+[widget.clock]
+format = "%a %Y-%m-%d %H:%M"
+resolution = "1s"
+label_width = 220
+locale = "en_US"
