@@ -170,6 +170,12 @@ copy_files() {
 }
 
 backup_and_copy_dotfiles() {
+  # Keep deployment deliberately simple: ~/.dotfiles is a disposable copy of
+  # the checked-out repository, replaced as a whole on each manual deployment.
+  # Preserve the previous copy for manual recovery instead of adding staging,
+  # manifests, automatic rollback, or pruning of paths in the user's home.
+  # If copying is interrupted after the move, rerun this script or restore the
+  # saved dotfiles_old directory from the run-specific backup.
   if [ "${dotfiles_root}" != "${dotfiles_base}" ]; then
     if [ -d "${dotfiles_base}" ]; then
       mv -fv "${dotfiles_base}" "${backup_run_dir}/dotfiles_old" || return
