@@ -1,0 +1,5 @@
+device_config:
+  # Keep encrypted removable media locked until the user explicitly opens it.
+  - is_crypto: true
+    is_external: true
+    automount: false
