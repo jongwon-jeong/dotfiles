@@ -1,0 +1,14 @@
+[Unit]
+Description=OpenSSH authentication agent
+Documentation=man:ssh-agent(1)
+PartOf=sway-session.target
+After=sway-session.target
+
+[Service]
+Type=simple
+# Keep decrypted identities session-scoped and bounded to one workday.
+ExecStart=/usr/bin/ssh-agent -D -a %t/ssh-agent.socket -t 8h
+Restart=on-failure
+
+[Install]
+WantedBy=sway-session.target

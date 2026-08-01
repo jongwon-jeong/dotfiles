@@ -213,4 +213,4 @@ include /etc/sway/config.d/*
 
 # The session target owns Sway-specific applets and UI daemons. The launcher
 # stops it when Sway exits, preventing those processes from surviving logout.
-exec sh -c 'dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER XMODIFIERS QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE && systemctl --user start sway-session.target'
+exec sh -c 'dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH SSH_AUTH_SOCK XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER XMODIFIERS QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE && systemctl --user start sway-session.target'

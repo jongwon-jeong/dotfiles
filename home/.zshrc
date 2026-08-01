@@ -147,6 +147,14 @@ if (( $+commands[mise] )); then
   eval "$(mise activate zsh)"
 fi
 
+# TTY shells may not inherit the graphical environment. Preserve forwarded or
+# platform-managed agents, and use the Sway session agent only when it exists.
+_systemd_ssh_socket="${XDG_RUNTIME_DIR:-}/ssh-agent.socket"
+if [[ -z "${SSH_AUTH_SOCK:-}" && -S "${_systemd_ssh_socket}" ]]; then
+  export SSH_AUTH_SOCK="${_systemd_ssh_socket}"
+fi
+unset _systemd_ssh_socket
+
 setopt local_options nullglob
 for _config_file in "${HOME}/.config/shell"/*.sh "${HOME}/.config/zsh"/*.zsh; do
   if [ -f "${_config_file}" ]; then

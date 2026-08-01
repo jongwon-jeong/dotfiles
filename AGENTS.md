@@ -66,6 +66,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Treat files under `config/system/` as canonical source material for the owning bootstrap task. Files installed into `/etc`, `/usr/local/bin`, or `/usr/local/share` are derived system state, not independent sources to edit in place.
 - Update canonical repository files and redeploy through the owning script. When `~/.dotfiles` is a derived deployment copy rather than the checkout itself, direct edits there do not complete a repository change and may be replaced on the next deployment; the same applies to deployed home symlinks and installed system copies.
 - Keep machine-owned state outside the shared deployment source. `~/.config/kanshi/local.conf` is the intentional output-profile exception and must survive replacement of `~/.dotfiles`.
+- Keep employer-specific identities, SSH hosts, VPN profiles, certificates, and managed security-client state machine-owned and outside the shared deployment source.
 - Distinguish `repository changed`, `deployed`, and `runtime verified` in completion reports. Do not imply that a committed configuration is active on a machine without deployment evidence.
 
 ## Shell Code
@@ -115,6 +116,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Use the Paper palette as the default surface for maintained desktop UI. Prefer clear borders over introducing white cards solely for separation, and reserve solid accent fills for selection, focus, urgency, and other meaningful states.
 - Keep routine interface text at normal weight with compact, sufficient padding. Improve readability first through strong foreground contrast, readable sizing, and removal of visual effects; use bold text or extra spacing only for semantic emphasis or interaction needs.
 - Do not add a package or long-running service when an established manual workflow adequately covers the need. For each new daemon, identify its owner, lifecycle, network activity, persistent data, and desktop/laptop behavior.
+- Protect occasional long-running tasks with a user-invoked, command-scoped inhibitor instead of weakening the baseline lock or suspend policy globally.
 - Do not maintain parallel desktop-environment implementations after a replacement is verified. Treat coexistence as a temporary migration state and remove the superseded implementation once the replacement is complete.
 
 ## Desktop Configuration Ownership
@@ -146,7 +148,14 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Keep shared shell startup and alias files portable across Linux and macOS unless a file is intentionally platform-specific.
 - Avoid local-desktop assumptions in shared CLI startup files; gate desktop-only behavior behind environment checks.
 - Prefer graceful fallback when clipboard, GUI, network, package-manager, or language-server tools are unavailable on remote servers.
+- Reuse one explicitly owned authentication agent per local session when practical, keep identity lifetimes bounded, and select identities per host or explicit user action.
+- Do not bulk-load every private key, enable agent forwarding globally, or discover and terminate authentication agents outside the current workflow's ownership.
 - Keep shell startup fast and quiet for large monorepos and network filesystems.
+
+## Professional Use
+
+- Treat employer onboarding, supported-device, security, and project requirements as authoritative over personal defaults. Do not adapt this repository to bypass a required managed device, supported OS, security control, or approved access path.
+- Do not add speculative VPN clients, container stacks, credential integrations, or company-specific tooling. Select the exact supported implementation after the employer or project requirement is known.
 
 ## Output Style
 

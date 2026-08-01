@@ -14,7 +14,7 @@ cleanup_session() {
     cliphist wipe >/dev/null 2>&1 || true
   fi
   systemctl --user unset-environment \
-    DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH \
+    DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH SSH_AUTH_SOCK \
     XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE \
     MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER \
     XMODIFIERS QT_IM_MODULE QT_IM_MODULES SDL_IM_MODULE \
@@ -35,6 +35,11 @@ export XMODIFIERS=@im=fcitx
 export QT_IM_MODULE=fcitx
 export QT_IM_MODULES='wayland;fcitx'
 export SDL_IM_MODULE=fcitx
+
+# GUI and terminal clients share the one agent owned by sway-session.target.
+if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+  export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"
+fi
 
 if [ -d /sys/module/nvidia_drm ] || [ -d /sys/module/nvidia ]; then
   /usr/bin/sway --unsupported-gpu "$@"

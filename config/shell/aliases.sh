@@ -885,37 +885,38 @@ rustrun() {
 }
 
 sshload() {
-  if [ -n "${SSH_AGENT_PID}" ] && kill -0 "${SSH_AGENT_PID}" 2>/dev/null; then
-    echo "INFO: Reusing existing SSH agent (PID: ${SSH_AGENT_PID})."
-  else
-    unset SSH_AUTH_SOCK SSH_AGENT_PID
-    eval "$(ssh-agent -s)"
-    echo "INFO: Started new SSH agent (PID: ${SSH_AGENT_PID})."
+  if [[ "${#}" -eq 0 ]]; then
+    echo "Usage: sshload <private-key> [...]"
+    return 1
   fi
 
-  local exclude_names=(! \( -name "*.pub" -o -name "*.bak" -o -name "*~" -o -name "id_*_" \))
-  local include_names=(\( -name "id_rsa" -o -name "id_ecdsa" -o -name "id_ed25519" -o -name "id_ed25519_*" \))
+  if ! command -v ssh-add >/dev/null 2>&1; then
+    echo "ERROR: ssh-add is unavailable."
+    return 1
+  fi
 
-  local keys=("${@}")
+  local agent_status=0
+  command ssh-add -l >/dev/null 2>&1 || agent_status="${?}"
 
-  if [ "${#keys[@]}" -eq 0 ]; then
-    # keys=($(find ~/.ssh -type f -name "id_*" ! -name "*.pub"))
-    while IFS= read -r key_path; do
-      keys+=("${key_path}")
-    done < <(find ~/.ssh -type f "${exclude_names[@]}" "${include_names[@]}" | sort)
-
-    if [ "${#keys[@]}" -eq 0 ]; then
-      echo "WARN: No SSH keys found in ~/.ssh directory."
+  # ssh-add returns 2 only when it cannot contact an authentication agent.
+  if [[ "${agent_status}" -eq 2 ]]; then
+    if ! command -v ssh-agent >/dev/null 2>&1; then
+      echo "ERROR: ssh-agent is unavailable."
       return 1
     fi
+
+    unset SSH_AUTH_SOCK SSH_AGENT_PID
+    eval "$(command ssh-agent -s -t 8h)" || return
+    echo "INFO: Started new SSH agent (PID: ${SSH_AGENT_PID})."
   fi
 
   local success_count=0
   local failure_count=0
+  local key
 
-  for key in "${keys[@]}"; do
-    if [ -f "${key}" ]; then
-      if ssh-add "${key}"; then
+  for key in "${@}"; do
+    if [[ -f "${key}" ]]; then
+      if command ssh-add -t 8h "${key}"; then
         echo "DONE: Key '${key}' added successfully."
         ((success_count++))
       else
@@ -930,29 +931,50 @@ sshload() {
 
   echo ""
   echo "INFO: Currently loaded SSH keys:"
-  ssh-add -l
+  command ssh-add -l
   echo ""
   echo "INFO: Summary: ${success_count} keys added successfully, ${failure_count} failures."
+  [[ "${failure_count}" -eq 0 ]]
 }
 
 sshkill() {
-  local agent_pids
-  agent_pids=()
-  while IFS= read -r agent_pid; do
-    agent_pids+=("${agent_pid}")
-  done < <(pgrep ssh-agent)
-
-  if [ "${#agent_pids[@]}" -eq 0 ]; then
-    echo "INFO: No SSH agents are currently running."
-    return 0
+  if [[ -n "${SSH_AGENT_PID:-}" ]] && kill -0 "${SSH_AGENT_PID}" 2>/dev/null; then
+    eval "$(command ssh-agent -k)"
+    echo "DONE: Stopped the current SSH agent."
+    return
   fi
 
-  echo "INFO: Stopping all SSH agents..."
-  for pid in "${agent_pids[@]}"; do
-    kill "${pid}" && echo "DONE: Stopped agent PID: ${pid}."
-  done
+  if [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
+    command ssh-add -D || return
+    echo "DONE: Removed all identities from the current SSH agent."
+    return
+  fi
 
-  unset SSH_AUTH_SOCK SSH_AGENT_PID
+  echo "INFO: No SSH agent is available."
+}
+
+keep_awake() {
+  if [[ "${#}" -eq 0 ]]; then
+    echo "Usage: keep_awake <command> [arguments...]"
+    return 1
+  fi
+
+  if command -v systemd-inhibit >/dev/null 2>&1; then
+    command systemd-inhibit \
+      --what=sleep \
+      --mode=block \
+      --why="User-invoked long-running task" \
+      "${@}"
+    return
+  fi
+
+  if command -v caffeinate >/dev/null 2>&1; then
+    command caffeinate "${@}"
+    return
+  fi
+
+  echo "ERROR: No supported sleep inhibitor is available."
+  return 1
 }
 
 if command -v fzf &>/dev/null; then

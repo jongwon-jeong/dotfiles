@@ -382,6 +382,36 @@ journalctl --user -b -u xdg-desktop-portal -u xdg-desktop-portal-wlr
 
 영상 플레이어나 브라우저가 idle inhibit 프로토콜을 사용하면 재생 중 잠금이 지연될 수 있다. 수동 제어가 필요하면 Waybar의 `IDLE` 항목을 사용한다.
 
+장시간 build, test나 migration처럼 명령이 끝날 때까지만 시스템 절전을 막아야
+하면 해당 명령을 `keep_awake`로 실행한다. Linux에서는 `systemd-inhibit`,
+macOS에서는 `caffeinate`를 사용하며 명령이 끝나면 inhibitor도 함께 사라진다.
+
+```sh
+keep_awake npm test
+keep_awake docker compose up
+```
+
+## SSH agent
+
+Sway 세션은 `%t/ssh-agent.socket`에서 OpenSSH agent 하나를 관리한다. Fuzzel에서
+실행한 GUI application과 terminal은 같은 socket을 사용하며, agent는 로그아웃할
+때 세션 서비스와 함께 종료된다. 복호화된 identity는 메모리에만 유지되고 기본
+수명은 8시간이다.
+
+`sshload`는 `~/.ssh`의 key를 자동으로 탐색하지 않는다. 필요한 private key를
+명시해야 하며 이때도 8시간 수명을 적용한다.
+
+```sh
+sshload ~/.ssh/id_ed25519_personal
+sshload ~/.ssh/id_ed25519_work
+ssh-add -l
+```
+
+`sshkill`은 다른 terminal이나 IDE가 만든 agent process를 검색해서 종료하지
+않는다. 현재 shell이 직접 시작한 agent만 종료하고, Sway가 관리하는 agent에서는
+현재 등록된 identity만 제거한다. SSH로 전달받은 agent와 macOS가 관리하는 agent는
+기존 `SSH_AUTH_SOCK`을 우선하므로 Sway 전용 socket으로 덮어쓰지 않는다.
+
 ## 개인정보와 로컬 데이터 수명주기
 
 이 데스크톱 구성은 백그라운드 텔레메트리나 자동 업데이트 조회를 추가하지 않는다. 패키지 갱신은 기존 `bubu`, `upall` 명령으로 사용자가 명시적으로 실행한다. Arch가 제공하는 NetworkManager의 주기적 HTTP 연결 상태 확인도 끄며, captive portal은 Wi-Fi 연결 후 브라우저를 직접 열어 사용한다. 야간 색온도는 위치를 조회하지 않고, 배터리 경고는 로컬 전원 정보만 읽으며, 화면 녹화는 기본적으로 오디오를 수집하지 않는다.
@@ -525,7 +555,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 |---|---|
 | 시스템 서비스 또는 D-Bus 요청으로 실행 | greetd, NetworkManager, firewalld, Bluetooth, CUPS, UDisks2, UPower, power-profiles-daemon, switcheroo-control |
 | 로그인 화면이 보이는 동안 실행 | Cage, ReGreet |
-| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, Fcitx5, Kanshi, wlsunset, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
+| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, wlsunset, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
 | 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, wf-recorder, Pavucontrol, Thunar, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
 Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
@@ -534,6 +564,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 
 | 구성 요소 | 외부 네트워크 | 로컬 데이터와 종료 동작 | 하드웨어가 없을 때 |
 |---|---|---|---|
+| OpenSSH agent | 사용하지 않음 | 사용자가 등록한 복호화 identity를 최대 8시간 동안 메모리에만 유지하고 Sway 로그아웃 시 종료 | 하드웨어와 무관하게 동작하며 key를 등록하기 전에는 identity를 보관하지 않음 |
 | SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
 | Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 제한된 로컬 DB에 저장하고 로그아웃 시 전체 삭제 | 하드웨어와 무관하게 동작 |
 | wlsunset | 사용하지 않음 | 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
