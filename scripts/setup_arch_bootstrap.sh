@@ -1106,6 +1106,36 @@ install_codex_cli() { # {{{
   fi
 } # }}}
 
+install_antigravity_cli() { # {{{
+  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
+  # shellcheck disable=SC2016
+  if ! run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v mise >/dev/null 2>&1'; then
+    echo "WARN: mise is not installed. Skipping Antigravity CLI setup."
+    return 0
+  fi
+
+  # shellcheck disable=SC2016
+  if run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v agy >/dev/null 2>&1'; then
+    echo "DONE: Antigravity CLI (agy) is already installed."
+    return 0
+  fi
+
+  echo ""
+  echo "INFO: Installing Antigravity CLI..."
+  # Antigravity CLI is declared in the mise config with the other user tools. Release
+  # resolution uses GitHub APIs and can hit unauthenticated rate limits during a
+  # full bootstrap, so keep this best-effort retry separate from the core toolchain
+  # install.
+  # shellcheck disable=SC2016
+  if ! run_as_target_user bash -lc '
+    export PATH="${HOME}/.local/bin:${PATH}"
+    mise install --yes aqua:google/antigravity@latest
+  '; then
+    echo "WARN: Failed to install Antigravity CLI."
+    echo "INFO: Retry later: mise install aqua:google/antigravity@latest"
+  fi
+} # }}}
+
 install_user_cli_tools() { # {{{
   local -r mise_config_dir="${dotfiles_root}/config/mise"
 
@@ -1442,6 +1472,7 @@ main() { # {{{
     set_default_browser_to_google_chrome
     install_mise_managed_tools
     install_codex_cli
+    install_antigravity_cli
     install_user_cli_tools
     install_nerd_font
     setup_basic_network_privacy
