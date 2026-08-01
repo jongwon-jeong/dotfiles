@@ -8,5 +8,6 @@ Wants=waybar.service swaync.service swayidle.service swayosd.service ssh-agent.s
 Wants=fcitx5.service network-manager-applet.service blueman-applet.service
 Wants=lxqt-policykit-agent.service kanshi.service udiskie.service
 Wants=cliphist-text.service cliphist-image.service
-Wants=batsignal.service wlsunset.service desktop-data-cleanup.path desktop-data-cleanup.timer
+Wants=batsignal.service desktop-data-cleanup.path desktop-data-cleanup.timer
+# Wants=wlsunset.service
 After=graphical-session-pre.target
