@@ -263,6 +263,15 @@ Waybar의 `IDLE` 항목을 클릭해 `INHIBIT`으로 바꾼다. 작업이 끝나
 3. 숨김 설정 파일이 필요할 때만 `Ctrl+H`로 표시한다.
 4. 작업이 끝나면 `Ctrl+H`를 다시 눌러 일반 파일 중심 보기로 돌아간다.
 
+### 암호화 USB를 필요할 때만 열기
+
+1. 외장 LUKS 장치를 연결하거나 연결된 상태로 부팅한다. 자동 암호창은 나타나지 않고 장치는 잠긴 상태로 남는다.
+2. 사용할 때 Thunar의 `Devices` 또는 Udiskie 트레이 메뉴에서 장치를 직접 열고 암호를 입력한다.
+3. 작업이 끝나면 열린 파일과 터미널을 닫고 파일시스템을 마운트 해제한다.
+4. Udiskie 또는 Thunar에서 장치를 잠그거나 안전하게 제거한 뒤 분리한다.
+
+잠금 해제는 사용자가 직접 요청할 때만 일어나며, 로그인이나 장치 연결만으로 암호를 묻지 않는다.
+
 ## 한글 입력
 
 Fcitx5가 세션 입력기를 관리한다.
@@ -331,7 +340,7 @@ Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하
 
 관리하는 데스크톱 표면은 Paper 색을 기본 면으로 공유하고, 영역 구분이 필요하면 별도의 흰 카드보다 명확한 테두리를 먼저 사용한다. 평상시 글자는 기본 굵기와 읽는 데 필요한 최소 여백을 유지하며, 대비·크기·불필요한 그림자 제거로 먼저 가독성을 확보한다. 굵은 글자와 강한 배경색은 선택, 집중, 경고처럼 의미가 있는 상태에만 사용한다.
 
-기본 시스템 사운드는 계층별로 끈다. GTK 이벤트·경고·입력 피드백음은 GTK 3·4 설정에서, Zsh와 Bash 터미널 벨은 각 셸에서, 커널의 레거시 PC 스피커 비프음은 `pcspkr`와 `snd_pcsp` 모듈 차단으로 비활성화한다. Alacritty와 GTK의 visual bell도 끄고, Sway 창과 Waybar 워크스페이스의 urgent 상태는 빨간색 대신 차분한 파란색으로만 구분한다. SwayNC는 항상 방해 금지 상태로 시작하므로 팝업 배너는 표시하지 않고 대기 중인 알림만 Waybar의 `DND!`로 알린다. 브라우저·메신저·알람 앱이 일반 미디어 스트림이나 자체 창으로 직접 표시하는 동작까지 막지는 않는다.
+기본 시스템 사운드는 계층별로 끈다. GTK 이벤트·경고·입력 피드백음은 GTK 3·4 설정에서, 대화형 Zsh의 터미널 벨은 셸 설정에서, 커널의 레거시 PC 스피커 비프음은 `pcspkr`와 `snd_pcsp` 모듈 차단으로 비활성화한다. Alacritty와 GTK의 visual bell도 끄고, Sway 창과 Waybar 워크스페이스의 urgent 상태는 빨간색 대신 차분한 파란색으로만 구분한다. SwayNC는 항상 방해 금지 상태로 시작하므로 팝업 배너는 표시하지 않고 대기 중인 알림만 Waybar의 `DND!`로 알린다. 브라우저·메신저·알람 앱이 일반 미디어 스트림이나 자체 창으로 직접 표시하는 동작까지 막지는 않는다.
 
 ## Waybar 사용법
 
@@ -430,7 +439,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
-| `xdg-desktop-portal` | 브라우저, Flatpak과 일반 데스크톱 앱의 요청을 적절한 portal backend로 전달하는 D-Bus broker다. | 화면 공유, 파일 선택, URI 열기, Secret Service 같은 데스크톱 기능의 공통 입구다. |
+| `xdg-desktop-portal` | 브라우저, Flatpak과 일반 데스크톱 앱의 요청을 적절한 portal backend로 전달하는 D-Bus broker다. | 화면 공유, 파일 선택과 URI 열기 같은 portal 요청의 공통 입구다. 일반 애플리케이션 암호 저장은 별도의 Secret Service가 담당한다. |
 | `xdg-desktop-portal-wlr` | wlroots compositor용 화면 캡처와 화면 공유 backend다. | Sway에서 브라우저와 회의 앱이 모니터 또는 영역을 공유할 때 PipeWire 영상 스트림을 만든다. |
 | `xdg-desktop-portal-gtk` | GTK 기반 범용 portal backend다. | 파일 열기·저장처럼 `wlr` backend가 담당하지 않는 일반 데스크톱 요청을 처리한다. |
 | `xdg-utils` | `xdg-open`, `xdg-mime`, `xdg-settings` 같은 데스크톱 독립 명령을 제공한다. | 터미널이나 애플리케이션이 URL과 파일을 기본 앱으로 열고 기본 브라우저를 조회·설정할 때 사용한다. |
@@ -587,9 +596,9 @@ swaymsg -t get_inputs
 
 | 변경 대상 | 적용 방법 |
 |---|---|
-| `config/sway/config` | `swaymsg reload` |
-| Waybar·SwayNC 등 개별 user service 설정 | `systemctl --user daemon-reload` 후 해당 service 재시작 |
-| 여러 Sway 세션 service와 unit 관계 | `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
+| `config/sway/config` | `scripts/setup_dotfiles.sh`로 배포한 뒤 `swaymsg reload` |
+| Waybar·SwayNC 등 개별 user service 설정 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 해당 service 재시작 |
+| 여러 Sway 세션 service와 unit 관계 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
 | GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |
 | GTK 파일 선택기 GLib 설정 | bootstrap에서 적용하며, 이미 실행 중인 애플리케이션은 다시 실행 |
 | NetworkManager privacy 설정 | bootstrap으로 `/etc`에 설치한 뒤 NetworkManager reload 또는 다음 부팅 |

@@ -11,7 +11,8 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## Audience
 
 - This is a personal-use repository maintained for one user.
-- Keep `README.md` intentionally minimal; do not update it unless explicitly requested.
+- Assume the maintainer already has access to the repository. Do not add clone instructions, contributor onboarding, or multi-user abstractions unless explicitly requested.
+- Keep `README.md` focused on installation and bootstrap. Keep desktop operation and keybinding workflows in `docs/sway-workflow.md`; do not update README unless explicitly requested.
 - If a requested behavior change would make `README.md` inaccurate and README editing was not explicitly requested, leave it unchanged and report the exact stale section, changed behavior, and required follow-up.
 
 ## Policy Files
@@ -61,6 +62,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## Deployment Ownership
 
 - Treat the checked-out repository as the canonical source. When `scripts/setup_dotfiles.sh` runs from another path, `~/.dotfiles` is a derived deployment copy and home/config entries are symlinks into that copy.
+- Keep dotfile deployment deliberately simple: replace the derived `~/.dotfiles` copy as a whole during each manual deployment, preserve the previous copy in the run-specific timestamped backup, and leave recovery to an explicit manual decision. Do not add manifests, staging, automatic pruning, or automatic rollback unless explicitly requested.
 - Treat files under `config/system/` as canonical source material for the owning bootstrap task. Files installed into `/etc`, `/usr/local/bin`, or `/usr/local/share` are derived system state, not independent sources to edit in place.
 - Update canonical repository files and redeploy through the owning script. When `~/.dotfiles` is a derived deployment copy rather than the checkout itself, direct edits there do not complete a repository change and may be replaced on the next deployment; the same applies to deployed home symlinks and installed system copies.
 - Keep machine-owned state outside the shared deployment source. `~/.config/kanshi/local.conf` is the intentional output-profile exception and must survive replacement of `~/.dotfiles`.
@@ -69,7 +71,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## Shell Code
 
 - Follow the global shell naming, scoping, quoting, and command-construction rules.
-- Use `[[ ... ]]` for Bash/Zsh-specific conditionals and keep shared shell files compatible with both Bash and Zsh. Do not source shared files from POSIX `sh`.
+- Keep files sourced by both interactive shells, such as shared aliases, compatible with Bash and Zsh and use `[[ ... ]]` for their conditionals. This compatibility requirement does not apply to executable scripts, which must follow their declared shebang. Do not source shared Bash/Zsh files from POSIX `sh`.
 - Keep nested functions limited to helpers that are meaningful only during one parent operation; otherwise prefer an ordinary file-level helper.
 
 ## Failure Handling
@@ -120,11 +122,6 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Trace each setting to the component that actually consumes it; successful configuration writes alone do not prove that the maintained desktop behavior changed.
 - Treat GSettings schema availability as insufficient evidence that a setting affects Sway. Use GLib or GTK settings for applications that consume them, and use Sway, systemd-logind, swayidle, or the relevant native owner for compositor, input, power, and session behavior.
 - Do not retain GNOME-specific configuration merely because its schemas remain installed. Translate desired behavior to the maintained Sway/Wayland stack or document why a compatibility setting is still required.
-
-## Linux Bootstrap Path
-
-- Arch Linux + Sway on Wayland is the maintained Linux bootstrap path in this repo.
-- Unsupported Linux distributions may receive dotfile symlinks, but should not get distro-specific package or desktop setup without an explicit request.
 
 ## Preferences
 

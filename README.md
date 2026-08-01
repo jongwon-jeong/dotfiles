@@ -8,7 +8,6 @@ Replace `<WIFI_DEVICE>` with the device name from `device list`, and replace
 `<WIFI_NAME>` with the target Wi-Fi network name.
 
 ```sh
-archinstall
 ping -c 3 archlinux.org
 
 iwctl
@@ -37,38 +36,29 @@ Recommended `archinstall` choices for this bootstrap:
 Main menu:
 
 - Archinstall language: English.
-- Mirrors: choose nearby country mirrors, then refresh package databases.
+- Mirrors: choose nearby country mirrors.
 - Locales:
   - Keyboard layout: us.
   - Locale language: en_US.UTF-8.
   - Locale encoding: UTF-8.
 - Disk configuration:
   - Partition table: GPT on UEFI systems.
-  - Use a whole target disk for a fresh single-boot machine.
+  - Use Best Effort default partitioning on the whole target disk for a fresh
+    single-boot machine.
   - Use manual partitioning for dual-boot, preserving existing partitions, or
     non-default boot layouts.
-  - Disk layout: best-effort/default layout for a clean single-disk install.
-  - Filesystem: ext4 for simple installs; btrfs only if snapshots/subvolumes are
-    intentional.
+  - Filesystem: ext4.
   - Mountpoints: let archinstall create the default EFI/root layout unless
     manual partitioning is required.
-  - Separate `/home`: disabled by default for a simple personal machine. Enable
-    it only when preserving user data across OS reinstalls or applying a separate
-    backup/quota policy is more important than simpler storage management.
-  - LVM: disabled by default for a simple single-root personal machine. Enable it
-    only when separate logical volumes, later resizing, or multi-disk volume
-    management is intentionally needed.
-  - LVM on LUKS: choose this if LVM is enabled. One encrypted container protects
-    all logical volumes and usually needs one passphrase.
-  - LUKS on LVM: avoid by default. Use only when different logical volumes need
-    separate encryption keys, unlock policy, or unencrypted volumes beside
-    encrypted ones.
-- Disk encryption: enable LUKS by default. Skip only for disposable VMs or
-  machines where encryption is intentionally handled elsewhere.
+  - Separate `/home`: disabled. Keep home data in the single root filesystem.
+  - LVM: disabled. This single-disk layout does not need independently resized
+    logical volumes or pooled storage.
+- Disk encryption: enable LUKS by default for the system and user-data
+  partitions. Leave only the boot components required by the selected bootloader
+  unencrypted.
   - Encryption password: use a strong passphrase that can be typed reliably on
     the selected keyboard layout.
-- Bootloader: systemd-boot on UEFI; GRUB only when BIOS or a GRUB-specific boot
-  requirement exists.
+- Bootloader: systemd-boot on UEFI. On BIOS systems, use GRUB or Limine.
 - Unified kernel images: leave disabled unless UKI and Secure Boot are part of
   the explicit boot plan.
 - Removable boot: disabled by default. Enable only for removable media or
@@ -76,10 +66,9 @@ Main menu:
 - Swap: zram.
   - Compression algorithm: zstd if archinstall asks. It is a practical default
     for desktop use because it balances compression ratio and speed well.
-  - Size/priority: keep archinstall defaults unless a measured memory-pressure
-    issue appears later.
 - Hostname: pick a short lowercase machine name.
-- Root password: set one, even if daily admin uses sudo.
+- Root password: leave unset. Use the normal user's password with sudo; the LUKS
+  passphrase separately protects data at rest.
 - User account: create a normal user and allow sudo/admin privileges.
 - Profile: do not select a profile. This script owns desktop/bootstrap setup.
 - Graphics/GPU driver: skip if no menu appears. This script installs Mesa for
@@ -88,10 +77,6 @@ Main menu:
 - Audio: none. This script installs PipeWire explicitly.
 - Kernels: linux.
 - Network configuration: NetworkManager.
-  - Backend: default. Use iwd only when you intentionally want iwd-managed Wi-Fi
-    or need it to work around a specific wpa_supplicant issue.
-- Firewall: firewalld by default. If UFW is already active/enabled because you
-  explicitly chose it, this script applies the same conservative firewall policy.
 - Timezone: Asia/Seoul.
 - NTP: enabled.
 - Optional repositories: none by default. Enable multilib when Steam, Wine,
@@ -99,20 +84,22 @@ Main menu:
   need multilib for lib32-nvidia-utils/lib32-vulkan-icd-loader.
 - Package lookup/checking: enabled/default. Disable only when deliberately using
   packages that archinstall cannot validate.
-- Additional packages: git networkmanager.
+- Additional packages: git.
 - Additional services: none. This script enables desktop and network services
   after the base system is installed.
 - Accessibility tools: disabled unless the installer session needs them.
 - Parallel downloads: use the default or a small value such as 5.
 - Custom commands: none.
-- Save configuration: optional; useful when repeating the same install.
+- Save configuration: do not save by default. If reuse is intentional, encrypt
+  the credentials file because it can contain the LUKS passphrase, and remove
+  saved credentials after use.
 - Install: review the summary carefully before confirming destructive disk
   operations.
 
 ## First Boot Wi-Fi
 
-After rebooting into the installed system, make Wi-Fi work before cloning this
-repo or running the bootstrap script.
+After rebooting into the installed system, make Wi-Fi work before running the
+bootstrap script.
 
 Do not rely on `which`; it may not be installed. Use `command -v` instead.
 
@@ -188,11 +175,12 @@ reboot
 
 ## WSL User Setup
 
-Create a normal user and grant sudo access from the initial root shell:
+Create a normal user and grant sudo access from the initial root shell. The
+bootstrap installs Zsh and changes this account's login shell later.
 
 ```sh
 pacman -Syu sudo vim
-useradd -m -G wheel -s /bin/bash <USER_NAME>
+useradd -m -G wheel <USER_NAME>
 passwd <USER_NAME>
 EDITOR=vim visudo
 ```
