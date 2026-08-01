@@ -1,34 +1,66 @@
 #!/usr/bin/env bash
 
-if ! command -v wf-recorder >/dev/null 2>&1 || ! command -v slurp >/dev/null 2>&1; then
-  notify-send "Screen recording" "wf-recorder or slurp is unavailable."
-  exit 1
-fi
+_show_osd() {
+  swayosd-client --custom-message "${1}" --custom-icon media-record-symbolic 2>/dev/null || true
+}
 
-if pgrep -x wf-recorder >/dev/null 2>&1; then
-  if pkill -INT -x wf-recorder; then
-    notify-send "Screen recording" "Stopping the active recording."
-    exit 0
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+pid_file="${runtime_dir}/sway-wf-recorder.pid"
+
+if [[ -r "${pid_file}" ]]; then
+  existing_pid="$(<"${pid_file}")"
+  if [[ "${existing_pid}" =~ ^[0-9]+$ ]] && kill -0 "${existing_pid}" 2>/dev/null; then
+    existing_executable="$(readlink -f "/proc/${existing_pid}/exe" 2>/dev/null || true)"
+    if [[ "${existing_executable}" == "/usr/bin/wf-recorder" ]]; then
+      if kill -INT "${existing_pid}"; then
+        _show_osd "Recording stopping"
+        exit 0
+      fi
+
+      _show_osd "Recording could not stop"
+      exit 1
+    fi
   fi
-
-  notify-send "Screen recording" "Could not stop the active recording."
-  exit 1
 fi
 
 recording_dir="${HOME}/Videos/Recordings"
 if ! mkdir -p "${recording_dir}"; then
-  notify-send "Screen recording" "Could not create ${recording_dir}."
+  _show_osd "Recording directory unavailable"
   exit 1
 fi
 
 geometry="$(slurp)" || exit 0
 recording_file="${recording_dir}/$(date +%Y%m%d-%H%M%S).mp4"
 
-notify-send "Screen recording" "Recording the selected region without audio."
-if wf-recorder -g "${geometry}" -f "${recording_file}"; then
-  notify-send "Screen recording" "Saved to ${recording_file}."
+/usr/bin/wf-recorder -g "${geometry}" -f "${recording_file}" &
+recorder_pid=$!
+
+if ! printf '%s\n' "${recorder_pid}" >"${pid_file}"; then
+  kill -INT "${recorder_pid}" 2>/dev/null || true
+  _show_osd "Recording could not start"
+  exit 1
+fi
+
+# These callbacks are invoked indirectly by the traps below.
+# shellcheck disable=SC2329
+cleanup() {
+  if [[ -r "${pid_file}" ]] && [[ "$(<"${pid_file}")" == "${recorder_pid}" ]]; then
+    rm -f "${pid_file}"
+  fi
+}
+trap cleanup EXIT
+
+# shellcheck disable=SC2329
+terminate() {
+  kill -INT "${recorder_pid}" 2>/dev/null || true
+}
+trap terminate INT TERM
+
+_show_osd "Recording started"
+if wait "${recorder_pid}"; then
+  _show_osd "Recording saved"
   exit 0
 fi
 
-notify-send "Screen recording" "Recording failed; any partial file was preserved."
+_show_osd "Recording failed"
 exit 1

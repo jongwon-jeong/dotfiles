@@ -20,4 +20,15 @@ battery_name_list="$(
   IFS=,
   printf "%s" "${battery_names[*]}"
 )"
-exec /usr/bin/batsignal -i -e -w 20 -c 10 -d 0 -n "${battery_name_list}"
+notification_script="${HOME}/.config/sway/scripts/notify-battery"
+notification_command="\"${notification_script}\" \"%s\" \"%s\""
+
+exec /usr/bin/batsignal \
+  -i \
+  -w 20 \
+  -c 10 \
+  -d 0 \
+  -W "Battery low" \
+  -C "Battery critical" \
+  -M "${notification_command}" \
+  -n "${battery_name_list}"

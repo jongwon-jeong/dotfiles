@@ -162,9 +162,10 @@ bindsym $mod+n exec swaync-client -t -sw
 bindsym $mod+c exec sh -c 'cliphist list | fuzzel --dmenu --prompt="Clipboard> " | cliphist decode | wl-copy'
 bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'cliphist wipe'
 
-bindsym Print exec sh -c 'grim - | wl-copy'
-bindsym Shift+Print exec sh -c 'geometry="$(slurp)" && grim -g "$geometry" - | wl-copy'
-bindsym $mod+Print exec sh -c 'directory="$HOME/Pictures/Screenshots"; mkdir -p "$directory" && geometry="$(slurp)" && grim -g "$geometry" "$directory/$(date +%Y%m%d-%H%M%S).png"'
+bindsym Print exec $HOME/.config/sway/scripts/capture-screenshot save-full
+bindsym Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot save-region
+bindsym Ctrl+Print exec $HOME/.config/sway/scripts/capture-screenshot copy-full
+bindsym Ctrl+Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot copy-region
 bindsym $mod+Shift+Print exec $HOME/.config/sway/scripts/toggle-recording
 
 bindsym --locked XF86AudioRaiseVolume exec swayosd-client --output-volume raise

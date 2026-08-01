@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+message="${1:-Battery status changed}"
+level="${2:-unknown}"
+
+notify-send --app-name=batsignal --expire-time=8000 "Battery ${level}%" "${message}"
+
+if [[ "${level}" =~ ^[0-9]+$ ]] && ((level <= 10)); then
+  swayosd-client \
+    --custom-message "Battery critical: ${level}%" \
+    --custom-icon battery-caution-symbolic 2>/dev/null || true
+fi

@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+set -o pipefail
+
+_show_osd() {
+  swayosd-client --custom-message "${1}" --custom-icon camera-photo-symbolic 2>/dev/null || true
+}
+
+_select_geometry() {
+  slurp
+}
+
+_save_screenshot() {
+  local geometry="${1:-}"
+  local -r screenshot_dir="${HOME}/Pictures/Screenshots"
+  local -r screenshot_file="${screenshot_dir}/$(date +%Y%m%d-%H%M%S).png"
+
+  if ! mkdir -p "${screenshot_dir}"; then
+    _show_osd "Screenshot directory unavailable"
+    return 1
+  fi
+
+  local -a grim_args=()
+  if [[ -n "${geometry}" ]]; then
+    grim_args=(-g "${geometry}")
+  fi
+
+  if grim "${grim_args[@]}" "${screenshot_file}"; then
+    _show_osd "Screenshot saved"
+    return 0
+  fi
+
+  _show_osd "Screenshot failed"
+  return 1
+}
+
+_copy_screenshot() {
+  local geometry="${1:-}"
+  local -a grim_args=()
+  if [[ -n "${geometry}" ]]; then
+    grim_args=(-g "${geometry}")
+  fi
+
+  if grim "${grim_args[@]}" - | wl-copy --type image/png; then
+    _show_osd "Screenshot copied"
+    return 0
+  fi
+
+  _show_osd "Screenshot failed"
+  return 1
+}
+
+case "${1:-}" in
+  save-full)
+    _save_screenshot
+    ;;
+  save-region)
+    geometry="$(_select_geometry)" || exit 0
+    _save_screenshot "${geometry}"
+    ;;
+  copy-full)
+    _copy_screenshot
+    ;;
+  copy-region)
+    geometry="$(_select_geometry)" || exit 0
+    _copy_screenshot "${geometry}"
+    ;;
+  *)
+    echo "ERROR: Usage: ${0##*/} {save-full|save-region|copy-full|copy-region}" >&2
+    exit 2
+    ;;
+esac

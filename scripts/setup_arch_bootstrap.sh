@@ -529,7 +529,7 @@ setup_sway_user_preferences() { # {{{
     set_file_chooser_setting "${schema}" clock-format 24h
     set_file_chooser_setting "${schema}" date-format with-time
     set_file_chooser_setting "${schema}" location-mode path-bar
-    set_file_chooser_setting "${schema}" show-hidden true
+    set_file_chooser_setting "${schema}" show-hidden false
     set_file_chooser_setting "${schema}" show-size-column true
     set_file_chooser_setting "${schema}" show-type-column true
     set_file_chooser_setting "${schema}" sort-column name

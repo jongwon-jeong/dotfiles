@@ -21,15 +21,8 @@
   ],
   "sway/workspaces": {
     "disable-scroll": false,
-    "all-outputs": true,
-    "format": "{name}",
-    "persistent-workspaces": {
-      "1": [],
-      "2": [],
-      "3": [],
-      "4": [],
-      "5": []
-    }
+    "all-outputs": false,
+    "format": "{name}"
   },
   "sway/mode": {
     "format": "{}",
@@ -132,8 +125,8 @@
     "escape": true
   },
   "clock": {
-    "interval": 1,
-    "format": "{:%a %Y-%m-%d %H:%M:%S}",
+    "interval": 60,
+    "format": "{:%a %Y-%m-%d %H:%M}",
     "tooltip-format": "<tt><small>{calendar}</small></tt>",
     "calendar": {
       "mode": "month",

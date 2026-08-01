@@ -2,7 +2,7 @@
 <channel name="thunar" version="1.0">
   <property name="default-view" type="string" value="ThunarDetailsView"/>
   <property name="last-view" type="string" value="ThunarDetailsView"/>
-  <property name="last-show-hidden" type="bool" value="true"/>
+  <property name="last-show-hidden" type="bool" value="false"/>
   <property name="last-image-preview-visible" type="bool" value="false"/>
   <property name="misc-directory-specific-settings" type="bool" value="false"/>
   <property name="misc-date-style" type="string" value="THUNAR_DATE_STYLE_LONG"/>
