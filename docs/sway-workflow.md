@@ -318,12 +318,14 @@ Thunar의 왼쪽 `Places`에는 Downloads, Documents, Pictures, Music, Videos와
 
 Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하지 않는다. 이 리포는 역할에 따라 다음처럼 분리한다.
 
-- GTK 3·4의 밝은 테마, 고대비 아이콘·글꼴, 애니메이션, 시스템 이벤트음과 최근 파일 기록 여부는 각각의 `settings.ini`가 관리한다. 버튼·경고·입력 피드백음은 끄되 영상·음악의 일반 출력은 음소거하지 않는다.
+- GTK 3·4의 밝은 테마, 고대비 아이콘·글꼴, 애니메이션, 시스템 이벤트음과 최근 파일 기록 여부는 각각의 `settings.ini`가 관리한다. `gtk.css`는 Paper 배경, 검정 글자와 작은 여백을 사용하는 공통 툴팁을 관리한다. 버튼·경고·입력 피드백음은 끄되 영상·음악의 일반 출력은 음소거하지 않는다.
 - GTK 3·4 파일 선택기의 24시간 시계, 숨김 파일 기본 비표시, 폴더 우선 정렬, 목록 보기와 현재 디렉터리 시작은 GLib `gsettings`로 bootstrap 시 적용한다.
 - Thunar는 상세 목록 보기, 숨김 파일 기본 비표시, 폴더 우선 정렬을 사용하고 이미지 미리보기와 썸네일 생성을 비활성화한다. 숨김 파일이 필요하면 `Ctrl+H`로 전환한다.
 - 디렉터리는 Thunar, 이미지는 Imv, 영상·음악은 mpv, PDF는 Zathura, 웹 URL은 Google Chrome으로 연다.
 
 `gsettings`는 GNOME Shell 전용 도구가 아니라 GLib 설정 저장 인터페이스이므로 Sway에서도 GTK 파일 선택기 설정에 사용하는 것이 맞다. 다만 Sway 설정을 다시 읽을 때마다 실행하지 않고, 설치 단계에서 한 번 적용해 compositor 수명주기와 분리한다.
+
+관리하는 데스크톱 표면은 Paper 색을 기본 면으로 공유하고, 영역 구분이 필요하면 별도의 흰 카드보다 명확한 테두리를 먼저 사용한다. 평상시 글자는 기본 굵기와 읽는 데 필요한 최소 여백을 유지하며, 대비·크기·불필요한 그림자 제거로 먼저 가독성을 확보한다. 굵은 글자와 강한 배경색은 선택, 집중, 경고처럼 의미가 있는 상태에만 사용한다.
 
 기본 시스템 사운드는 계층별로 끈다. GTK 이벤트·경고·입력 피드백음은 GTK 3·4 설정에서, Zsh와 Bash 터미널 벨은 각 셸에서, 커널의 레거시 PC 스피커 비프음은 `pcspkr`와 `snd_pcsp` 모듈 차단으로 비활성화한다. Alacritty와 GTK의 visual bell도 끄고, Sway 창과 Waybar 워크스페이스의 urgent 상태는 빨간색 대신 차분한 파란색으로만 구분한다. SwayNC는 항상 방해 금지 상태로 시작하므로 팝업 배너는 표시하지 않고 대기 중인 알림만 Waybar의 `DND!`로 알린다. 브라우저·메신저·알람 앱이 일반 미디어 스트림이나 자체 창으로 직접 표시하는 동작까지 막지는 않는다.
 
@@ -640,7 +642,7 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 알림센터 | `~/.config/swaync/` |
 | 실행기 | `~/.config/fuzzel/fuzzel.ini` |
 | 클립보드 기록 | `~/.config/cliphist/config` |
-| GTK 3·4 외형과 최근 파일 정책 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` |
+| GTK 3·4 외형과 최근 파일 정책 | `~/.config/gtk-3.0/`, `~/.config/gtk-4.0/` |
 | 기본 파일·URL 연결 | `~/.config/mimeapps.list` |
 | Thunar 동작 | `~/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml` |
 | 화면 잠금 | `~/.config/swaylock/config` |

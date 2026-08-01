@@ -4,7 +4,7 @@ window {
 }
 
 frame.background {
-  background: #ffffff;
+  background: #f2eede;
   border: 2px solid #000000;
   border-radius: 0;
   box-shadow: none;
@@ -13,7 +13,7 @@ frame.background {
 entry,
 passwordentry,
 combobox button {
-  background: #ffffff;
+  background: #f2eede;
   border: 1px solid #aaaaaa;
   border-radius: 0;
   color: #000000;
@@ -41,7 +41,7 @@ button:focus {
 }
 
 button.destructive-action {
-  background: #ffffff;
+  background: #f2eede;
   border-color: #cc3e28;
   color: #000000;
 }

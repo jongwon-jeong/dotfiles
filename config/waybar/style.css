@@ -82,5 +82,17 @@ window#waybar {
 tooltip {
   background: #f2eede;
   border: 2px solid #000000;
+  border-radius: 0;
   color: #000000;
+  box-shadow: none;
+}
+
+tooltip label {
+  background: transparent;
+  color: #000000;
+  padding: 3px 6px;
+  font-family: "Noto Sans";
+  font-size: 14px;
+  font-weight: normal;
+  text-shadow: none;
 }

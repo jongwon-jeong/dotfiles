@@ -109,6 +109,9 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Minimize persistent desktop metadata. Before adding history, cache, or state, identify what is stored, where it is stored, how long it is retained, and how it is cleared; prefer session-scoped state when persistence provides no clear benefit.
 - Do not automatically delete user data, trash, browser state, credentials, or broad development caches without an explicit request.
 - Prefer a quiet, non-interrupting desktop: keep audible and visual bells and automatic notification banners disabled by default. Retain passive status indicators and user-invoked controls where useful, and interrupt only for an explicit workflow or safety requirement.
+- Keep always-visible desktop surfaces privacy-minimal. Show operational state without SSIDs, network addresses, device aliases, or page, document, and window titles when user-invoked detail provides the same function.
+- Use the Paper palette as the default surface for maintained desktop UI. Prefer clear borders over introducing white cards solely for separation, and reserve solid accent fills for selection, focus, urgency, and other meaningful states.
+- Keep routine interface text at normal weight with compact, sufficient padding. Improve readability first through strong foreground contrast, readable sizing, and removal of visual effects; use bold text or extra spacing only for semantic emphasis or interaction needs.
 - Do not add a package or long-running service when an established manual workflow adequately covers the need. For each new daemon, identify its owner, lifecycle, network activity, persistent data, and desktop/laptop behavior.
 - Do not maintain parallel desktop-environment implementations after a replacement is verified. Treat coexistence as a temporary migration state and remove the superseded implementation once the replacement is complete.
 
