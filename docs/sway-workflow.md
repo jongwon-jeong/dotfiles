@@ -68,6 +68,7 @@ Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에
 | `Super+Shift+H/J/K/L` | 창을 해당 방향으로 이동 |
 | `Super+Shift+방향키` | 같은 동작의 방향키 버전 |
 | `Super+A` | 부모 컨테이너에 초점 |
+| `Super+Shift+A` | 자식 컨테이너로 초점 복귀 |
 | `Super+Space` | 타일 창과 Floating 창 사이의 초점 전환 |
 | `Super+Shift+Space` | 현재 창의 Floating 상태 전환 |
 | `Super+Shift+Q` | 현재 창 닫기 |
@@ -78,14 +79,17 @@ Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에
 
 | 키 | 동작 |
 |---|---|
-| `Super+B` | 다음 창을 좌우로 분할 |
-| `Super+V` | 다음 창을 위아래로 분할 |
+| `Super+B` | 현재 컨테이너를 좌우 분할로 전환 |
+| `Super+V` | 현재 컨테이너를 위아래 분할로 전환 |
 | `Super+S` | Stacking 레이아웃 |
 | `Super+W` | Tabbed 레이아웃 |
 | `Super+E` | 현재 컨테이너의 분할 방향 전환 |
+| `Super+Shift+E` | 불필요한 단일 자식 분할 한 단계 해제 |
 | `Super+F` | 전체 화면 전환 |
 
-`Super+B`와 `Super+V`는 현재 창을 즉시 움직이는 키가 아니다. 다음에 열거나 이동해 넣는 창이 배치될 방향을 지정한다.
+`Super+B`와 `Super+V`는 현재 컨테이너의 레이아웃을 직접 바꾼다. 반복 입력해도 다음 창을 위한 단일 자식 컨테이너가 중첩되지 않으므로 Tabbed 제목에 `H[V[…]]` 같은 내부 구조가 나타나지 않는다.
+
+컨테이너 구조를 확인하려면 `Super+A`로 부모 방향으로 올라가고 `Super+Shift+A`로 자식 방향으로 돌아온다. 실수로 만든 단일 자식 분할은 그 안의 창에 초점을 둔 채 `Super+Shift+E`를 누르면 한 단계 제거된다. `H[V[V[…]]]`처럼 여러 단계라면 표시가 사라질 때까지 같은 키를 반복한다. 여러 창을 실제로 묶고 있는 컨테이너에는 이 명령이 적용되지 않으므로 정상적인 그룹을 실수로 풀지 않는다.
 
 ### 크기 조절
 

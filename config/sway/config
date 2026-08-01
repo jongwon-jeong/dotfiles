@@ -91,15 +91,17 @@ bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 
 bindsym $mod+a focus parent
+bindsym $mod+Shift+a focus child
 bindsym $mod+space focus mode_toggle
 bindsym $mod+Shift+space floating toggle
 
 # Layouts.
-bindsym $mod+b splith
-bindsym $mod+v splitv
+bindsym $mod+b layout splith
+bindsym $mod+v layout splitv
 bindsym $mod+s layout stacking
 bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
+bindsym $mod+Shift+e split none
 bindsym $mod+f fullscreen toggle
 
 # Scratchpad.
