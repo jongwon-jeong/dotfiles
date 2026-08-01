@@ -39,13 +39,13 @@ repos:
         name: shfmt
         entry: shfmt -i 2 -ci -w
         language: system
-        files: ^(install\.sh|scripts/.*\.sh|config/sway/scripts/.*|config/system/sway/start-sway|config/shell/aliases\.sh|home/\.bashrc|home/\.bash_profile)$
+        files: ^(install\.sh|scripts/.*\.sh|config/sway/scripts/.*|config/system/sway/start-sway|config/shell/aliases\.sh)$
 
       - id: shellcheck
         name: shellcheck
         entry: shellcheck --shell=bash --exclude=SC1090 --exclude=SC1091
         language: system
-        files: ^(install\.sh|scripts/.*\.sh|config/sway/scripts/.*|config/system/sway/start-sway|home/\.bashrc|home/\.bash_profile|config/shell/aliases\.sh)$
+        files: ^(install\.sh|scripts/.*\.sh|config/sway/scripts/.*|config/system/sway/start-sway|config/shell/aliases\.sh)$
 
       - id: rustfmt
         name: rustfmt

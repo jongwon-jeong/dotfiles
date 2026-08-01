@@ -1,6 +1,6 @@
 # ~/.config/shell/aliases.sh
 # ----------------------------------------------------------
-# Shared aliases/functions for interactive bash and zsh.
+# Shared aliases and functions for interactive shells.
 # This is not POSIX sh; do not source it from dash/sh.
 # Keep this file source-compatible with both bash and zsh.
 # Put zsh-only startup behavior in ~/.zshrc or a separate *.zsh file.
@@ -392,7 +392,6 @@ alias tmkl='tmux kill-session'
 alias zshrc='test -f ~/.zshrc && vim ~/.zshrc || echo "WARN: File does not exist."'
 alias alish='test -f ~/.config/shell/aliases.sh && vim ~/.config/shell/aliases.sh || echo "WARN: File does not exist."'
 alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "WARN: Directory does not exist."'
-alias xbash='exec bash -l'
 alias xzsh='exec zsh -l'
 
 alias c='clear'
