@@ -480,6 +480,23 @@ setup_sway_user_preferences() { # {{{
     return 0
   fi
 
+  local target_user_home=""
+  target_user_home="$(target_home)" || {
+    echo "ERROR: Could not identify the target home for Sway preferences."
+    return 1
+  }
+
+  local -r kanshi_local_config="${target_user_home}/.config/kanshi/local.conf"
+  if [[ ! -e "${kanshi_local_config}" && ! -L "${kanshi_local_config}" ]]; then
+    # Machine-specific output identities stay outside the shared deployment
+    # source and must survive later dotfile and bootstrap runs.
+    run_as_target_user install -Dm0644 /dev/null "${kanshi_local_config}" || {
+      echo "ERROR: Could not create local Kanshi profile: ${kanshi_local_config}"
+      return 1
+    }
+    echo "INFO: Created local Kanshi profile: ${kanshi_local_config}"
+  fi
+
   echo ""
   echo "INFO: Applying GTK file chooser preferences..."
 
@@ -523,6 +540,52 @@ setup_sway_user_preferences() { # {{{
     set_file_chooser_setting "${schema}" startup-mode cwd
   done
   set_file_chooser_setting org.gtk.gtk4.Settings.FileChooser view-type list
+
+  setup_thunar_bookmarks() {
+    local -r gtk_bookmarks="${target_user_home}/.config/gtk-3.0/bookmarks"
+    local -a bookmark_specs=(
+      "DOWNLOAD:Downloads"
+      "DOCUMENTS:Documents"
+      "PICTURES:Pictures"
+      "MUSIC:Music"
+      "VIDEOS:Videos"
+      "PROJECTS:Projects"
+    )
+    local bookmark_spec xdg_name bookmark_label bookmark_dir bookmark_uri
+    local bookmark_content=""
+
+    for bookmark_spec in "${bookmark_specs[@]}"; do
+      xdg_name="${bookmark_spec%%:*}"
+      bookmark_label="${bookmark_spec#*:}"
+      bookmark_dir="${target_user_home}/${bookmark_label}"
+      if command -v xdg-user-dir >/dev/null 2>&1; then
+        bookmark_dir="$(run_as_target_user xdg-user-dir "${xdg_name}" 2>/dev/null || true)"
+      fi
+      [[ -d "${bookmark_dir}" ]] || continue
+
+      bookmark_uri=""
+      if command -v gio >/dev/null 2>&1; then
+        bookmark_uri="$(run_as_target_user env LC_ALL=C gio info "${bookmark_dir}" 2>/dev/null | sed -n 's/^uri: //p' | head -n 1)"
+      fi
+      if [[ -z "${bookmark_uri}" ]]; then
+        bookmark_uri="file://${bookmark_dir}"
+      fi
+      printf -v bookmark_content '%s%s %s\n' "${bookmark_content}" "${bookmark_uri}" "${bookmark_label}"
+    done
+
+    run_as_target_user mkdir -p "$(dirname "${gtk_bookmarks}")" || {
+      echo "ERROR: Could not create the GTK config directory."
+      failed=true
+      return
+    }
+    if ! printf '%s' "${bookmark_content}" | run_as_target_user tee "${gtk_bookmarks}" >/dev/null; then
+      echo "ERROR: Could not write Thunar bookmarks: ${gtk_bookmarks}"
+      failed=true
+      return
+    fi
+    echo "INFO: Applied Thunar Places shortcuts: ${gtk_bookmarks}"
+  }
+  setup_thunar_bookmarks
 
   [[ "${failed}" == "false" ]]
 } # }}}
@@ -817,6 +880,9 @@ create_default_directories() { # {{{
 
   create_user_dir "${home_dir}/Downloads"
   create_user_dir "${home_dir}/Documents"
+  create_user_dir "${home_dir}/Music"
+  create_user_dir "${home_dir}/Pictures"
+  create_user_dir "${home_dir}/Videos"
   create_user_dir "${home_dir}/tmp"
 
   _PROJECTS_HOME="${home_dir}/Projects"
@@ -826,6 +892,12 @@ create_default_directories() { # {{{
   create_user_dir "${_PROJECTS_HOME}/opensource"
   create_user_dir "${_PROJECTS_HOME}/playground"
   create_user_dir "${_PROJECTS_HOME}/experiments"
+
+  if command -v xdg-user-dirs-update &>/dev/null; then
+    run_as_target_user xdg-user-dirs-update || {
+      echo "WARN: Failed to register standard XDG user directories."
+    }
+  fi
 } # }}}
 
 install_zsh_plugins() { # {{{

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+if (($# < 2)); then
+  echo "ERROR: Usage: ${0##*/} <instance-name> <swaynag-options...>" >&2
+  exit 2
+fi
+
+instance_name="${1}"
+shift
+
+if [[ ! "${instance_name}" =~ ^[a-z0-9-]+$ ]]; then
+  echo "ERROR: Invalid swaynag instance name: ${instance_name}" >&2
+  exit 2
+fi
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+pid_file="${runtime_dir}/swaynag-${instance_name}.pid"
+
+if [[ -r "${pid_file}" ]]; then
+  existing_pid="$(<"${pid_file}")"
+  if [[ "${existing_pid}" =~ ^[0-9]+$ ]] && kill -0 "${existing_pid}" 2>/dev/null; then
+    existing_executable="$(readlink -f "/proc/${existing_pid}/exe" 2>/dev/null || true)"
+    if [[ "${existing_executable}" == "/usr/bin/swaynag" ]]; then
+      kill "${existing_pid}"
+      exit 0
+    fi
+  fi
+fi
+
+/usr/bin/swaynag "${@}" &
+nag_pid=$!
+
+if ! printf '%s\n' "${nag_pid}" >"${pid_file}"; then
+  kill "${nag_pid}" 2>/dev/null || true
+  echo "ERROR: Could not record swaynag instance: ${pid_file}" >&2
+  exit 1
+fi
+
+cleanup() {
+  if [[ -r "${pid_file}" ]] && [[ "$(<"${pid_file}")" == "${nag_pid}" ]]; then
+    rm -f "${pid_file}"
+  fi
+}
+trap cleanup EXIT
+
+terminate() {
+  kill "${nag_pid}" 2>/dev/null || true
+}
+trap terminate INT TERM
+
+wait "${nag_pid}"

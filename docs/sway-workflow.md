@@ -18,7 +18,7 @@
 | `Super+Shift+1` … `Super+Shift+0` | 현재 창을 워크스페이스로 보내기 |
 | `Super+F` | 전체 화면 전환 |
 | `Super+Shift+Q` | 현재 창 닫기 |
-| `Super+Ctrl+L` | 화면 잠금 |
+| `Super+Esc` | 화면 잠금 |
 | `Super+F1` | 이 문서 열기 |
 
 애플리케이션을 찾을 때는 `Super+D`를 누르고 이름 일부를 입력한 뒤 `Enter`를 누른다. 대부분의 작업은 이 실행기를 출발점으로 삼는다.
@@ -41,8 +41,7 @@ Sway는 새 창을 현재 컨테이너에 타일로 배치한다. 창을 겹쳐 
 
 - `Super+방향`: 초점 이동
 - `Super+Shift+방향`: 창 이동
-- `Super+Ctrl+좌우`: 모니터 사이의 초점 이동
-- `Super+Ctrl+Shift+좌우`: 현재 워크스페이스를 다른 모니터로 이동
+- `Super+O`: 출력 조작 모드
 
 H/J/K/L이 익숙하지 않으면 방향키를 그대로 사용해도 된다.
 
@@ -54,11 +53,9 @@ H/J/K/L이 익숙하지 않으면 방향키를 그대로 사용해도 된다.
 |---|---|
 | `Super+Enter` | Alacritty 터미널 |
 | `Super+D` | Fuzzel 애플리케이션 실행기 |
-| `Super+Ctrl+B` | Google Chrome |
-| `Super+Ctrl+E` | Thunar 파일 관리자 |
-| `Super+Ctrl+A` | 오디오 설정 |
-| `Super+Ctrl+D` | 디스플레이 설정 |
 | `Super+F1` | 이 안내서 열기 |
+
+Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에서 이름을 검색해 실행한다.
 
 ### 창 초점과 이동
 
@@ -108,8 +105,14 @@ H/J/K/L이 익숙하지 않으면 방향키를 그대로 사용해도 된다.
 |---|---|
 | `Super+1` … `Super+0` | 워크스페이스 1~10으로 이동 |
 | `Super+Shift+1` … `Super+Shift+0` | 현재 창을 워크스페이스 1~10으로 이동 |
-| `Super+Ctrl+H/L` | 왼쪽/오른쪽 모니터로 초점 이동 |
-| `Super+Ctrl+Shift+H/L` | 현재 워크스페이스를 다른 모니터로 이동 |
+| `Super+O` | Output 모드 시작 |
+
+| Output 모드 키 | 동작 |
+|---|---|
+| `H/L` 또는 `Left/Right` | 왼쪽/오른쪽 모니터로 초점 이동 |
+| `Shift+H/L` 또는 `Shift+Left/Right` | 현재 워크스페이스를 다른 모니터로 이동 |
+| `D` | Wdisplays를 실행하고 Output 모드 종료 |
+| `Enter` 또는 `Escape` | Output 모드 종료 |
 
 Waybar에는 모든 출력의 워크스페이스가 표시된다. 워크스페이스 번호를 클릭하거나 마우스 휠로 이동할 수도 있다.
 
@@ -127,10 +130,8 @@ Waybar에는 모든 출력의 워크스페이스가 표시된다. 워크스페�
 | 키 | 동작 |
 |---|---|
 | `Super+N` | 알림센터 열기/닫기 |
-| `Super+Ctrl+N` | 야간 색온도 모드 수동 전환 |
 | `Super+C` | 클립보드 기록 검색 및 붙여넣기 준비 |
 | `Super+Ctrl+C` | 확인 후 클립보드 기록 전체 삭제 |
-| `Super+Shift+B` | Waybar 표시/숨김 |
 
 알림센터 안에서는 `Shift+D`로 방해 금지를 전환하고 `Shift+C`로 알림을 모두 지울 수 있다. `Escape`로 닫는다.
 
@@ -168,7 +169,7 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 
 데스크톱처럼 배터리나 백라이트가 없는 시스템에서는 관련 Waybar 모듈과 키 동작이 조용히 비활성화된다.
 
-화면 색온도는 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용한다. 매일 19:00부터 4000 K로 서서히 낮아지고 07:00부터 6500 K로 돌아온다. `Super+Ctrl+N`은 주간·야간·자동 상태를 수동으로 순환한다.
+화면 색온도는 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용한다. 매일 19:00부터 4000 K로 서서히 낮아지고 07:00부터 6500 K로 돌아온다.
 
 배터리 경고도 기본 방해 금지 정책을 따르므로 팝업으로 나타나지 않고 현재 세션의 알림센터에 쌓인다. 평소에는 Waybar의 배터리 상태를 확인하고, 경고 팝업이 필요한 동안만 `Super+N`을 열어 `Shift+D`로 방해 금지를 해제한다.
 
@@ -176,9 +177,10 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 
 | 키 | 동작 |
 |---|---|
-| `Super+Ctrl+L` | 즉시 잠금 |
-| `Super+Shift+C` | Sway 설정 다시 읽기 |
-| `Super+Shift+E` | 잠금·절전·로그아웃·재부팅·종료 메뉴 |
+| `Super+Esc` | 즉시 잠금 |
+| `Super+Shift+Esc` | 잠금·절전·로그아웃·재부팅·종료 메뉴 |
+
+세션 메뉴와 클립보드 삭제 확인 창은 같은 조작을 다시 실행하면 닫힌다. 확인 버튼을 선택해 작업을 실행한 뒤에도 화면에 남지 않는다.
 
 종료와 재부팅에는 직접 단축키를 두지 않는다. 세션 메뉴를 거쳐 실수로 종료하는 일을 막는다.
 
@@ -228,7 +230,7 @@ fcitx5-diagnose
 
 ## 데스크톱과 랩탑 출력 구성
 
-공용 Sway 설정은 출력 이름, PCI 주소, 해상도, 배율을 하드코딩하지 않는다. 연결된 출력은 우선 Sway의 기본값으로 켜지고, `Super+Ctrl+D`의 Wdisplays로 현재 세션에서 조정한다.
+공용 Sway 설정은 출력 이름, PCI 주소, 해상도, 배율을 하드코딩하지 않는다. 연결된 출력은 우선 Sway의 기본값으로 켜지고, `Super+O` Output 모드에서 `D`를 눌러 Wdisplays로 현재 세션에서 조정한다.
 
 자주 사용하는 구성을 자동 적용하려면 먼저 안정적인 출력 설명을 확인한다.
 
@@ -262,6 +264,8 @@ systemctl --user reload-or-restart kanshi.service
 전원 버튼은 실수로 즉시 종료하지 않도록 시스템 절전을 요청한다. 랩탑 덮개는 배터리와 외부 전원에서 모두 절전하고, 도킹됐거나 여러 출력이 연결된 상태에서는 외부 모니터 사용을 방해하지 않도록 무시한다. 이 정책은 systemd-logind가 담당하며 다음 부팅부터 적용된다. 공용 설정에서 특정 내장 패널 이름을 끄는 규칙은 만들지 않는다.
 
 ## GTK, 파일 관리자와 기본 애플리케이션
+
+Thunar의 왼쪽 `Places`에는 Downloads, Documents, Pictures, Music, Videos와 Projects shortcut을 표시한다. Arch bootstrap을 실행할 때 GTK bookmarks를 이 기본 목록으로 교체한다.
 
 Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하지 않는다. 이 리포는 역할에 따라 다음처럼 분리한다.
 
@@ -415,7 +419,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
 | `kanshi` | 연결된 모니터 조합을 감지해 저장된 출력 profile을 자동 적용한다. | 데스크톱, 랩탑 단독, docked 구성을 `~/.config/kanshi/local.conf`에서 장비별로 정의한다. profile이 없으면 Sway의 preferred mode를 그대로 둔다. |
-| `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+Ctrl+D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
+| `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+O` Output 모드의 `D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
 | `brightnessctl` | 커널 backlight와 LED 장치를 조회·조절하는 CLI다. | Waybar 밝기 모듈에서 스크롤 조절에 사용한다. 백라이트가 없는 데스크톱에서는 할 일이 없다. |
 | `batsignal` | 배터리 충전량을 가볍게 감시해 표준 데스크톱 알림을 보낸다. | 발견한 모든 배터리를 대상으로 20%에서 경고하고 10%에서 긴급 알림을 보낸다. 자동 종료·절전 동작은 하지 않으며 배터리가 없는 데스크톱에서는 조용히 종료한다. |
 | `wlsunset` | Wayland 출력의 색온도를 현지 시각에 따라 조절한다. | 위치나 네트워크를 사용하지 않고 07:00과 19:00 고정 시각을 기준으로 전환한다. |
@@ -439,8 +443,8 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
 | `alacritty` | GPU 가속 터미널 emulator다. | `Super+Enter`의 기본 터미널이며 문서와 터미널 기반 도구를 여는 기반이다. |
-| `pavucontrol` | PulseAudio 호환 API를 사용하는 PipeWire 그래픽 mixer다. | `Super+Ctrl+A` 또는 Waybar 볼륨 클릭으로 앱별 볼륨, 입력·출력 장치와 profile을 조정한다. |
-| `thunar` | 가벼운 GTK 파일 관리자다. | `Super+Ctrl+E`의 기본 파일 관리자다. GVfs, UDisks2와 함께 휴지통과 이동식 장치를 표시한다. |
+| `pavucontrol` | PulseAudio 호환 API를 사용하는 PipeWire 그래픽 mixer다. | Fuzzel에서 실행하거나 Waybar 볼륨을 클릭해 앱별 볼륨, 입력·출력 장치와 profile을 조정한다. |
+| `thunar` | 가벼운 GTK 파일 관리자다. | Fuzzel에서 실행하는 기본 파일 관리자다. GVfs, UDisks2와 함께 휴지통과 이동식 장치를 표시한다. |
 | `thunar-volman` | 이동식 미디어가 연결됐을 때 Thunar 동작을 연결하는 volume manager다. | UDisks2가 발견한 USB 저장장치와 미디어를 파일 관리자 workflow에 통합한다. |
 | `thunar-archive-plugin`, `xarchiver` | Thunar의 압축 메뉴와 실제 압축 파일 GUI backend를 제공한다. | 파일 관리자의 오른쪽 클릭 메뉴에서 압축 생성과 해제를 수행한다. plugin만 있고 backend가 없으면 메뉴가 작업을 완료하지 못한다. |
 | `gvfs` | GTK 앱에 휴지통, 최근 파일, 마운트와 여러 가상 파일시스템 기능을 제공한다. | Thunar와 파일 선택기가 로컬 파일 외의 데스크톱 파일 기능을 일관되게 사용하도록 한다. |
@@ -526,7 +530,7 @@ swaymsg -t get_inputs
 
 | 변경 대상 | 적용 방법 |
 |---|---|
-| `config/sway/config` | `swaymsg reload` 또는 `Super+Shift+C` |
+| `config/sway/config` | `swaymsg reload` |
 | Waybar·SwayNC 등 개별 user service 설정 | `systemctl --user daemon-reload` 후 해당 service 재시작 |
 | 여러 Sway 세션 service와 unit 관계 | `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
 | GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |

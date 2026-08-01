@@ -19,8 +19,8 @@ workspace_auto_back_and_forth yes
 
 default_border pixel 2
 default_floating_border normal 2
-gaps inner 6
-gaps outer 3
+gaps inner 0
+gaps outer 0
 smart_gaps on
 smart_borders no_gaps
 
@@ -61,17 +61,12 @@ output * bg #f2eede solid_color
 # Launchers and daily desktop tools.
 bindsym $mod+Return exec $term
 bindsym $mod+d exec $menu
-bindsym $mod+Ctrl+b exec google-chrome-stable
-bindsym $mod+Ctrl+e exec thunar
-bindsym $mod+Ctrl+a exec pavucontrol
-bindsym $mod+Ctrl+d exec wdisplays
 bindsym $mod+F1 exec alacritty --class sway-help -e sh -lc 'less "$HOME/.dotfiles/docs/sway-workflow.md"'
 
 # Session and shell controls.
 bindsym $mod+Shift+q kill
-bindsym $mod+Shift+c reload
-bindsym $mod+Ctrl+l exec swaylock -f
-bindsym $mod+Shift+e exec swaynag -t warning -m 'Session controls' -b 'Lock' 'swaylock -f' -b 'Suspend' 'systemctl suspend' -b 'Logout' 'swaymsg exit' -b 'Reboot' 'systemctl reboot' -b 'Power off' 'systemctl poweroff'
+bindsym $mod+Escape exec swaylock -f
+bindsym $mod+Shift+Escape exec $HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' 'swaymsg exit' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'
 
 # Focus and move windows. Arrow bindings keep the first week approachable;
 # the home-row bindings provide the long-term workflow.
@@ -145,17 +140,27 @@ bindsym $mod+Shift+8 move container to workspace number $ws8
 bindsym $mod+Shift+9 move container to workspace number $ws9
 bindsym $mod+Shift+0 move container to workspace number $ws10
 
-bindsym $mod+Ctrl+$left focus output left
-bindsym $mod+Ctrl+$right focus output right
-bindsym $mod+Ctrl+Shift+$left move workspace to output left
-bindsym $mod+Ctrl+Shift+$right move workspace to output right
+# Output controls are modal because they are useful only on multi-monitor
+# systems and should not consume several global modifier combinations.
+mode "output" {
+  bindsym $left focus output left
+  bindsym $right focus output right
+  bindsym Left focus output left
+  bindsym Right focus output right
+  bindsym Shift+$left move workspace to output left
+  bindsym Shift+$right move workspace to output right
+  bindsym Shift+Left move workspace to output left
+  bindsym Shift+Right move workspace to output right
+  bindsym d exec wdisplays, mode "default"
+  bindsym Return mode "default"
+  bindsym Escape mode "default"
+}
+bindsym $mod+o mode "output"
 
 # Desktop conveniences.
 bindsym $mod+n exec swaync-client -t -sw
-bindsym $mod+Ctrl+n exec pkill -SIGUSR1 -x wlsunset
 bindsym $mod+c exec sh -c 'cliphist list | fuzzel --dmenu --prompt="Clipboard> " | cliphist decode | wl-copy'
-bindsym $mod+Ctrl+c exec swaynag -t warning -m 'Clear all clipboard history?' -b 'Clear' 'cliphist wipe'
-bindsym $mod+Shift+b exec pkill -SIGUSR1 waybar
+bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'cliphist wipe'
 
 bindsym Print exec sh -c 'grim - | wl-copy'
 bindsym Shift+Print exec sh -c 'geometry="$(slurp)" && grim -g "$geometry" - | wl-copy'

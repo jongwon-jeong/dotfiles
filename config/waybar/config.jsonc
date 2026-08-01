@@ -144,6 +144,6 @@
   "custom/power": {
     "format": "POWER",
     "tooltip": false,
-    "on-click": "swaynag -t warning -m 'Session controls' -b 'Lock' 'swaylock -f' -b 'Suspend' 'systemctl suspend' -b 'Logout' 'swaymsg exit' -b 'Reboot' 'systemctl reboot' -b 'Power off' 'systemctl poweroff'"
+    "on-click": "$HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' 'swaymsg exit' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'"
   }
 }
