@@ -5,7 +5,8 @@
   "spacing": 4,
   "reload_style_on_change": true,
   "modules-left": ["sway/workspaces", "sway/mode"],
-  "modules-center": ["sway/window"],
+  // Active window titles can expose page, document, and terminal context.
+  "modules-center": ["clock"],
   "modules-right": [
     "tray",
     "idle_inhibitor",
@@ -16,7 +17,6 @@
     "battery",
     "power-profiles-daemon",
     "custom/notification",
-    "clock",
     "custom/power"
   ],
   "sway/workspaces": {
@@ -27,14 +27,6 @@
   "sway/mode": {
     "format": "{}",
     "tooltip": false
-  },
-  "sway/window": {
-    "format": "{title}",
-    "max-length": 80,
-    "rewrite": {
-      "(.*) — Mozilla Firefox": "$1",
-      "(.*) - Google Chrome": "$1"
-    }
   },
   "tray": {
     "icon-size": 18,
@@ -51,22 +43,19 @@
   },
   "network": {
     "interval": 5,
-    "format-wifi": "WIFI {essid}",
-    "format-ethernet": "LAN {ifname}",
-    "format-linked": "LINK {ifname}",
+    "format-wifi": "WIFI",
+    "format-ethernet": "LAN",
+    "format-linked": "LINK",
     "format-disconnected": "OFFLINE",
-    "tooltip-format": "{ifname}\n{ipaddr}/{cidr}\nGateway: {gwaddr}",
-    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ifname}\n{ipaddr}/{cidr}",
+    "tooltip": false,
     "on-click": "nm-connection-editor"
   },
   "bluetooth": {
     "format": "BT",
     "format-disabled": "BT OFF",
     "format-no-controller": "",
-    "format-connected": "BT {num_connections}",
-    "tooltip-format": "Bluetooth: {status}",
-    "tooltip-format-connected": "{device_enumerate}",
-    "tooltip-format-enumerate-connected": "{device_alias}",
+    "format-connected": "BT",
+    "tooltip": false,
     "on-click": "blueman-manager"
   },
   "pulseaudio": {
@@ -74,7 +63,7 @@
     "format": "VOL {volume}%",
     "format-bluetooth": "BT VOL {volume}%",
     "format-muted": "MUTED",
-    "tooltip-format": "{desc}",
+    "tooltip": false,
     "on-click": "pavucontrol",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },

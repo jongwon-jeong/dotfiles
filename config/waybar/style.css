@@ -36,11 +36,6 @@ window#waybar {
   font-weight: bold;
 }
 
-#window {
-  padding: 0 12px;
-  color: #000000;
-}
-
 #tray,
 #idle_inhibitor,
 #network,
