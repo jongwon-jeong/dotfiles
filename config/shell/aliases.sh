@@ -394,6 +394,34 @@ alias alish='test -f ~/.config/shell/aliases.sh && vim ~/.config/shell/aliases.s
 alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "WARN: Directory does not exist."'
 alias xzsh='exec zsh -l'
 
+reload_config() {
+  echo "INFO: Reloading active configurations..."
+
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-system-running >/dev/null 2>&1; then
+    echo "INFO: Reloading systemd user daemon..."
+    systemctl --user daemon-reload || true
+  fi
+
+  if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+    echo "INFO: Reloading Sway compositor..."
+    swaymsg reload || true
+  fi
+
+  if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
+    echo "INFO: Reloading Tmux configuration..."
+    tmux source-file "${HOME}/.config/tmux/tmux.conf" || true
+  fi
+
+  if [ -f "${HOME}/.config/shell/aliases.sh" ]; then
+    echo "INFO: Sourcing shell aliases..."
+    # shellcheck disable=SC1090
+    source "${HOME}/.config/shell/aliases.sh" || true
+  fi
+
+  echo "DONE: Reload completed."
+}
+alias flfhem='reload_config'
+
 alias c='clear'
 alias h='history | tail -n 20'
 
