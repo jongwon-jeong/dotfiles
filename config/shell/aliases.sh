@@ -395,32 +395,115 @@ alias dotfiles='test -d ~/.dotfiles && cd ~/.dotfiles || echo "WARN: Directory d
 alias xzsh='exec zsh -l'
 
 reload_config() {
+  local failed=false
+
   echo "INFO: Reloading active configurations..."
 
-  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-system-running >/dev/null 2>&1; then
+  # A degraded user manager is still reachable and must receive unit reloads.
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1; then
     echo "INFO: Reloading systemd user daemon..."
-    systemctl --user daemon-reload || true
+    if ! systemctl --user daemon-reload; then
+      echo "ERROR: Failed to reload the systemd user daemon."
+      failed=true
+    fi
   fi
 
   if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
     echo "INFO: Reloading Sway compositor..."
-    swaymsg reload || true
+    if ! swaymsg reload; then
+      echo "ERROR: Failed to reload the Sway compositor."
+      failed=true
+    fi
   fi
 
   if [[ -n "${TMUX:-}" ]] && command -v tmux >/dev/null 2>&1; then
     echo "INFO: Reloading Tmux configuration..."
-    tmux source-file "${HOME}/.config/tmux/tmux.conf" || true
+    if ! tmux source-file "${HOME}/.config/tmux/tmux.conf"; then
+      echo "ERROR: Failed to reload the Tmux configuration."
+      failed=true
+    fi
   fi
 
-  if [ -f "${HOME}/.config/shell/aliases.sh" ]; then
+  if [[ -f "${HOME}/.config/shell/aliases.sh" ]]; then
     echo "INFO: Sourcing shell aliases..."
     # shellcheck disable=SC1090
-    source "${HOME}/.config/shell/aliases.sh" || true
+    if ! source "${HOME}/.config/shell/aliases.sh"; then
+      echo "ERROR: Failed to source the shell aliases."
+      failed=true
+    fi
+  else
+    echo "ERROR: Shell aliases file does not exist: ${HOME}/.config/shell/aliases.sh"
+    failed=true
+  fi
+
+  if [[ "${failed}" == "true" ]]; then
+    echo "WARN: Reload completed with errors."
+    return 1
   fi
 
   echo "DONE: Reload completed."
 }
 alias flfhem='reload_config'
+
+sunset() {
+  local -r action="${1:-status}"
+
+  if (($# > 1)); then
+    echo "ERROR: Usage: sunset {on|off|status}" >&2
+    return 2
+  fi
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    echo "ERROR: systemctl is required to control night color." >&2
+    return 1
+  fi
+
+  if ! command systemctl --user show-environment >/dev/null 2>&1; then
+    echo "ERROR: The systemd user manager is unavailable." >&2
+    return 1
+  fi
+
+  # Keep this session-scoped; persistent enablement remains an explicit systemd decision.
+  case "${action}" in
+    on)
+      echo "INFO: Starting night color..."
+      if ! command systemctl --user start wlsunset.service; then
+        echo "ERROR: Failed to start night color." >&2
+        return 1
+      fi
+      echo "DONE: Night color started."
+      ;;
+    off)
+      echo "INFO: Stopping night color..."
+      if ! command systemctl --user stop wlsunset.service; then
+        echo "ERROR: Failed to stop night color." >&2
+        return 1
+      fi
+      echo "DONE: Night color stopped."
+      ;;
+    status)
+      local state=""
+      if ! state="$(command systemctl --user show wlsunset.service --property=ActiveState --value 2>/dev/null)"; then
+        echo "ERROR: Failed to read the night color state." >&2
+        return 1
+      fi
+
+      case "${state}" in
+        active) echo "INFO: Night color is active." ;;
+        inactive) echo "INFO: Night color is inactive." ;;
+        failed)
+          echo "WARN: Night color is in a failed state." >&2
+          return 1
+          ;;
+        *) echo "INFO: Night color state: ${state}." ;;
+      esac
+      ;;
+    *)
+      echo "ERROR: Usage: sunset {on|off|status}" >&2
+      return 2
+      ;;
+  esac
+}
 
 alias c='clear'
 alias h='history | tail -n 20'
