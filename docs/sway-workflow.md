@@ -535,6 +535,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `bluez`, `bluez-utils`, `blueman` | BlueZ는 Linux Bluetooth protocol stack과 daemon, utils는 `bluetoothctl` 같은 CLI, Blueman은 그래픽 관리자와 트레이 applet을 제공한다. | `bluetooth.service`는 시스템 기능을 제공하고 `blueman-applet`은 로그인한 동안 장치 연결 상태와 빠른 조작을 제공한다. |
 | `polkit`, `lxqt-policykit` | Polkit은 일반 사용자의 권한 있는 시스템 작업을 중개하고 LXQt agent는 비밀번호 확인창을 표시한다. | 디스크 마운트, 네트워크 변경과 일부 시스템 설정이 필요할 때만 인증창이 나타난다. agent가 없으면 GUI 작업이 설명 없이 실패하거나 터미널 인증이 필요할 수 있다. |
 | `udisks2`, `udiskie` | UDisks2는 디스크와 이동식 저장장치 작업을 D-Bus로 제공하고 Udiskie는 사용자 세션에서 자동 마운트·알림·트레이를 담당한다. | 일반 USB 저장장치는 사용자 권한으로 자동 마운트한다. 외장 LUKS 장치는 연결하거나 그 상태로 부팅해도 암호창을 자동으로 띄우지 않으며, Thunar나 Udiskie 트레이에서 직접 열 때만 암호를 묻는다. |
+| `gnome-disk-utility` | GNOME 세션과 독립적으로 실행되는 GTK 디스크 관리 도구다. | Fuzzel에서 Disks를 찾아 필요할 때만 실행한다. UDisks2와 Polkit을 통해 장치 상태 확인, 파티션·파일시스템 관리와 디스크 이미지 작업을 제공하며 상시 서비스나 네트워크 연결을 추가하지 않는다. |
 | `cups`, `system-config-printer`, `bluez-cups` | CUPS는 인쇄 queue와 driver backend, system-config-printer는 그래픽 설정, bluez-cups는 Bluetooth 프린터 연결을 제공한다. | 프린터를 쓰지 않는 장비에서도 서비스는 설치되지만 실제 queue가 없으면 유휴 상태다. |
 
 ### 기본 애플리케이션과 파일 통합

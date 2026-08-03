@@ -428,7 +428,7 @@ install_base_packages() { # {{{
     polkit lxqt-policykit \
     gnome-keyring libsecret \
     upower power-profiles-daemon switcheroo-control \
-    udisks2 udiskie \
+    udisks2 udiskie gnome-disk-utility \
     cups system-config-printer bluez-cups \
     libnotify papirus-icon-theme
 
