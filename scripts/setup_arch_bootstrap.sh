@@ -444,7 +444,7 @@ install_base_packages() { # {{{
     alsa-utils pavucontrol \
     ffmpeg libheif poppler-data \
     gst-libav gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
-    mpv alacritty thunar thunar-volman thunar-archive-plugin xarchiver gvfs \
+    mpv alacritty thunar tumbler thunar-volman thunar-archive-plugin xarchiver gvfs \
     imv zathura zathura-pdf-mupdf \
     veracrypt \
     flatpak
