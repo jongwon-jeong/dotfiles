@@ -564,6 +564,204 @@ firmware_update() {
 }
 alias fwup='firmware_update'
 
+_clear_shell_history() {
+  if [[ -z "${HOME:-}" || "${HOME}" != /* ]]; then
+    echo "WARN: Refusing to clear shell history with an invalid home path."
+    return 1
+  fi
+
+  local expected_history_file=""
+  if [[ -n "${BASH_VERSION:-}" ]]; then
+    expected_history_file="${HOME}/.bash_history"
+  elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    expected_history_file="${HOME}/.zsh_history"
+  else
+    echo "WARN: Shell history cleanup supports only Bash and Zsh."
+    return 1
+  fi
+
+  if [[ -n "${HISTFILE:-}" && "${HISTFILE}" != "${expected_history_file}" ]]; then
+    echo "WARN: Refusing to remove a custom shell history file: ${HISTFILE}"
+    return 1
+  fi
+
+  local history_file
+  for history_file in "${HOME}/.bash_history" "${HOME}/.zsh_history"; do
+    if [[ -L "${history_file}" ]]; then
+      echo "WARN: Refusing to remove a symlinked shell history file: ${history_file}"
+      return 1
+    fi
+  done
+
+  for history_file in "${HOME}/.bash_history" "${HOME}/.zsh_history"; do
+    command rm -f -- "${history_file}" || return
+  done
+
+  if [[ -n "${BASH_VERSION:-}" ]]; then
+    builtin history -c || return
+    HISTFILE="${expected_history_file}"
+    builtin history -w "${HISTFILE}" || return
+  else
+    local previous_histsize="${HISTSIZE:-1000}"
+    local previous_savehist="${SAVEHIST:-${previous_histsize}}"
+
+    # Zsh has no history-clear builtin. Switch to a new empty history context so
+    # the current session cannot write the old in-memory list back on exit.
+    builtin fc -p || return
+    HISTFILE="${expected_history_file}"
+    HISTSIZE="${previous_histsize}"
+    SAVEHIST="${previous_savehist}"
+    builtin fc -W "${HISTFILE}" || return
+  fi
+}
+
+privacy_cleanup() {
+  if [[ -z "${HOME:-}" || "${HOME}" != /* ]]; then
+    echo "ERROR: Privacy cleanup requires an absolute home path."
+    return 1
+  fi
+
+  local -r retention_period=1day
+  local -r retention_label="1 day"
+  local -r retention_minutes=1440
+  local -r recent_file="${HOME}/.local/share/recently-used.xbel"
+  local -r thumbnail_dir="${HOME}/.cache/thumbnails"
+  local -r setup_log_dir="${HOME}/tmp/logs"
+  local setup_log_count=0
+  local standard_trash_count=0
+
+  if [[ -d "${setup_log_dir}" && ! -L "${setup_log_dir}" ]]; then
+    setup_log_count="$(
+      command find "${setup_log_dir}" -xdev -type f \
+        \( -name '*-setup-dotfiles.log' -o -name '*-setup-arch-bootstrap.log' \) \
+        -mmin "+${retention_minutes}" -print 2>/dev/null | awk 'END { print NR + 0 }'
+    )"
+  fi
+
+  echo "INFO: Privacy cleanup targets:"
+  echo "  - Clipboard history"
+  echo "  - Bash and Zsh command history"
+  echo "  - GTK recent-file metadata"
+  if command -v gio >/dev/null 2>&1; then
+    standard_trash_count="$(command gio trash --list 2>/dev/null | awk 'END { print NR + 0 }')"
+  fi
+  echo "  - Standard desktop trash: ${standard_trash_count} item(s)"
+  if [[ -d "${HOME}/.trash" && ! -L "${HOME}/.trash" ]]; then
+    command du -sh -- "${HOME}/.trash" 2>/dev/null || true
+  else
+    echo "  - Custom ~/.trash: not present"
+  fi
+  if [[ -d "${thumbnail_dir}" && ! -L "${thumbnail_dir}" ]]; then
+    command du -sh -- "${thumbnail_dir}" 2>/dev/null || true
+  else
+    echo "  - Thumbnail cache: not present"
+  fi
+  echo "  - Setup logs older than ${retention_label}: ${setup_log_count} file(s)"
+
+  if [[ -f /etc/arch-release ]]; then
+    if [[ -x /usr/bin/journalctl ]]; then
+      /usr/bin/journalctl --disk-usage 2>/dev/null || true
+    fi
+    if [[ -d /var/cache/pacman/pkg ]]; then
+      command du -sh -- /var/cache/pacman/pkg 2>/dev/null || true
+    fi
+    echo "  - Arch package cache: keep the latest 3 versions"
+  fi
+
+  echo -n "WARN: Permanently clean these privacy records and caches? (y/n): "
+  local answer=""
+  read -r answer
+  if [[ "${answer}" != "y" && "${answer}" != "Y" ]]; then
+    echo "INFO: Operation canceled."
+    return 0
+  fi
+
+  local failed=false
+
+  if command -v cliphist >/dev/null 2>&1 && ! command cliphist wipe; then
+    echo "WARN: Failed to clear clipboard history."
+    failed=true
+  fi
+
+  if ! _clear_shell_history; then
+    echo "WARN: Failed to clear shell command history."
+    failed=true
+  fi
+
+  if command -v gio >/dev/null 2>&1; then
+    if ! command gio trash --empty; then
+      echo "WARN: Failed to empty the standard desktop trash."
+      failed=true
+    fi
+  else
+    echo "WARN: gio is unavailable; the standard desktop trash was not emptied."
+    failed=true
+  fi
+
+  if ! _empty_custom_trash; then
+    echo "WARN: Failed to empty the custom ~/.trash directory."
+    failed=true
+  fi
+
+  if ! command rm -f -- "${recent_file}"; then
+    echo "WARN: Failed to remove GTK recent-file metadata."
+    failed=true
+  fi
+
+  if [[ -L "${thumbnail_dir}" ]]; then
+    echo "WARN: Refusing to clean a symlinked thumbnail directory: ${thumbnail_dir}"
+    failed=true
+  elif [[ -d "${thumbnail_dir}" ]] && ! command find "${thumbnail_dir}" -xdev -depth -mindepth 1 -delete; then
+    echo "WARN: Failed to clear the thumbnail cache."
+    failed=true
+  fi
+
+  if [[ -L "${setup_log_dir}" ]]; then
+    echo "WARN: Refusing to clean a symlinked setup log directory: ${setup_log_dir}"
+    failed=true
+  elif [[ -d "${setup_log_dir}" ]] && ! command find "${setup_log_dir}" -xdev -type f \
+    \( -name '*-setup-dotfiles.log' -o -name '*-setup-arch-bootstrap.log' \) \
+    -mmin "+${retention_minutes}" -delete; then
+    echo "WARN: Failed to remove setup logs older than ${retention_label}."
+    failed=true
+  fi
+
+  # Root-owned cleanup uses fixed Arch paths so aliases or user-installed
+  # wrappers cannot cross the privilege boundary.
+  if [[ -f /etc/arch-release ]]; then
+    if [[ ! -x /usr/bin/sudo ]]; then
+      echo "WARN: sudo is required to clean system journals and the Pacman cache."
+      failed=true
+    else
+      if [[ -x /usr/bin/journalctl ]]; then
+        /usr/bin/sudo /usr/bin/journalctl --rotate --vacuum-time="${retention_period}" || {
+          echo "WARN: Failed to remove system journal entries older than ${retention_label}."
+          failed=true
+        }
+      fi
+
+      if [[ -x /usr/bin/paccache ]]; then
+        /usr/bin/sudo /usr/bin/paccache -r -k 3 || {
+          echo "WARN: Failed to prune the Arch package cache."
+          failed=true
+        }
+      else
+        echo "WARN: paccache is unavailable; install pacman-contrib."
+        failed=true
+      fi
+    fi
+  fi
+
+  if [[ "${failed}" == "true" ]]; then
+    echo "WARN: Privacy cleanup completed with errors."
+    return 1
+  fi
+
+  echo "WARN: Other open shells can write their in-memory history again when they exit."
+  echo "DONE: Privacy cleanup completed."
+}
+alias pclean='privacy_cleanup'
+
 uv_update_all_tools() {
   uv tool upgrade --all 2>/dev/null || {
     local tools
@@ -777,13 +975,38 @@ del() {
   command mv -iv "$@" "$dest"
 }
 
+_empty_custom_trash() {
+  if [[ -z "${HOME:-}" || "${HOME}" != /* ]]; then
+    echo "WARN: Refusing to empty custom trash with an invalid home path."
+    return 1
+  fi
+
+  local -r trash_base="${HOME}/.trash"
+  if [[ -L "${trash_base}" ]]; then
+    echo "WARN: Refusing to empty a symlinked custom trash directory: ${trash_base}"
+    return 1
+  fi
+  if [[ -e "${trash_base}" && ! -d "${trash_base}" ]]; then
+    echo "WARN: Refusing to replace a non-directory custom trash path: ${trash_base}"
+    return 1
+  fi
+
+  command mkdir -p -- "${trash_base}" || return
+  command find "${trash_base}" -xdev -depth -mindepth 1 -delete
+}
+
 empty-trash() {
   echo -n "WARN: Empty the trash permanently? (y/n): "
+  local answer=""
   read -r answer
 
   if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-    rm -rfv ~/.trash && command mkdir -p ~/.trash
-    echo "DONE: All files in trash have been permanently deleted."
+    if _empty_custom_trash; then
+      echo "DONE: All files in custom trash have been permanently deleted."
+    else
+      echo "ERROR: Failed to empty custom trash."
+      return 1
+    fi
   else
     echo "INFO: Operation canceled."
   fi

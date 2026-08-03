@@ -426,8 +426,11 @@ Waybar에는 활성 창 제목, Wi-Fi SSID, 네트워크 인터페이스·주소
 - GTK 최근 파일 기록은 생성 자체를 비활성화하고, 이를 무시하는 앱이 기록 파일을 만들면 path 감시가 즉시 삭제한다.
 - 24시간이 지난 썸네일 캐시를 삭제한다. Thunar의 새 썸네일 생성 자체도 비활성화한다.
 - 클립보드 기록은 Sway 로그아웃 시 모두 삭제한다.
+- systemd journal은 최근 1일만 보존한다. bootstrap이 retention 설정을 설치하고 기존의 더 오래된 journal도 정리한다.
 
-휴지통, 셸 명령 기록, 브라우저 방문 기록, 로그인 정보, 애플리케이션 데이터, 개발 도구의 빌드 캐시와 일반 다운로드 파일은 자동 삭제하지 않는다. 범위를 넓히면 복구 기회를 잃거나 로그인 상태가 풀리고 반복 다운로드·재빌드가 발생할 수 있어, 개인정보 보호 효과가 분명한 데스크톱 메타데이터만 정리한다. 기존 NetworkManager MAC 무작위화, IPv6 privacy 주소와 firewalld 정책은 그대로 유지한다. Chrome이나 Flatpak 앱이 자체적으로 제공하는 동기화·사용 통계 전송은 각 애플리케이션의 설정 범위이며, 이 데스크톱 정책이 모든 앱의 외부 통신까지 차단한다고 가정하지 않는다.
+`pclean`은 실행 전에 확인을 받고 표준 데스크톱 휴지통과 `del`이 사용하는 `~/.trash`, 클립보드와 Bash·Zsh 명령 기록, GTK 최근 파일, 전체 썸네일, 1일이 지난 setup 로그와 systemd journal을 정리한다. Arch에서는 `paccache`로 package별 최신 3개만 남기며 system journal과 package cache 단계에서 `sudo` 인증을 요청한다. 현재 셸의 메모리 기록과 표준 history 파일은 함께 비우지만 다른 열린 셸은 종료할 때 자체 메모리 기록을 다시 쓸 수 있으므로 함께 정리하거나 먼저 종료한다.
+
+브라우저 방문 기록, 로그인 정보, 애플리케이션 데이터, 개발 도구의 빌드 캐시와 일반 다운로드 파일은 삭제하지 않는다. 범위를 넓히면 복구 기회를 잃거나 로그인 상태가 풀리고 반복 다운로드·재빌드가 발생할 수 있어, 개인정보 보호 효과와 복구 비용이 분명한 항목만 명시적으로 정리한다. 기존 NetworkManager MAC 무작위화, IPv6 privacy 주소와 firewalld 정책은 그대로 유지한다. Chrome이나 Flatpak 앱이 자체적으로 제공하는 동기화·사용 통계 전송은 각 애플리케이션의 설정 범위이며, 이 데스크톱 정책이 모든 앱의 외부 통신까지 차단한다고 가정하지 않는다.
 
 ## 수동 업데이트와 유지관리
 
@@ -439,6 +442,7 @@ Waybar에는 활성 창 제목, Wi-Fi SSID, 네트워크 인터페이스·주소
 | `bubu` | `bubo` 확인 후 Pacman 전체 시스템, AUR, Flatpak 순서로 갱신 | Arch 시스템과 그래픽 애플리케이션의 일반 유지관리 명령이다. |
 | `upall` | Mise, uv와 리포가 `cargo-binstall`로 관리하는 사용자 도구 갱신 | OS 패키지와 분리된 개발 도구만 다룬다. |
 | `fwup` | 펌웨어 metadata 갱신과 사용 가능한 장치 firmware 설치 | AC 전원이나 재부팅이 필요할 수 있어 일반 패키지 갱신과 분리한다. |
+| `pclean` | 휴지통, 로컬 개인정보 metadata, 셸 기록, 오래된 setup·system log와 Arch package cache 정리 | 실행 전 확인하며 journal과 setup log는 1일, package는 최신 3개를 남긴다. 브라우저 기록과 로그인 정보는 삭제하지 않는다. |
 
 이 명령들은 서로 범위가 다르다. `bubu`만으로 개발 도구와 firmware까지 모두 갱신되거나, `upall`만으로 Arch 시스템이 갱신된다고 가정하지 않는다.
 
@@ -638,6 +642,7 @@ swaymsg -t get_inputs
 | GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |
 | GTK 파일 선택기 GLib 설정 | bootstrap에서 적용하며, 이미 실행 중인 애플리케이션은 다시 실행 |
 | NetworkManager privacy 설정 | bootstrap으로 `/etc`에 설치한 뒤 NetworkManager reload 또는 다음 부팅 |
+| systemd journal 1일 보존 정책 | bootstrap으로 `/etc`에 설치하고 journald를 다시 시작한 직후 |
 | systemd-logind 전원·덮개 정책, greetd, kernel module 차단 | bootstrap으로 설치한 뒤 재부팅 |
 
 `systemctl --user restart sway-session.target`은 Sway 창 자체는 유지하지만 세션에 묶인 알림, 입력기, applet과 보조 service를 다시 시작한다. systemd-logind를 현재 그래픽 세션에서 강제로 재시작하는 대신 안전하게 재부팅한다.
@@ -702,6 +707,7 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 세션 서비스 | `~/.config/systemd/user/` |
 | 로그인 화면과 ReGreet 외형 | `/etc/greetd/config.toml`, `/etc/greetd/regreet.toml`, `/etc/greetd/regreet.css` |
 | 전원 버튼과 랩탑 덮개 정책 | `/etc/systemd/logind.conf.d/60-sway-desktop.conf` |
+| system journal 보존 정책 | `/etc/systemd/journald.conf.d/60-privacy-retention.conf` |
 | 레거시 PC 스피커 비프음 차단 | `/etc/modprobe.d/60-silent-system-sounds.conf` |
 
 각 프로그램의 상세 문법은 Arch에 설치된 매뉴얼에서 확인한다.

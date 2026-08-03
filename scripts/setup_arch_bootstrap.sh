@@ -389,7 +389,7 @@ install_base_packages() { # {{{
     tree mat2 fontconfig \
     wl-clipboard \
     base-devel clang lldb \
-    util-linux
+    util-linux pacman-contrib
 
   if is_wsl; then
     install_required_packages ffmpeg
@@ -473,6 +473,36 @@ deploy_dotfiles() { # {{{
   echo ""
   echo "INFO: Deploying user configuration..."
   run_as_target_user "${setup_script}"
+} # }}}
+
+setup_system_data_retention() { # {{{
+  if is_wsl; then
+    return 0
+  fi
+
+  echo ""
+  echo "INFO: Applying system data retention policy..."
+
+  local -r journald_config="${dotfiles_root}/config/system/systemd/journald.conf.d/60-privacy-retention.conf"
+  if [[ ! -f "${journald_config}" ]]; then
+    echo "ERROR: systemd-journald retention policy is missing: ${journald_config}"
+    return 1
+  fi
+
+  run_as_root install -Dm0644 "${journald_config}" /etc/systemd/journald.conf.d/60-privacy-retention.conf || {
+    echo "ERROR: Failed to install the systemd-journald retention policy."
+    return 1
+  }
+  run_as_root systemctl restart systemd-journald.service || {
+    echo "ERROR: Failed to restart systemd-journald."
+    return 1
+  }
+  run_as_root journalctl --rotate --vacuum-time=1day || {
+    echo "ERROR: Failed to remove system journal entries older than one day."
+    return 1
+  }
+
+  echo "DONE: System journal retention is limited to one day."
 } # }}}
 
 setup_sway_user_preferences() { # {{{
@@ -1465,6 +1495,7 @@ main() { # {{{
     handle_hardware_drivers
     setup_locale
     setup_date_and_time
+    setup_system_data_retention
     set_default_shell_to_zsh
     create_default_directories
     deploy_dotfiles
@@ -1494,6 +1525,10 @@ main() { # {{{
         fi
         if [[ "${task}" == "install_base_packages" ]]; then
           echo "ERROR: Required package installation failed. Stop before applying dependent configuration."
+          exit 1
+        fi
+        if [[ "${task}" == "setup_system_data_retention" ]]; then
+          echo "ERROR: Required system data retention policy failed."
           exit 1
         fi
         if [[ "${task}" == "deploy_dotfiles" || "${task}" == "setup_sway_user_preferences" || "${task}" == "setup_sway_desktop" ]]; then
