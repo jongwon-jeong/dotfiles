@@ -1076,64 +1076,68 @@ install_mise_managed_tools() { # {{{
   ' bash "${mise_config}"
 } # }}}
 
-install_codex_cli() { # {{{
-  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
-  # shellcheck disable=SC2016
-  if ! run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v mise >/dev/null 2>&1'; then
-    echo "WARN: mise is not installed. Skipping Codex CLI setup."
-    return 0
+_retry_mise_cli_install() { # {{{
+  local -r display_name="${1:-}"
+  local -r command_name="${2:-}"
+  local -r tool_id="${3:-}"
+
+  if [[ -z "${display_name}" || -z "${command_name}" || -z "${tool_id}" ]]; then
+    echo "ERROR: _retry_mise_cli_install requires a display name, command, and mise tool ID."
+    return 1
   fi
 
+  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
   # shellcheck disable=SC2016
-  if run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v codex >/dev/null 2>&1'; then
-    echo "DONE: Codex CLI is already installed."
+  if run_as_target_user bash -lc '
+    export PATH="${HOME}/.local/bin:${PATH}"
+    command -v "${1}" >/dev/null 2>&1
+  ' bash "${command_name}"; then
+    echo "DONE: ${display_name} is already installed."
     return 0
   fi
 
   echo ""
-  echo "INFO: Installing Codex CLI..."
-  # Codex is declared in the mise config with the other user tools. Release
-  # resolution uses GitHub APIs and can hit unauthenticated rate limits during a
-  # full bootstrap, so keep this best-effort retry separate from the core toolchain
-  # install.
+  echo "INFO: Retrying ${display_name} installation..."
   # shellcheck disable=SC2016
-  if ! run_as_target_user bash -lc '
+  if run_as_target_user bash -lc '
     export PATH="${HOME}/.local/bin:${PATH}"
-    mise install --yes aqua:openai/codex@latest
-  '; then
-    echo "WARN: Failed to install Codex CLI."
-    echo "INFO: Retry later: mise install aqua:openai/codex@latest"
+    mise install --yes "${1}@latest"
+  ' bash "${tool_id}"; then
+    echo "DONE: ${display_name} installation completed."
+    return 0
   fi
+
+  echo "WARN: Failed to install ${display_name}."
+  echo "INFO: Retry later: mise install ${tool_id}@latest"
+  return 1
 } # }}}
 
-install_antigravity_cli() { # {{{
-  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
+retry_mise_cli_installs() { # {{{
+  # The main mise task installs every configured tool first. Retry only missing
+  # GitHub-release CLIs because parallel resolution can hit unauthenticated API
+  # rate limits without preventing the remaining tools from being installed.
   # shellcheck disable=SC2016
   if ! run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v mise >/dev/null 2>&1'; then
-    echo "WARN: mise is not installed. Skipping Antigravity CLI setup."
+    echo "WARN: mise is not installed. Skipping CLI installation retries."
     return 0
   fi
 
-  # shellcheck disable=SC2016
-  if run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v agy >/dev/null 2>&1'; then
-    echo "DONE: Antigravity CLI (agy) is already installed."
-    return 0
+  local failed=false
+  _retry_mise_cli_install "Codex CLI" codex "aqua:openai/codex" || failed=true
+  _retry_mise_cli_install \
+    "Antigravity CLI (agy)" \
+    agy \
+    "aqua:google-antigravity/antigravity-cli" || failed=true
+  _retry_mise_cli_install \
+    "Claude Code" \
+    claude \
+    "aqua:anthropics/claude-code" || failed=true
+
+  if [[ "${failed}" == "true" ]]; then
+    echo "WARN: One or more optional CLI installation retries failed."
   fi
 
-  echo ""
-  echo "INFO: Installing Antigravity CLI..."
-  # Antigravity CLI is declared in the mise config with the other user tools. Release
-  # resolution uses GitHub APIs and can hit unauthenticated rate limits during a
-  # full bootstrap, so keep this best-effort retry separate from the core toolchain
-  # install.
-  # shellcheck disable=SC2016
-  if ! run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise install --yes aqua:google/antigravity@latest
-  '; then
-    echo "WARN: Failed to install Antigravity CLI."
-    echo "INFO: Retry later: mise install aqua:google/antigravity@latest"
-  fi
+  return 0
 } # }}}
 
 install_user_cli_tools() { # {{{
@@ -1471,8 +1475,7 @@ main() { # {{{
     install_aur_packages
     set_default_browser_to_google_chrome
     install_mise_managed_tools
-    install_codex_cli
-    install_antigravity_cli
+    retry_mise_cli_installs
     install_user_cli_tools
     install_nerd_font
     setup_basic_network_privacy
