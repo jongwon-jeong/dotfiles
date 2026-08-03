@@ -1,30 +1,34 @@
 # 업무 개발 환경 준비와 검증
 
-개인 장비를 일반적인 웹 서비스 회사의 개발 환경으로 사용할 때 확인하고
-검증할 절차를 정리한다. 목표는 특정 회사의 구성을 미리 추측해 설치하는 것이
-아니라, 회사 정책과 실제 프로젝트 요구를 발견한 뒤 필요한 구성만 안전하게
-적용하는 것이다.
+개인 장비를 업무 개발에 사용해야 할 때, 이 dotfiles가 제공할 수 있는 기반과
+회사·프로젝트가 결정해야 할 항목을 구분하고 실제 작업 전까지 검증할 순서를
+정리한다. 목표는 개인 환경을 회사 환경처럼 미리 꾸미는 것이 아니라, 허용된
+장비와 OS인지 먼저 확인한 뒤 드러난 요구사항만 machine-owned state로 적용하는
+것이다.
 
 회사 이름, email, 내부 host, SSH key, 인증서, VPN profile, token과 secret은
 이 저장소에 기록하지 않는다. 실제 desktop·shell 동작은 이 저장소의 source와
 현재 machine의 배포 상태를 기준으로 확인한다.
 
-## 문서 경계
+## 이 문서의 범위
 
-이 문서는 업무 환경을 준비하고 검증하는 순서만 소유한다. 다음 세부 workflow는
-회사와 프로젝트가 정한 절차를 우선하고 이 문서에서 중복해 규정하지 않는다.
+이 문서는 다음 판단과 검증 순서를 소유한다.
 
-- Git branch, review와 release workflow
-- Git과 SSH 계정 분리
-- 웹 프런트엔드 editor와 language tooling
-- local·remote terminal session 운영
+- 개인 장비와 Arch Linux 사용이 허용되는지 판단한다.
+- 업무 identity와 credential을 공유 dotfiles 밖에 둔다.
+- VPN, SSH, project toolchain과 desktop workflow를 실제 업무 경로에서 검증한다.
+- 지원되지 않는 보안 요구사항을 개인 설정으로 우회하지 않는다.
 
-dotfiles가 실제로 제공하는 SSH agent, shell 함수, Sway session과 desktop
-privacy 동작은 다음 canonical source를 우선한다.
+Git branch·review·release 방식, 지원 runtime과 container engine, VPN client,
+보안 agent는 회사와 프로젝트의 문서가 우선한다. 이 저장소가 실제로 제공하는
+동작은 다음 canonical source를 기준으로 확인한다.
 
-- [SSH agent user unit](../config/systemd/user/ssh-agent.service)
-- [공용 shell 함수](../config/shell/aliases.sh)
-- [Sway workflow](./sway-workflow.md)
+| 제공 기능 | Canonical source |
+|---|---|
+| 경로별 Git identity 선택 | [`home/.gitconfig`](../home/.gitconfig) |
+| Sway session SSH agent | [`ssh-agent.service`](../config/systemd/user/ssh-agent.service) |
+| `sshload`, `sshkill`, `keep_awake` | [`aliases.sh`](../config/shell/aliases.sh) |
+| desktop 운영과 개인정보 수명주기 | [Sway workflow](./sway-workflow.md) |
 
 ## 1. 회사 정책을 먼저 확인한다
 
@@ -41,21 +45,24 @@ privacy 동작은 다음 canonical source를 우선한다.
 
 회사 지급 장비나 지원 OS가 필수라면 개인 환경을 우회해서 연결하지 않는다.
 이 단계에서 통과하지 못한 요구사항은 dotfiles 수정으로 해결할 문제가 아니다.
+요구사항이 아직 확인되지 않았다면 VPN, container engine이나 보안 client를
+추측해서 설치하지 않고 onboarding 정보가 확정될 때까지 보류한다.
 
 ## 2. 업무 정보는 machine-owned state로 둔다
 
-업무 repository는 `~/Projects/work/` 아래에 두어 dotfiles의 Git `includeIf`가
-업무 identity를 선택하게 한다. 실제 identity는 local file이 소유한다.
+업무 repository는 `~/Projects/work/` 아래에 두어 `home/.gitconfig`의
+`includeIf`가 `~/.gitconfig-work`를 선택하게 한다. 실제 이름과 email은 local
+file이 소유하며 그 값을 dotfiles에 기록하지 않는다.
 
-```text
-~/.gitconfig-work
-~/.ssh/config
-~/.ssh/config.d/work.conf
-~/.ssh/id_ed25519_work
+```gitconfig
+[user]
+    name = <WORK_NAME>
+    email = <WORK_EMAIL>
 ```
 
-이 파일들은 이 저장소나 공유 문서에 추가하지 않는다. 회사에서 commit signing을
-요구할 때만 회사가 정한 key와 방식을 `~/.gitconfig-work`에 추가한다.
+SSH host, key, certificate와 VPN profile의 실제 위치는 회사 절차에 맞추되 모두
+machine-owned state로 유지한다. 회사에서 commit signing을 요구할 때만 회사가
+정한 key와 방식을 `~/.gitconfig-work`에 추가한다.
 
 실제 업무 repository에서 적용 결과를 확인한다.
 
@@ -127,11 +134,18 @@ key 등록
 
 ## 5. 프로젝트의 도구를 발견한다
 
-개인 전역 설정을 적용하기 전에 repository가 선언한 정책과 도구를 확인한다.
+개인 전역 설정을 적용하기 전에 repository가 추적하는 정책과 도구를 확인한다.
 
 ```sh
 git status
-rg --files -g 'README*' -g 'CONTRIBUTING*' -g 'AGENTS.md'
+rg --files --hidden -g '!.git/**' \
+  -g 'README*' -g 'CONTRIBUTING*' -g 'AGENTS.md' \
+  -g '.github/workflows/**' -g '.gitlab-ci.yml' \
+  -g 'compose.y?ml' -g 'Dockerfile*' -g '.devcontainer/**' \
+  -g 'mise.toml' -g '.mise.toml' -g '.tool-versions' \
+  -g '.nvmrc' -g '.node-version' -g 'pyproject.toml' \
+  -g 'package.json' -g 'Makefile' -g '*lock*' \
+  -g '.editorconfig' -g '.pre-commit-config.yaml'
 ```
 
 확인 대상:
@@ -165,9 +179,9 @@ container engine은 package, service, storage와 network state를 추가한다. 
 
 ## 7. 업무 시간 desktop 사용
 
-desktop은 조용한 기본 상태를 유지하므로 업무 중 즉시 받아야 하는 알림이
-있다면 Waybar나 SwayNC에서 사용자가 DND를 해제한다. 집중 작업이 끝나면 다시
-활성화한다.
+desktop은 조용한 기본 상태를 유지한다. 업무 중 팝업 알림이 필요하면 `Super+N`으로
+SwayNC를 열고 `Shift+D`로 DND를 해제한다. 집중 작업이 끝나면 같은 방법으로
+DND를 다시 활성화한다.
 
 장시간 build, test, migration은 dotfiles가 제공하는 `keep_awake`로 실행한다.
 명령이 끝나면 절전 inhibitor도 자동으로 해제된다.
@@ -198,9 +212,9 @@ shell history
 공유 가능한 log와 screenshot
 ```
 
-비밀번호나 token을 clipboard로 복사했다면 사용 직후 desktop의 clipboard
-history를 삭제한다. debug log를 공유하기 전에는 내부 host, 요청 header, path,
-token과 고객 데이터가 포함됐는지 검토한다.
+비밀번호나 token을 clipboard로 복사했다면 사용 직후 `Super+Ctrl+C`로 desktop의
+clipboard history를 삭제한다. debug log를 공유하기 전에는 내부 host, 요청
+header, path, token과 고객 데이터가 포함됐는지 검토한다.
 
 Git remote는 commit된 데이터만 보관한다. commit하지 않은 작업, local database,
 개발용 certificate와 environment file의 보존 방식은 회사의 승인된 backup
