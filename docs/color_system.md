@@ -10,6 +10,7 @@ whenever a tool needs manual colors.
 
 - Prefer strong contrast for primary text and UI states.
 - Use warm paper surfaces for backgrounds and UI chrome.
+- Use the dark ambient backdrop only for empty or locked desktop space.
 - Keep normal text black unless there is a specific semantic reason not to.
 - Use muted accents for syntax and tool identity, not broad background areas.
 - Use high-attention colors only for transient state: search, selection, warnings,
@@ -30,6 +31,8 @@ Current maintained color decisions are derived from these files:
 
 Related consumers that already follow the same palette:
 
+- `config/sway/config`
+- `config/swaylock/config`
 - `config/tmux/tmux.conf`
 - `config/starship.toml`
 - `config/shell/aliases.sh`
@@ -49,6 +52,7 @@ theme only.
 | `paper.subtle` | `#d8d0b8` | Subtle structural surface | Nvim color column, folds |
 | `paper.chrome` | `#c8c3b3` | Inactive chrome | tmux status, Starship user and git branch |
 | `paper.chromeActive` | `#b8ad94` | Active chrome and borders | Nvim statusline, tmux current window, fzf border |
+| `ambient.backdrop` | `#303030` | Empty or locked desktop backdrop | Empty Sway outputs, swaylock canvas |
 | `ink.primary` | `#000000` | Primary text | Default foreground across tools, Codex primary syntax |
 | `ink.secondary` | `#303030` | Secondary text | Nvim line numbers and non-text, Starship time |
 | `ink.tertiary` | `#555555` | Muted terminal foreground | ANSI bright black |
