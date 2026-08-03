@@ -174,7 +174,7 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 
 데스크톱처럼 배터리나 백라이트가 없는 시스템에서는 관련 Waybar 모듈과 키 동작이 조용히 비활성화된다.
 
-화면 색온도는 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용한다. 매일 19:00부터 4000 K로 서서히 낮아지고 07:00부터 6500 K로 돌아온다.
+화면 색온도는 기본 Sway 세션에서 자동으로 바꾸지 않는다. 필요할 때 `sunset on`으로 시작하면 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용해 19:00부터 4000 K로 서서히 낮추고 07:00부터 6500 K로 되돌린다. `sunset off`로 현재 세션에서 즉시 중지하고 `sunset status` 또는 인자 없는 `sunset`으로 상태를 확인한다.
 
 20% 배터리 경고는 기본 방해 금지 정책에 따라 알림센터에 쌓인다. 10% critical 상태는 데이터 손실을 피하기 위해 알림센터 기록과 함께 OSD로 즉시 표시한다. 자동 종료나 절전은 실행하지 않는다.
 
@@ -338,7 +338,7 @@ Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하
 
 `gsettings`는 GNOME Shell 전용 도구가 아니라 GLib 설정 저장 인터페이스이므로 Sway에서도 GTK 파일 선택기 설정에 사용하는 것이 맞다. 다만 Sway 설정을 다시 읽을 때마다 실행하지 않고, 설치 단계에서 한 번 적용해 compositor 수명주기와 분리한다.
 
-관리하는 데스크톱 표면은 Paper 색을 기본 면으로 공유하고, 영역 구분이 필요하면 별도의 흰 카드보다 명확한 테두리를 먼저 사용한다. 평상시 글자는 기본 굵기와 읽는 데 필요한 최소 여백을 유지하며, 대비·크기·불필요한 그림자 제거로 먼저 가독성을 확보한다. 굵은 글자와 강한 배경색은 선택, 집중, 경고처럼 의미가 있는 상태에만 사용한다.
+관리하는 대화형 데스크톱 표면은 Paper 색을 기본 면으로 공유하고, 빈 출력과 잠금화면은 작업 상태와 명확히 구분되는 어두운 중립 배경을 사용한다. 영역 구분이 필요하면 별도의 흰 카드보다 명확한 테두리를 먼저 사용한다. 평상시 글자는 기본 굵기와 읽는 데 필요한 최소 여백을 유지하며, 대비·크기·불필요한 그림자 제거로 먼저 가독성을 확보한다. 굵은 글자와 강한 배경색은 선택, 집중, 경고처럼 의미가 있는 상태에만 사용한다.
 
 기본 시스템 사운드는 계층별로 끈다. GTK 이벤트·경고·입력 피드백음은 GTK 3·4 설정에서, 대화형 Zsh의 터미널 벨은 셸 설정에서, 커널의 레거시 PC 스피커 비프음은 `pcspkr`와 `snd_pcsp` 모듈 차단으로 비활성화한다. Alacritty와 GTK의 visual bell도 끄고, Sway 창과 Waybar 워크스페이스의 urgent 상태는 빨간색 대신 차분한 파란색으로만 구분한다. SwayNC는 항상 방해 금지 상태로 시작하므로 팝업 배너는 표시하지 않고 대기 중인 알림만 Waybar의 `DND!`로 알린다. 브라우저·메신저·알람 앱이 일반 미디어 스트림이나 자체 창으로 직접 표시하는 동작까지 막지는 않는다.
 
@@ -455,9 +455,9 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
 | `sway` | Wayland compositor이자 타일링 창 관리자다. 모니터 출력, 입력 장치, 창 배치, 워크스페이스와 전역 단축키를 관리한다. | 로그인 후 실제 데스크톱 세션이 된다. `config/sway/config`가 공용 동작의 기준 파일이다. |
-| `swaybg` | Sway 출력마다 배경 이미지 또는 단색 배경을 그리는 작은 보조 프로그램이다. | 현재는 모든 출력에 고대비 단색 배경을 표시한다. |
+| `swaybg` | Sway 출력마다 배경 이미지 또는 단색 배경을 그리는 작은 보조 프로그램이다. | 현재는 모든 출력의 빈 공간에 어두운 중립 단색 배경을 표시한다. |
 | `swayidle` | 사용자의 입력이 없는 시간을 감시하고 지정된 명령을 실행한다. | 잠금, 모니터 절전, 장시간 미사용 시 시스템 절전을 순서대로 실행하는 세션 서비스다. |
-| `swaylock` | Wayland용 화면 잠금 프로그램이다. | 수동 잠금, idle 잠금, 시스템 절전 직전 잠금에 같은 설정을 사용한다. 인증은 PAM을 사용한다. |
+| `swaylock` | Wayland용 화면 잠금 프로그램이다. | 수동 잠금, idle 잠금, 시스템 절전 직전 잠금에 어두운 배경과 Paper 상태 표시를 사용한다. 인증은 PAM을 사용한다. |
 | `greetd` | 부팅 후 로그인과 사용자 세션 시작을 담당하는 display manager다. | GDM 대신 `tty1`을 소유하고, 인증이 끝나면 선택된 Sway 세션을 시작한다. 현재 세션을 방해하지 않도록 bootstrap에서는 활성화만 하고 다음 부팅부터 사용한다. |
 | `greetd-regreet` | greetd용 GTK4 그래픽 로그인 화면인 ReGreet를 제공한다. 사용자, 비밀번호와 Wayland 세션을 선택한다. | Paper 팔레트의 단색 배경과 상단 시계, 하단의 재부팅·종료 버튼을 표시한다. `/usr/local/share/wayland-sessions`의 이 리포 전용 Sway 항목을 우선 발견하고 `/usr/local/bin/start-sway`를 실행한다. |
 | `cage` | 애플리케이션 하나만 전체 화면으로 보여 주는 kiosk Wayland compositor다. | 사용자 데스크톱이 아니라 ReGreet 로그인 창만 안전하게 표시한다. 로그인 후 Cage는 끝나고 Sway가 별도 세션으로 시작된다. |
@@ -518,7 +518,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+O` Output 모드의 `D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
 | `brightnessctl` | 커널 backlight와 LED 장치를 조회·조절하는 CLI다. | Waybar 밝기 모듈에서 스크롤 조절에 사용한다. 백라이트가 없는 데스크톱에서는 할 일이 없다. |
 | `batsignal` | 배터리 충전량을 가볍게 감시해 표준 데스크톱 알림을 보낸다. | 발견한 모든 배터리를 대상으로 20%에서 알림센터 경고를 남기고 10%에서 OSD도 표시한다. 자동 종료·절전 동작은 하지 않으며 배터리가 없는 데스크톱에서는 조용히 종료한다. |
-| `wlsunset` | Wayland 출력의 색온도를 현지 시각에 따라 조절한다. | 위치나 네트워크를 사용하지 않고 07:00과 19:00 고정 시각을 기준으로 전환한다. |
+| `wlsunset` | Wayland 출력의 색온도를 현지 시각에 따라 조절한다. | 기본 Sway 세션에서는 시작하지 않는 선택 기능이다. `sunset on`, `sunset off`, `sunset status`로 현재 세션에서 제어하며 실행 중에도 위치나 네트워크를 사용하지 않는다. |
 | `upower` | 배터리와 전원 장치 정보를 D-Bus로 제공하는 시스템 daemon이다. | Waybar와 데스크톱 앱이 충전량, 충전 상태와 남은 시간을 하드웨어별 구현 없이 읽게 한다. |
 | `power-profiles-daemon` | `power-saver`, `balanced`, `performance` 전원 profile을 제공한다. | bootstrap이 기본값을 `balanced`로 맞추고 Waybar에서 현재 상태를 표시한다. profile 전환은 `powerprofilesctl set`으로 할 수 있으며, 지원하지 않는 하드웨어에서는 가능한 profile만 노출된다. |
 | `switcheroo-control` | 내장 GPU와 외장 GPU가 함께 있는 시스템의 GPU 선택 정보를 D-Bus로 제공한다. | 하이브리드 그래픽 랩탑에서 지원 앱이 고성능 GPU 실행을 요청할 수 있게 한다. 단일 GPU 시스템에서는 사실상 대기한다. |
@@ -541,6 +541,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `alacritty` | GPU 가속 터미널 emulator다. | `Super+Enter`의 기본 터미널이며 문서와 터미널 기반 도구를 여는 기반이다. |
 | `pavucontrol` | PulseAudio 호환 API를 사용하는 PipeWire 그래픽 mixer다. | Fuzzel에서 실행하거나 Waybar 볼륨을 클릭해 앱별 볼륨, 입력·출력 장치와 profile을 조정한다. |
 | `thunar` | 가벼운 GTK 파일 관리자다. | Fuzzel에서 실행하는 기본 파일 관리자다. GVfs, UDisks2와 함께 휴지통과 이동식 장치를 표시한다. |
+| `tumbler` | Thunar가 썸네일 지원 형식을 조회하는 D-Bus 서비스다. | Thunar의 요청으로 활성화해 누락된 썸네일러 서비스 경고를 방지한다. 현재 설정에서는 Thunar가 미리보기 파일을 생성하지 않으며 Tumbler는 네트워크를 사용하지 않는다. |
 | `thunar-volman` | 이동식 미디어가 연결됐을 때 Thunar 동작을 연결하는 volume manager다. | UDisks2가 발견한 USB 저장장치와 미디어를 파일 관리자 workflow에 통합한다. |
 | `thunar-archive-plugin`, `xarchiver` | Thunar의 압축 메뉴와 실제 압축 파일 GUI backend를 제공한다. | 파일 관리자의 오른쪽 클릭 메뉴에서 압축 생성과 해제를 수행한다. plugin만 있고 backend가 없으면 메뉴가 작업을 완료하지 못한다. |
 | `gvfs` | GTK 앱에 휴지통, 최근 파일, 마운트와 여러 가상 파일시스템 기능을 제공한다. | Thunar와 파일 선택기가 로컬 파일 외의 데스크톱 파일 기능을 일관되게 사용하도록 한다. |
@@ -555,8 +556,8 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 |---|---|
 | 시스템 서비스 또는 D-Bus 요청으로 실행 | greetd, NetworkManager, firewalld, Bluetooth, CUPS, UDisks2, UPower, power-profiles-daemon, switcheroo-control |
 | 로그인 화면이 보이는 동안 실행 | Cage, ReGreet |
-| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, wlsunset, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
-| 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, wf-recorder, Pavucontrol, Thunar, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
+| Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
+| 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, wf-recorder, Pavucontrol, Thunar, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
 Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
 
@@ -567,7 +568,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 | OpenSSH agent | 사용하지 않음 | 사용자가 등록한 복호화 identity를 최대 8시간 동안 메모리에만 유지하고 Sway 로그아웃 시 종료 | 하드웨어와 무관하게 동작하며 key를 등록하기 전에는 identity를 보관하지 않음 |
 | SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
 | Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 제한된 로컬 DB에 저장하고 로그아웃 시 전체 삭제 | 하드웨어와 무관하게 동작 |
-| wlsunset | 사용하지 않음 | 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
+| wlsunset | 사용하지 않음 | 기본적으로 실행하지 않으며, 직접 시작한 동안 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
 | batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않음 | 배터리가 없으면 조용히 종료 |
 | 개인정보 정리 path·timer·service | 사용하지 않음 | `~/.local/share/recently-used.xbel`과 24시간이 지난 `~/.cache/thumbnails` 항목만 정리 | 대상 경로가 없으면 변경하지 않음 |
 | NetworkManager | 실제 연결에 필요한 네트워크만 사용 | 연결 profile은 NetworkManager가 관리하며 주기적 HTTP 연결 확인은 비활성화 | Wi-Fi가 없어도 유선·VPN 관리에 사용 가능 |
