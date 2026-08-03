@@ -64,7 +64,8 @@ bindsym $mod+d exec $menu
 bindsym $mod+F1 exec alacritty --class sway-help -e sh -lc 'less "$HOME/.dotfiles/docs/sway-workflow.md"'
 
 # Session and shell controls.
-bindsym $mod+Shift+q kill
+bindsym $mod+q kill
+bindsym $mod+Shift+c reload
 bindsym $mod+Escape exec swaylock -f
 bindsym $mod+Shift+Escape exec $HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' 'swaymsg exit' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'
 
@@ -109,6 +110,8 @@ bindsym $mod+minus scratchpad show
 bindsym $mod+Shift+minus move scratchpad
 
 # Workspaces.
+bindsym $mod+Tab workspace back_and_forth
+
 set $ws1 "1"
 set $ws2 "2"
 set $ws3 "3"

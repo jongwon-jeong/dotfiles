@@ -14,10 +14,11 @@
 | `Super+D` | 애플리케이션 검색 |
 | `Super+H/J/K/L` 또는 방향키 | 창 사이의 초점 이동 |
 | `Super+Shift+H/J/K/L` 또는 방향키 | 창 위치 이동 |
+| `Super+Tab` | 직전에 사용한 워크스페이스로 돌아가기 |
 | `Super+1` … `Super+0` | 워크스페이스 1~10으로 이동 |
 | `Super+Shift+1` … `Super+Shift+0` | 현재 창을 워크스페이스로 보내기 |
 | `Super+F` | 전체 화면 전환 |
-| `Super+Shift+Q` | 현재 창 닫기 |
+| `Super+Q` | 현재 창 닫기 |
 | `Super+Esc` | 화면 잠금 |
 | `Super+F1` | 이 문서 열기 |
 
@@ -54,6 +55,7 @@ H/J/K/L이 익숙하지 않으면 방향키를 그대로 사용해도 된다.
 | `Super+Enter` | Alacritty 터미널 |
 | `Super+D` | Fuzzel 애플리케이션 실행기 |
 | `Super+F1` | 이 안내서 열기 |
+| `Super+Shift+C` | Sway 설정 다시 읽기 |
 
 Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에서 이름을 검색해 실행한다.
 
@@ -71,7 +73,7 @@ Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에
 | `Super+Shift+A` | 자식 컨테이너로 초점 복귀 |
 | `Super+Space` | 타일 창과 Floating 창 사이의 초점 전환 |
 | `Super+Shift+Space` | 현재 창의 Floating 상태 전환 |
-| `Super+Shift+Q` | 현재 창 닫기 |
+| `Super+Q` | 현재 창 닫기 |
 
 파일 선택창, 저장창, 오디오·네트워크·블루투스 설정창은 자동으로 Floating 배치된다.
 
@@ -107,6 +109,7 @@ Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에
 
 | 키 | 동작 |
 |---|---|
+| `Super+Tab` | 직전에 사용한 워크스페이스로 돌아가기 |
 | `Super+1` … `Super+0` | 워크스페이스 1~10으로 이동 |
 | `Super+Shift+1` … `Super+Shift+0` | 현재 창을 워크스페이스 1~10으로 이동 |
 | `Super+O` | Output 모드 시작 |
@@ -628,7 +631,7 @@ swaymsg -t get_inputs
 
 | 변경 대상 | 적용 방법 |
 |---|---|
-| `config/sway/config` | `scripts/setup_dotfiles.sh`로 배포한 뒤 `swaymsg reload` |
+| `config/sway/config` | `scripts/setup_dotfiles.sh`로 배포한 뒤 `Super+Shift+C` 또는 `swaymsg reload` |
 | Waybar·SwayNC 등 개별 user service 설정 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 해당 service 재시작 |
 | 여러 Sway 세션 service와 unit 관계 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
 | GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |
