@@ -11,7 +11,7 @@ _clear_session_clipboard_history() {
     return 0
   fi
 
-  local -r session_db="${XDG_RUNTIME_DIR}/cliphist.db"
+  local -r session_db="${XDG_RUNTIME_DIR}/cliphist/db"
   if [[ ! -e "${session_db}" && ! -L "${session_db}" ]]; then
     return 0
   fi
@@ -67,9 +67,9 @@ cleanup_session() {
 }
 trap cleanup_session EXIT
 
-# greetd does not source interactive shell startup files. Include mise shims so
-# Sway scripts and desktop entries resolve the same user-owned tools as shells.
-export PATH="${HOME}/.local/share/mise/shims:${HOME}/.local/bin:${PATH}"
+# Keep the graphical session on the OS PATH. Desktop helpers that intentionally
+# use user-owned development tools invoke distro-owned mise explicitly.
+export PATH="${PATH}:${HOME}/.local/bin"
 export XDG_CURRENT_DESKTOP=sway
 export XDG_SESSION_DESKTOP=sway
 export XDG_SESSION_TYPE=wayland

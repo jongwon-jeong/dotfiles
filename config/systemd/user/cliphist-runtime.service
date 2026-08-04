@@ -1,0 +1,14 @@
+[Unit]
+Description=Private runtime storage for Wayland clipboard history
+PartOf=sway-session.target
+Before=cliphist-text.service cliphist-image.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+RuntimeDirectory=cliphist
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/true
+
+[Install]
+WantedBy=sway-session.target

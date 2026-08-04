@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for required_command in fd fuzzel xdg-open xdg-user-dir; do
+for required_command in /usr/bin/mise fuzzel xdg-open xdg-user-dir; do
   command -v "${required_command}" >/dev/null 2>&1 || exit 1
 done
 
@@ -33,7 +33,7 @@ fi
 
 files=()
 mapfile -d '' -t files < <(
-  fd \
+  /usr/bin/mise exec --cd "${HOME}/.config/mise" -- fd \
     --type file \
     --color never \
     --print0 \

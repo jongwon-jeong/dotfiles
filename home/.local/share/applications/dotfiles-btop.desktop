@@ -2,8 +2,8 @@
 Type=Application
 Name=System Monitor (btop)
 Comment=Monitor processes and system resources with btop
-TryExec=btop
-Exec=alacritty --class dotfiles-btop -e btop
+TryExec=/usr/bin/mise
+Exec=alacritty --class dotfiles-btop -e /usr/bin/mise exec -- btop
 Icon=utilities-system-monitor
 Terminal=false
 Categories=System;Monitor;

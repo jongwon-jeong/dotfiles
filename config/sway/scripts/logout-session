@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Stop session-owned processes while the compositor is still available. This
+# prevents their restart policies from racing a disappearing Wayland display.
+if ! /usr/bin/systemctl --user stop sway-session.target; then
+  echo "WARN: Could not stop all Sway session services before logout." >&2
+fi
+
+if ! /usr/bin/swaymsg exit >/dev/null; then
+  echo "ERROR: Could not exit the Sway session." >&2
+  exit 1
+fi

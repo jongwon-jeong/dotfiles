@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for required_command in fuzzel jq swaymsg; do
+for required_command in fuzzel /usr/bin/mise swaymsg; do
   command -v "${required_command}" >/dev/null 2>&1 || exit 1
 done
 
@@ -13,7 +13,9 @@ while IFS=$'\t' read -r window_id window_label; do
   window_ids+=("${window_id}")
   window_labels+=("${window_label}")
 done < <(
-  jq --raw-output '
+  # jq variables are intentionally protected from shell expansion.
+  # shellcheck disable=SC2016
+  /usr/bin/mise exec --cd "${HOME}/.config/mise" -- jq --raw-output '
     [
       .. | objects
       | select(.type? == "workspace" and .name != "__i3_scratch") as $workspace

@@ -153,6 +153,6 @@
   "custom/power": {
     "format": "POWER",
     "tooltip": false,
-    "on-click": "$HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' 'swaymsg exit' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'"
+    "on-click": "$HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' '$HOME/.config/sway/scripts/logout-session' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'"
   }
 }

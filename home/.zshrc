@@ -27,7 +27,9 @@ configure_interactive_locale() {
   unset LANGUAGE LC_ALL
 }
 configure_interactive_locale
-export PATH="${HOME}/.local/bin:${PATH}"
+# Keep distro-owned commands ahead of same-named user binaries. mise adds only
+# the explicitly selected development tools ahead of this base PATH.
+export PATH="${PATH}:${HOME}/.local/bin"
 export XDG_CONFIG_HOME="${HOME}/.config"
 export XDG_DATA_HOME="${HOME}/.local/share"
 export XDG_STATE_HOME="${HOME}/.local/state"
@@ -143,7 +145,9 @@ elif [ "$(uname)" = "Darwin" ]; then
   fi
 fi
 
-if (( $+commands[mise] )); then
+if [[ -x /usr/bin/mise ]]; then
+  eval "$(/usr/bin/mise activate zsh)"
+elif (( $+commands[mise] )); then
   eval "$(mise activate zsh)"
 fi
 

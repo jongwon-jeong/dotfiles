@@ -382,7 +382,7 @@ install_base_packages() { # {{{
   # Portable CLI and development packages shared by Arch desktops and WSL.
   install_required_packages \
     zsh tmux \
-    git curl wget ca-certificates \
+    git curl wget ca-certificates mise \
     openssl openssh fuse2 \
     zlib bzip2 readline sqlite libffi xz \
     exfatprogs zip unzip 7zip \
@@ -751,6 +751,13 @@ setup_sway_desktop() { # {{{
     return 1
   fi
 
+  # ReGreet now sends warning-level diagnostics to journald. Remove the legacy
+  # standalone log only after the replacement configuration is installed.
+  run_as_root rm -f -- /var/log/regreet/log || {
+    echo "ERROR: Failed to remove the legacy ReGreet log."
+    return 1
+  }
+
   run_as_root systemctl set-default graphical.target || {
     echo "ERROR: Failed to set graphical.target as the default boot target."
     return 1
@@ -1085,25 +1092,18 @@ install_mise_managed_tools() { # {{{
     return 1
   fi
 
-  if ! run_as_target_user bash -lc "export PATH=\"\${HOME}/.local/bin:\${PATH}\"; command -v mise >/dev/null 2>&1"; then
-    echo ""
-    echo "INFO: Installing mise from the upstream installer..."
-    run_as_target_user bash -lc 'curl https://mise.run | sh'
-  fi
-
-  if ! run_as_target_user bash -lc "export PATH=\"\${HOME}/.local/bin:\${PATH}\"; command -v mise >/dev/null 2>&1"; then
-    echo "ERROR: mise is not available after installation."
+  if [[ ! -x /usr/bin/mise ]]; then
+    echo "ERROR: The Arch mise package is not available at /usr/bin/mise."
     return 1
   fi
 
   echo ""
   echo "INFO: Installing mise-managed tools from ${mise_config}..."
-  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
+  # Expand positional parameters inside the target user's shell, not here.
   # shellcheck disable=SC2016
   run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise trust --yes "${1}" || true
-    mise install --yes --cd "$(dirname "${1}")"
+    /usr/bin/mise trust --yes "${1}" || true
+    /usr/bin/mise install --yes --cd "$(dirname "${1}")"
   ' bash "${mise_config}"
 } # }}}
 
@@ -1117,11 +1117,10 @@ _retry_mise_cli_install() { # {{{
     return 1
   fi
 
-  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
+  # Expand positional parameters inside the target user's shell, not here.
   # shellcheck disable=SC2016
   if run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    command -v "${1}" >/dev/null 2>&1
+    /usr/bin/mise which "${1}" >/dev/null 2>&1
   ' bash "${command_name}"; then
     echo "DONE: ${display_name} is already installed."
     return 0
@@ -1131,8 +1130,7 @@ _retry_mise_cli_install() { # {{{
   echo "INFO: Retrying ${display_name} installation..."
   # shellcheck disable=SC2016
   if run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise install --yes "${1}@latest"
+    /usr/bin/mise install --yes "${1}@latest"
   ' bash "${tool_id}"; then
     echo "DONE: ${display_name} installation completed."
     return 0
@@ -1147,8 +1145,7 @@ retry_mise_cli_installs() { # {{{
   # The main mise task installs every configured tool first. Retry only missing
   # GitHub-release CLIs because parallel resolution can hit unauthenticated API
   # rate limits without preventing the remaining tools from being installed.
-  # shellcheck disable=SC2016
-  if ! run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v mise >/dev/null 2>&1'; then
+  if [[ ! -x /usr/bin/mise ]]; then
     echo "WARN: mise is not installed. Skipping CLI installation retries."
     return 0
   fi
@@ -1174,9 +1171,7 @@ retry_mise_cli_installs() { # {{{
 install_user_cli_tools() { # {{{
   local -r mise_config_dir="${dotfiles_root}/config/mise"
 
-  # Let HOME/PATH expand inside the target user's shell, not in this bootstrap shell.
-  # shellcheck disable=SC2016
-  if ! run_as_target_user bash -lc 'export PATH="${HOME}/.local/bin:${PATH}"; command -v mise >/dev/null 2>&1'; then
+  if [[ ! -x /usr/bin/mise ]]; then
     echo "WARN: mise is not installed. Skipping user CLI tool setup."
     return 0
   fi
@@ -1187,8 +1182,7 @@ install_user_cli_tools() { # {{{
   # bootstrap are available immediately, before a fresh login shell exists.
   # shellcheck disable=SC2016
   run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise exec --cd "${1}" -- rustup component add rust-src rustfmt clippy
+    /usr/bin/mise exec --cd "${1}" -- rustup component add rust-src rustfmt clippy
   ' bash "${mise_config_dir}" || {
     echo "WARN: Failed to install Rust development components."
   }
@@ -1197,8 +1191,7 @@ install_user_cli_tools() { # {{{
   echo "INFO: Installing Cargo-managed Rust CLI tools..."
   # shellcheck disable=SC2016
   run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise exec --cd "${1}" -- cargo-binstall --no-confirm cargo-watch
+    /usr/bin/mise exec --cd "${1}" -- cargo-binstall --no-confirm cargo-watch
   ' bash "${mise_config_dir}" || {
     echo "WARN: Failed to install Cargo-managed Rust CLI tools."
   }
@@ -1207,8 +1200,7 @@ install_user_cli_tools() { # {{{
   echo "INFO: Installing uv-managed CLI tools..."
   # shellcheck disable=SC2016
   run_as_target_user bash -lc '
-    export PATH="${HOME}/.local/bin:${PATH}"
-    mise exec --cd "${1}" -- uv tool install "yt-dlp[default,curl-cffi]"
+    /usr/bin/mise exec --cd "${1}" -- uv tool install "yt-dlp[default,curl-cffi]"
   ' bash "${mise_config_dir}" || {
     echo "WARN: Failed to install yt-dlp[default,curl-cffi]."
   }

@@ -2,8 +2,8 @@
 Type=Application
 Name=Text Editor (Neovim)
 Comment=Edit text files in Neovim
-TryExec=nvim
-Exec=alacritty --class dotfiles-nvim -e nvim %F
+TryExec=/usr/bin/mise
+Exec=alacritty --class dotfiles-nvim -e /usr/bin/mise exec -- nvim %F
 Icon=nvim
 Terminal=false
 Categories=Utility;TextEditor;

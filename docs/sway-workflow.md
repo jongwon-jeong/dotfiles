@@ -472,8 +472,9 @@ Waybar에는 활성 창 제목, Wi-Fi SSID, 네트워크 인터페이스·주소
 
 - GTK 최근 파일 기록은 생성 자체를 비활성화하고, 이를 무시하는 앱이 기록 파일을 만들면 path 감시가 즉시 삭제한다.
 - 24시간이 지난 썸네일 캐시를 삭제한다. Thunar의 새 썸네일 생성 자체도 비활성화한다.
-- 클립보드 기록은 `$XDG_RUNTIME_DIR/cliphist.db`에만 저장하고 Sway 로그인 시작과 종료에 모두 삭제한다.
+- 클립보드 기록은 권한이 `0700`인 `$XDG_RUNTIME_DIR/cliphist/` 아래에만 저장하고 Sway 로그인 시작에 DB를 비우며 종료할 때 runtime 디렉터리째 삭제한다.
 - systemd journal은 최근 1일만 보존한다. bootstrap이 retention 설정을 설치하고 기존의 더 오래된 journal도 정리한다.
+- ReGreet는 별도 파일 로그를 만들지 않고 경고 이상의 진단만 journal에 보내 같은 1일 보존 정책을 따른다.
 
 `pclean`은 실행 전에 확인을 받고 표준 데스크톱 휴지통과 `del`이 사용하는 `~/.trash`, 클립보드와 Bash·Zsh 명령 기록, GTK 최근 파일, 전체 썸네일, 1일이 지난 setup 로그와 systemd journal을 정리한다. Arch에서는 `paccache`로 package별 최신 3개만 남기며 system journal과 package cache 단계에서 `sudo` 인증을 요청한다. 현재 셸의 메모리 기록과 표준 history 파일은 함께 비우지만 다른 열린 셸은 종료할 때 자체 메모리 기록을 다시 쓸 수 있으므로 함께 정리하거나 먼저 종료한다.
 
@@ -620,7 +621,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
 | 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Swappy, wf-recorder, Pavucontrol, Thunar, GVfs MTP backend, Calculator, Disk Usage Analyzer, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
-Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
+Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, 로그아웃 helper가 compositor보다 먼저 `sway-session.target`을 멈춰 세션 전용 프로세스를 정상 종료하는 것이 이 구조의 핵심이다. 비정상적인 compositor 종료 때도 즉시 재시작을 반복하지 않도록 그래픽 서비스의 재시작에는 짧은 지연을 둔다.
 
 개인정보나 백그라운드 동작과 직접 관련된 구성 요소의 범위는 다음과 같다.
 
@@ -628,7 +629,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 |---|---|---|---|
 | OpenSSH agent | 사용하지 않음 | 사용자가 등록한 복호화 identity를 최대 8시간 동안 메모리에만 유지하고 Sway 로그아웃 시 종료 | 하드웨어와 무관하게 동작하며 key를 등록하기 전에는 identity를 보관하지 않음 |
 | SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
-| Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 권한이 제한된 runtime DB에 저장하고 로그인 시작·종료에 전체 삭제 | 하드웨어와 무관하게 동작 |
+| Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 `0700` 전용 runtime 디렉터리의 DB에 저장하고 로그인 시작·종료에 전체 삭제 | 하드웨어와 무관하게 동작 |
 | wlsunset | 사용하지 않음 | 기본적으로 실행하지 않으며, 직접 시작한 동안 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
 | batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않으며 시스템 배터리 5%에서 유예 후 정상 종료 | 시스템 배터리가 없으면 조용히 종료 |
 | 개인정보 정리 path·timer·service | 사용하지 않음 | `~/.local/share/recently-used.xbel`과 24시간이 지난 `~/.cache/thumbnails` 항목만 정리 | 대상 경로가 없으면 변경하지 않음 |
@@ -752,7 +753,7 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 창·파일 검색과 화면 캡처 스크립트 | `~/.config/sway/scripts/` |
 | 스크린샷 주석 편집기 | `~/.config/swappy/config` |
 | 터미널 앱 데스크톱 항목 | `~/.local/share/applications/` |
-| 클립보드 기록 | `~/.config/cliphist/config` |
+| 클립보드 설정과 현재 세션 기록 | `~/.config/cliphist/config`, `$XDG_RUNTIME_DIR/cliphist/db` |
 | GTK 3·4 외형과 최근 파일 정책 | `~/.config/gtk-3.0/`, `~/.config/gtk-4.0/` |
 | 기본 파일·URL 연결 | `~/.config/mimeapps.list` |
 | Thunar 동작 | `~/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml` |

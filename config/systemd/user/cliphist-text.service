@@ -1,12 +1,14 @@
 [Unit]
 Description=Wayland text clipboard history
 PartOf=sway-session.target
-After=sway-session.target
+Requires=cliphist-runtime.service
+After=sway-session.target cliphist-runtime.service
 
 [Service]
 UMask=0077
-ExecStart=/usr/bin/wl-paste --type text --watch /usr/bin/cliphist -db-path %t/cliphist.db store
+ExecStart=/usr/bin/wl-paste --type text --watch /usr/bin/cliphist -db-path %t/cliphist/db store
 Restart=on-failure
+RestartSec=2s
 
 [Install]
 WantedBy=sway-session.target

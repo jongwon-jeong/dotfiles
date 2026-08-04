@@ -69,7 +69,7 @@ bindsym $mod+F1 exec alacritty --class sway-help -e sh -lc 'less "$HOME/.dotfile
 bindsym $mod+q kill
 bindsym $mod+Shift+c reload
 bindsym $mod+Escape exec swaylock -f
-bindsym $mod+Shift+Escape exec $HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' 'swaymsg exit' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'
+bindsym $mod+Shift+Escape exec $HOME/.config/sway/scripts/toggle-swaynag session-controls -t warning -m 'Session controls' -Z 'Lock' 'swaylock -f' -Z 'Suspend' 'systemctl suspend' -Z 'Logout' '$HOME/.config/sway/scripts/logout-session' -Z 'Reboot' 'systemctl reboot' -Z 'Power off' 'systemctl poweroff'
 
 # Focus and move windows. Arrow bindings keep the first week approachable;
 # the home-row bindings provide the long-term workflow.
@@ -171,8 +171,8 @@ bindsym $mod+o mode "output"
 
 # Desktop conveniences.
 bindsym $mod+n exec swaync-client -t -sw
-bindsym $mod+c exec sh -c 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" list | fuzzel --dmenu --prompt="Clipboard> " | cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" decode | wl-copy'
-bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" wipe'
+bindsym $mod+c exec sh -c 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist/db" list | fuzzel --dmenu --prompt="Clipboard> " | cliphist -db-path "$XDG_RUNTIME_DIR/cliphist/db" decode | wl-copy'
+bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist/db" wipe'
 
 bindsym Print exec $HOME/.config/sway/scripts/capture-screenshot save-full
 bindsym Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot save-region

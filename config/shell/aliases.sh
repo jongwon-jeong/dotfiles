@@ -637,7 +637,7 @@ _clear_cliphist_history() {
   fi
 
   if [[ -n "${XDG_RUNTIME_DIR:-}" && "${XDG_RUNTIME_DIR}" == /* ]]; then
-    local -r session_db="${XDG_RUNTIME_DIR}/cliphist.db"
+    local -r session_db="${XDG_RUNTIME_DIR}/cliphist/db"
     if [[ -L "${session_db}" ]]; then
       echo "WARN: Refusing to clear a symlinked session clipboard database: ${session_db}"
       failed=true
@@ -829,7 +829,6 @@ upgrade_all_managers() {
   if command -v mise >/dev/null 2>&1; then
     echo "INFO: Updating mise-managed tools..."
     mise upgrade --yes
-    mise self-update --yes || true
     mise prune --yes
   fi
 

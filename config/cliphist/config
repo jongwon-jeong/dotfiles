@@ -1,5 +1,5 @@
 # Clipboard history may contain sensitive text. Keep the session-scoped runtime
-# database bounded; the Sway launcher clears it at both session boundaries.
+# database bounded; session startup resets it and systemd removes it at logout.
 max-items 100
 max-dedupe-search 100
 max-store-size 1MiB

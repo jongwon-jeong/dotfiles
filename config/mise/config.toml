@@ -1,7 +1,8 @@
 [tools]
 node = "latest"
 neovim = "latest"
-python = "latest"
+# Keep Python project-scoped so distro utilities using /usr/bin/env python3 do
+# not inherit an interpreter without Arch-provided modules.
 rust = "latest"
 java = "latest"
 
