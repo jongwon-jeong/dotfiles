@@ -1,12 +1,148 @@
 #!/usr/bin/env bash
 
-# Stop session-owned processes while the compositor is still available. This
-# prevents their restart policies from racing a disappearing Wayland display.
-if ! /usr/bin/systemctl --user stop sway-session.target; then
-  echo "WARN: Could not stop all Sway session services before logout." >&2
-fi
+readonly GRACEFUL_EXIT_ATTEMPTS=50
+readonly TERM_EXIT_ATTEMPTS=20
+readonly EXIT_POLL_SECONDS=0.1
 
-if ! /usr/bin/swaymsg exit >/dev/null; then
-  echo "ERROR: Could not exit the Sway session." >&2
-  exit 1
+_log_logout() {
+  local -r priority="${1}"
+  local journal_priority="6"
+  local status_label="INFO"
+  shift
+
+  case "${priority}" in
+    warning)
+      journal_priority="4"
+      status_label="WARN"
+      ;;
+    error)
+      journal_priority="3"
+      status_label="ERROR"
+      ;;
+  esac
+
+  /usr/bin/systemd-cat \
+    --identifier=sway-logout \
+    --priority="${journal_priority}" \
+    --stderr-priority="${journal_priority}" \
+    -- /usr/bin/printf '%s\n' "${*}" ||
+    /usr/bin/printf '%s: %s\n' "${status_label}" "${*}" >&2
+}
+
+_is_current_user_sway() {
+  local -r sway_pid="${1:-}"
+  local command_path=""
+  local process_name=""
+
+  [[ "${sway_pid}" =~ ^[1-9][0-9]*$ ]] || return 1
+  [[ -d "/proc/${sway_pid}" && -O "/proc/${sway_pid}" ]] || return 1
+  [[ -r "/proc/${sway_pid}/comm" && -r "/proc/${sway_pid}/cmdline" ]] || return 1
+
+  IFS= read -r process_name <"/proc/${sway_pid}/comm" || return 1
+  IFS= read -r -d '' command_path <"/proc/${sway_pid}/cmdline" || return 1
+  [[ "${process_name}" == "sway" && "${command_path}" == "/usr/bin/sway" ]]
+}
+
+_current_sway_pid() {
+  local -r runtime_dir="${XDG_RUNTIME_DIR:-}"
+  local -r sway_socket="${SWAYSOCK:-}"
+  local current_uid=""
+  local socket_name=""
+  local sway_pid=""
+
+  [[ -n "${runtime_dir}" && "${runtime_dir}" == /* ]] || return 1
+  [[ -d "${runtime_dir}" && -O "${runtime_dir}" ]] || return 1
+  [[ "${sway_socket}" == "${runtime_dir}"/sway-ipc.*.sock ]] || return 1
+  [[ -S "${sway_socket}" && -O "${sway_socket}" && ! -L "${sway_socket}" ]] || return 1
+
+  current_uid="$(/usr/bin/id -u)" || return 1
+  socket_name="${sway_socket##*/}"
+  if [[ "${socket_name}" =~ ^sway-ipc\.${current_uid}\.([1-9][0-9]*)\.sock$ ]]; then
+    sway_pid="${BASH_REMATCH[1]}"
+  else
+    return 1
+  fi
+
+  _is_current_user_sway "${sway_pid}" || return 1
+  /usr/bin/printf '%s\n' "${sway_pid}"
+}
+
+_wait_for_sway_exit() {
+  local -r sway_pid="${1}"
+  local -r attempts="${2}"
+  local attempt
+
+  for ((attempt = 0; attempt < attempts; attempt++)); do
+    if ! _is_current_user_sway "${sway_pid}"; then
+      return 0
+    fi
+    /usr/bin/sleep "${EXIT_POLL_SECONDS}"
+  done
+
+  ! _is_current_user_sway "${sway_pid}"
+}
+
+main() {
+  local sway_pid=""
+  local swaymsg_succeeded=false
+
+  sway_pid="$(_current_sway_pid)" ||
+    _log_logout warning "Could not verify the current Sway process; forced logout fallback is disabled."
+
+  # Stop session-owned processes while the compositor is still available. A
+  # timeout keeps one misbehaving client from blocking the logout path itself.
+  if ! /usr/bin/timeout 5s /usr/bin/systemctl --user stop sway-session.target; then
+    _log_logout warning "Could not stop all Sway session services before logout."
+  fi
+
+  if /usr/bin/swaymsg exit >/dev/null 2>&1; then
+    swaymsg_succeeded=true
+  else
+    _log_logout warning "The normal Sway exit request failed."
+  fi
+
+  if [[ -z "${sway_pid}" ]]; then
+    if [[ "${swaymsg_succeeded}" == true ]]; then
+      return 0
+    fi
+    _log_logout error "No verified Sway process is available for logout recovery."
+    return 1
+  fi
+
+  if [[ "${swaymsg_succeeded}" == true ]] &&
+    _wait_for_sway_exit "${sway_pid}" "${GRACEFUL_EXIT_ATTEMPTS}"; then
+    return 0
+  fi
+
+  if ! _is_current_user_sway "${sway_pid}"; then
+    return 0
+  fi
+
+  _log_logout warning "Sway did not exit cleanly; sending SIGTERM to PID ${sway_pid}."
+  if ! kill -TERM "${sway_pid}" 2>/dev/null; then
+    _log_logout error "Could not send SIGTERM to verified Sway PID ${sway_pid}."
+    return 1
+  fi
+  if _wait_for_sway_exit "${sway_pid}" "${TERM_EXIT_ATTEMPTS}"; then
+    return 0
+  fi
+
+  if ! _is_current_user_sway "${sway_pid}"; then
+    return 0
+  fi
+
+  _log_logout error "Sway ignored SIGTERM; sending SIGKILL to PID ${sway_pid}."
+  if ! kill -KILL "${sway_pid}" 2>/dev/null; then
+    _log_logout error "Could not send SIGKILL to verified Sway PID ${sway_pid}."
+    return 1
+  fi
+
+  if ! _wait_for_sway_exit "${sway_pid}" "${TERM_EXIT_ATTEMPTS}"; then
+    _log_logout error "Verified Sway PID ${sway_pid} remains after SIGKILL."
+    return 1
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "${@}"
 fi

@@ -621,7 +621,9 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, batsignal, nm-applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
 | 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Swappy, wf-recorder, Pavucontrol, Thunar, Blueman manager, CUPS scheduler, GVfs MTP backend, Calculator, Disk Usage Analyzer, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
-Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, 로그아웃 helper가 compositor보다 먼저 `sway-session.target`을 멈춰 세션 전용 프로세스를 정상 종료하는 것이 이 구조의 핵심이다. 비정상적인 compositor 종료 때도 즉시 재시작을 반복하지 않도록 그래픽 서비스의 재시작에는 짧은 지연을 둔다.
+Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, 로그아웃 helper가 compositor보다 먼저 `sway-session.target`을 멈춰 세션 전용 프로세스를 정상 종료하는 것이 이 구조의 핵심이다. 정상 종료 요청 뒤에도 Sway가 남으면 helper는 `SWAYSOCK`의 PID와 사용자·실행 명령을 다시 검증한 해당 process에만 `SIGTERM`, 마지막으로 `SIGKILL`을 보낸다. launcher의 최종 정리에도 제한 시간을 두므로 중단된 user service가 ReGreet 복귀를 무한정 막지 않는다. 비정상적인 compositor 종료 때도 즉시 재시작을 반복하지 않도록 그래픽 서비스의 재시작에는 짧은 지연을 둔다.
+
+Sway, Xwayland와 직접 실행된 자식 process의 진단 출력은 로그인 TTY에 표시하지 않고 system journal의 `sway` identifier로 보낸다. 로그아웃 fallback은 `sway-logout` identifier를 사용하며 두 기록 모두 system journal의 1일 보존 정책을 따른다.
 
 개인정보나 백그라운드 동작과 직접 관련된 구성 요소의 범위는 다음과 같다.
 
@@ -647,6 +649,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 ```sh
 systemctl status greetd.service
 journalctl -b -u greetd.service
+journalctl -b -t sway -t sway-logout
 ```
 
 Sway를 직접 실행해 설정 오류를 확인할 수 있다.
@@ -715,7 +718,7 @@ GNOME 제거는 다음 검증을 실제 사용하는 데스크톱과 랩탑에�
 - [ ] 유선·Wi-Fi·VPN, Bluetooth, 오디오 입출력과 미디어 키가 정상이다.
 - [ ] 화면 공유, 파일 선택기, 기본 파일·URL 연결과 권한 요청창이 정상이다.
 - [ ] USB 저장장치, 휴지통과 필요한 경우 프린터가 정상이다.
-- [ ] 수동·자동 화면 잠금, 알림센터, 클립보드 정리와 로그아웃 후 재로그인이 정상이다.
+- [ ] 수동·자동 화면 잠금, 알림센터, 클립보드 정리와 로그아웃 후 터미널 출력이나 수동 `Ctrl+C` 없이 ReGreet 복귀·재로그인이 정상이다.
 - [ ] `Ctrl+Alt+F3` TTY 로그인과 `/usr/local/bin/start-sway` 진단 경로를 사용할 수 있다.
 
 체크가 끝나기 전에는 GDM을 복구 수단으로 남길 수 있지만, 완료 후에는 GNOME과 Sway의 이중 데스크톱 구성을 정상 상태로 유지하지 않는다.
