@@ -1,12 +1,13 @@
 window {
-  background: #f2eede;
-  color: #000000;
+  background: #706957;
+  color: #f2eede;
 }
 
 frame.background {
   background: #f2eede;
   border: 2px solid #000000;
   border-radius: 0;
+  color: #000000;
   box-shadow: none;
 }
 
