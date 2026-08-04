@@ -694,6 +694,8 @@ swaymsg -t get_inputs
 | 변경 대상 | 적용 방법 |
 |---|---|
 | `config/sway/config` | `scripts/setup_dotfiles.sh`로 배포한 뒤 `Super+Shift+C` 또는 `swaymsg reload` |
+| `config/sway/scripts/logout-session` | `scripts/setup_dotfiles.sh`로 배포한 뒤 다음 로그아웃부터 적용 |
+| `config/system/sway/start-sway` | bootstrap으로 `/usr/local/bin/start-sway`에 설치한 뒤 다음 Sway 로그인부터 적용 |
 | Waybar·SwayNC 등 개별 user service 설정 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 해당 service 재시작 |
 | 여러 Sway 세션 service와 unit 관계 | `scripts/setup_dotfiles.sh`로 배포하고 `systemctl --user daemon-reload` 후 `systemctl --user restart sway-session.target` |
 | GTK `settings.ini`, MIME 연결, 애플리케이션별 설정 | `scripts/setup_dotfiles.sh`로 배포한 뒤 해당 애플리케이션을 완전히 다시 실행 |
