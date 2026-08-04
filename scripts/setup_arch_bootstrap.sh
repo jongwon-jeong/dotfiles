@@ -780,8 +780,17 @@ setup_sway_desktop() { # {{{
   enable_desktop_service \
     power-profiles-daemon.service \
     switcheroo-control.service \
-    bluetooth.service \
-    cups.service
+    bluetooth.service
+
+  # Keep printing available without a scheduler process on machines that do
+  # not use it. Disabling cups.service also disables its associated socket and
+  # path units, so restore only socket activation after that migration.
+  if systemctl list-unit-files cups.service >/dev/null 2>&1; then
+    run_as_root systemctl disable --now cups.service || {
+      echo "WARN: Failed to disable the always-on CUPS service."
+    }
+  fi
+  enable_desktop_service cups.socket
 
   if command -v powerprofilesctl &>/dev/null; then
     run_as_root powerprofilesctl set balanced || {
