@@ -801,7 +801,7 @@ vim.keymap.set('n', '<leader>a', 'ggVG')
 -- Autocomplete
 vim.keymap.set(
   'i',
-  '<C-Space>',
+  '<leader><Space>',
   function() vim.lsp.completion.get() end,
   { desc = 'Trigger LSP completion' }
 )
@@ -1394,7 +1394,7 @@ end
 --   <leader>qq            n       Quit all windows
 --
 -- Completion
---   <C-Space>             i       Trigger LSP completion
+--   <leader><Space>       i       Trigger LSP completion
 --   <Up> / <Down>         i       Select the previous / next completion item
 --   <Tab> / <S-Tab>       i       Confirm completion or move between snippet stops
 --   <CR>                  i       Confirm the selected item or insert a newline
