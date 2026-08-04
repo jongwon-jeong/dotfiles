@@ -4,7 +4,7 @@
   "height": 34,
   "spacing": 4,
   "reload_style_on_change": true,
-  "modules-left": ["sway/workspaces", "sway/mode"],
+  "modules-left": ["sway/workspaces", "sway/mode", "sway/scratchpad"],
   // Active window titles can expose page, document, and terminal context.
   "modules-center": ["clock"],
   "modules-right": [
@@ -26,6 +26,11 @@
   },
   "sway/mode": {
     "format": "{}",
+    "tooltip": false
+  },
+  "sway/scratchpad": {
+    "format": "SP {count}",
+    "show-empty": false,
     "tooltip": false
   },
   "tray": {
