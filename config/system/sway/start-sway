@@ -3,6 +3,53 @@
 # ReGreet launches this wrapper for both desktop and laptop installations.
 # The NVIDIA flag is added only when the module is active; supported Intel and
 # AMD paths use Sway's normal startup contract.
+_clear_session_clipboard_history() {
+  if [[ -z "${XDG_RUNTIME_DIR:-}" || "${XDG_RUNTIME_DIR}" != /* ]]; then
+    return 1
+  fi
+  if ! command -v cliphist >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local -r session_db="${XDG_RUNTIME_DIR}/cliphist.db"
+  if [[ ! -e "${session_db}" && ! -L "${session_db}" ]]; then
+    return 0
+  fi
+  if [[ -L "${session_db}" ]]; then
+    echo "WARN: Refusing to clear a symlinked session clipboard database: ${session_db}" >&2
+    return 1
+  fi
+  if [[ ! -f "${session_db}" || ! -O "${session_db}" ]]; then
+    echo "WARN: Refusing to clear an unexpected session clipboard database: ${session_db}" >&2
+    return 1
+  fi
+
+  chmod 600 "${session_db}" || return 1
+  command cliphist -db-path "${session_db}" wipe
+}
+
+_clear_legacy_clipboard_history() {
+  local -r legacy_db="${HOME}/.cache/cliphist/db"
+
+  if ! command -v cliphist >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ ! -e "${legacy_db}" && ! -L "${legacy_db}" ]]; then
+    return 0
+  fi
+  if [[ -L "${legacy_db}" ]]; then
+    echo "WARN: Refusing to clear a symlinked legacy clipboard database: ${legacy_db}" >&2
+    return 1
+  fi
+  if [[ ! -f "${legacy_db}" || ! -O "${legacy_db}" ]]; then
+    echo "WARN: Refusing to clear an unexpected legacy clipboard database: ${legacy_db}" >&2
+    return 1
+  fi
+
+  chmod 600 "${legacy_db}" || return 1
+  command cliphist -db-path "${legacy_db}" wipe
+}
+
 cleanup_session() {
   # Notifications are session-scoped and should not survive logout.
   if command -v swaync-client >/dev/null 2>&1; then
@@ -10,9 +57,7 @@ cleanup_session() {
   fi
   systemctl --user stop sway-session.target >/dev/null 2>&1 || true
   # Clipboard history must not survive the graphical login boundary.
-  if command -v cliphist >/dev/null 2>&1; then
-    cliphist wipe >/dev/null 2>&1 || true
-  fi
+  _clear_session_clipboard_history >/dev/null 2>&1 || true
   systemctl --user unset-environment \
     DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH SSH_AUTH_SOCK \
     XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE \
@@ -35,6 +80,13 @@ export XMODIFIERS=@im=fcitx
 export QT_IM_MODULE=fcitx
 export QT_IM_MODULES='wayland;fcitx'
 export SDL_IM_MODULE=fcitx
+
+# Clear data left by an interrupted session before clipboard watchers start.
+_clear_session_clipboard_history ||
+  echo "WARN: Could not initialize the session clipboard database." >&2
+# Clear the former persistent cache after migrating to the runtime DB.
+_clear_legacy_clipboard_history ||
+  echo "WARN: Could not clear the legacy clipboard database." >&2
 
 # GUI and terminal clients share the one agent owned by sway-session.target.
 if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then

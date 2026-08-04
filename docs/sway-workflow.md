@@ -172,7 +172,7 @@ Scratchpad는 다른 데스크톱의 최소화 기능과 다르다. 창을 다�
 
 클립보드 검색에서 항목을 선택하면 해당 내용이 시스템 클립보드로 복사된다. 이후 애플리케이션의 일반 붙여넣기 키를 사용한다.
 
-Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 복사한 비밀번호 같은 민감한 내용도 기록될 수 있다. 기본값은 최대 100개, 항목당 1 MiB로 제한하고 Sway에서 로그아웃할 때 전체 기록을 자동 삭제한다. 현재 세션에서도 즉시 지워야 하면 `Super+Ctrl+C`를 사용한다.
+Cliphist는 최근 텍스트와 이미지를 현재 로그인용 runtime DB에 저장하므로 복사한 비밀번호 같은 민감한 내용도 기록될 수 있다. 기본값은 최대 100개, 항목당 1 MiB로 제한하고 Sway 로그인 시작과 종료에 전체 기록을 자동 삭제한다. 현재 세션에서도 즉시 지워야 하면 `Super+Ctrl+C`를 사용한다.
 
 ### 스크린샷
 
@@ -472,12 +472,14 @@ Waybar에는 활성 창 제목, Wi-Fi SSID, 네트워크 인터페이스·주소
 
 - GTK 최근 파일 기록은 생성 자체를 비활성화하고, 이를 무시하는 앱이 기록 파일을 만들면 path 감시가 즉시 삭제한다.
 - 24시간이 지난 썸네일 캐시를 삭제한다. Thunar의 새 썸네일 생성 자체도 비활성화한다.
-- 클립보드 기록은 Sway 로그아웃 시 모두 삭제한다.
+- 클립보드 기록은 `$XDG_RUNTIME_DIR/cliphist.db`에만 저장하고 Sway 로그인 시작과 종료에 모두 삭제한다.
 - systemd journal은 최근 1일만 보존한다. bootstrap이 retention 설정을 설치하고 기존의 더 오래된 journal도 정리한다.
 
 `pclean`은 실행 전에 확인을 받고 표준 데스크톱 휴지통과 `del`이 사용하는 `~/.trash`, 클립보드와 Bash·Zsh 명령 기록, GTK 최근 파일, 전체 썸네일, 1일이 지난 setup 로그와 systemd journal을 정리한다. Arch에서는 `paccache`로 package별 최신 3개만 남기며 system journal과 package cache 단계에서 `sudo` 인증을 요청한다. 현재 셸의 메모리 기록과 표준 history 파일은 함께 비우지만 다른 열린 셸은 종료할 때 자체 메모리 기록을 다시 쓸 수 있으므로 함께 정리하거나 먼저 종료한다.
 
 브라우저 방문 기록, 로그인 정보, 애플리케이션 데이터, 개발 도구의 빌드 캐시와 일반 다운로드 파일은 삭제하지 않는다. 범위를 넓히면 복구 기회를 잃거나 로그인 상태가 풀리고 반복 다운로드·재빌드가 발생할 수 있어, 개인정보 보호 효과와 복구 비용이 분명한 항목만 명시적으로 정리한다. 기존 NetworkManager MAC 무작위화, IPv6 privacy 주소와 firewalld 정책은 그대로 유지한다. Chrome이나 Flatpak 앱이 자체적으로 제공하는 동기화·사용 통계 전송은 각 애플리케이션의 설정 범위이며, 이 데스크톱 정책이 모든 앱의 외부 통신까지 차단한다고 가정하지 않는다.
+
+1일 journal과 사용자가 실행하는 기록 정리는 장기 포렌식보다 로컬 개인정보 최소화를 우선하는 선택이다. 이 구성은 침해사고 조사 기록이나 조직의 보존 요구를 대신하지 않는다. AUR, upstream installer, release binary와 Flatpak remote도 각각 신뢰 경계이며, 이 저장소를 공급망 전체를 격리하는 hardened OS로 간주하지 않는다.
 
 ## 수동 업데이트와 유지관리
 
@@ -583,7 +585,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
 | `networkmanager`, `network-manager-applet` | NetworkManager는 유선·Wi-Fi·VPN 연결을 관리하고 applet 패키지는 트레이 아이콘과 `nm-connection-editor`를 제공한다. | 시스템 NetworkManager는 부팅 후 실행되고 `nm-applet`은 Sway 세션 동안만 실행된다. Waybar 네트워크 항목을 클릭하면 연결 편집기를 연다. |
-| `firewalld` | 네트워크 zone과 입·출력 firewall 정책을 관리하는 시스템 서비스다. | NetworkManager와 연동하고 unsolicited inbound 연결을 기본 차단하는 보수적인 데스크톱 정책을 적용한다. DNS, VPN과 기존 routing은 변경하지 않는다. |
+| `firewalld` | 네트워크 zone과 입·출력 firewall 정책을 관리하는 시스템 서비스다. | fresh local bootstrap에서는 Arch `public` zone의 패키지 기본 SSH 허용을 제거한다. 기존 사용자 zone은 보존하고 SSH로 bootstrap을 실행하면 접속 유지를 위해 SSH를 허용한다. 그 밖의 unsolicited inbound 연결은 기본 차단하며 DNS, VPN과 기존 routing은 변경하지 않는다. |
 | `bluez`, `bluez-utils`, `blueman` | BlueZ는 Linux Bluetooth protocol stack과 daemon, utils는 `bluetoothctl` 같은 CLI, Blueman은 그래픽 관리자와 트레이 applet을 제공한다. | `bluetooth.service`는 시스템 기능을 제공하고 `blueman-applet`은 로그인한 동안 장치 연결 상태와 빠른 조작을 제공한다. |
 | `polkit`, `lxqt-policykit` | Polkit은 일반 사용자의 권한 있는 시스템 작업을 중개하고 LXQt agent는 비밀번호 확인창을 표시한다. | 디스크 마운트, 네트워크 변경과 일부 시스템 설정이 필요할 때만 인증창이 나타난다. agent가 없으면 GUI 작업이 설명 없이 실패하거나 터미널 인증이 필요할 수 있다. |
 | `udisks2`, `udiskie` | UDisks2는 디스크와 이동식 저장장치 작업을 D-Bus로 제공하고 Udiskie는 사용자 세션에서 자동 마운트·알림·트레이를 담당한다. | 일반 USB 저장장치는 사용자 권한으로 자동 마운트한다. 외장 LUKS 장치는 연결하거나 그 상태로 부팅해도 암호창을 자동으로 띄우지 않으며, Thunar나 Udiskie 트레이에서 직접 열 때만 암호를 묻는다. |
@@ -626,7 +628,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 |---|---|---|---|
 | OpenSSH agent | 사용하지 않음 | 사용자가 등록한 복호화 identity를 최대 8시간 동안 메모리에만 유지하고 Sway 로그아웃 시 종료 | 하드웨어와 무관하게 동작하며 key를 등록하기 전에는 identity를 보관하지 않음 |
 | SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
-| Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 제한된 로컬 DB에 저장하고 로그아웃 시 전체 삭제 | 하드웨어와 무관하게 동작 |
+| Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 권한이 제한된 runtime DB에 저장하고 로그인 시작·종료에 전체 삭제 | 하드웨어와 무관하게 동작 |
 | wlsunset | 사용하지 않음 | 기본적으로 실행하지 않으며, 직접 시작한 동안 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
 | batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않으며 시스템 배터리 5%에서 유예 후 정상 종료 | 시스템 배터리가 없으면 조용히 종료 |
 | 개인정보 정리 path·timer·service | 사용하지 않음 | `~/.local/share/recently-used.xbel`과 24시간이 지난 `~/.cache/thumbnails` 항목만 정리 | 대상 경로가 없으면 변경하지 않음 |

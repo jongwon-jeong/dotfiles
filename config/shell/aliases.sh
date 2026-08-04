@@ -615,6 +615,47 @@ _clear_shell_history() {
   fi
 }
 
+_clear_cliphist_history() {
+  if ! command -v cliphist >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local failed=false
+  local -r legacy_db="${HOME}/.cache/cliphist/db"
+  if [[ -L "${legacy_db}" ]]; then
+    echo "WARN: Refusing to clear a symlinked legacy clipboard database: ${legacy_db}"
+    failed=true
+  elif [[ -e "${legacy_db}" && (! -f "${legacy_db}" || ! -O "${legacy_db}") ]]; then
+    echo "WARN: Refusing to clear an unexpected legacy clipboard database: ${legacy_db}"
+    failed=true
+  elif [[ -e "${legacy_db}" ]]; then
+    if ! command chmod 600 "${legacy_db}" ||
+      ! command cliphist -db-path "${legacy_db}" wipe; then
+      echo "WARN: Failed to clear the legacy clipboard history."
+      failed=true
+    fi
+  fi
+
+  if [[ -n "${XDG_RUNTIME_DIR:-}" && "${XDG_RUNTIME_DIR}" == /* ]]; then
+    local -r session_db="${XDG_RUNTIME_DIR}/cliphist.db"
+    if [[ -L "${session_db}" ]]; then
+      echo "WARN: Refusing to clear a symlinked session clipboard database: ${session_db}"
+      failed=true
+    elif [[ -e "${session_db}" && (! -f "${session_db}" || ! -O "${session_db}") ]]; then
+      echo "WARN: Refusing to clear an unexpected session clipboard database: ${session_db}"
+      failed=true
+    elif [[ -e "${session_db}" ]]; then
+      if ! command chmod 600 "${session_db}" ||
+        ! command cliphist -db-path "${session_db}" wipe; then
+        echo "WARN: Failed to clear the session clipboard history."
+        failed=true
+      fi
+    fi
+  fi
+
+  [[ "${failed}" == "false" ]]
+}
+
 privacy_cleanup() {
   if [[ -z "${HOME:-}" || "${HOME}" != /* ]]; then
     echo "ERROR: Privacy cleanup requires an absolute home path."
@@ -678,7 +719,7 @@ privacy_cleanup() {
 
   local failed=false
 
-  if command -v cliphist >/dev/null 2>&1 && ! command cliphist wipe; then
+  if ! _clear_cliphist_history; then
     echo "WARN: Failed to clear clipboard history."
     failed=true
   fi

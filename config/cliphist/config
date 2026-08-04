@@ -1,4 +1,5 @@
-# Clipboard history may contain sensitive text. Keep the local cache bounded.
+# Clipboard history may contain sensitive text. Keep the session-scoped runtime
+# database bounded; the Sway launcher clears it at both session boundaries.
 max-items 100
 max-dedupe-search 100
 max-store-size 1MiB

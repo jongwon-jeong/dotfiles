@@ -171,8 +171,8 @@ bindsym $mod+o mode "output"
 
 # Desktop conveniences.
 bindsym $mod+n exec swaync-client -t -sw
-bindsym $mod+c exec sh -c 'cliphist list | fuzzel --dmenu --prompt="Clipboard> " | cliphist decode | wl-copy'
-bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'cliphist wipe'
+bindsym $mod+c exec sh -c 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" list | fuzzel --dmenu --prompt="Clipboard> " | cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" decode | wl-copy'
+bindsym $mod+Ctrl+c exec $HOME/.config/sway/scripts/toggle-swaynag clear-clipboard -t warning -m 'Clear all clipboard history?' -Z 'Clear' 'umask 077; cliphist -db-path "$XDG_RUNTIME_DIR/cliphist.db" wipe'
 
 bindsym Print exec $HOME/.config/sway/scripts/capture-screenshot save-full
 bindsym Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot save-region

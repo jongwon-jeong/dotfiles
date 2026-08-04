@@ -4,7 +4,8 @@ PartOf=sway-session.target
 After=sway-session.target
 
 [Service]
-ExecStart=/usr/bin/wl-paste --type image --watch /usr/bin/cliphist store
+UMask=0077
+ExecStart=/usr/bin/wl-paste --type image --watch /usr/bin/cliphist -db-path %t/cliphist.db store
 Restart=on-failure
 
 [Install]

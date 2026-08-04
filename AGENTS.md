@@ -111,6 +111,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - When recurring outbound access is justified, document its purpose, transmitted data, cadence, and disable path. Prefer established manual update and maintenance workflows over duplicate background checkers.
 - Preserve the reviewed firewall and network privacy policy unless the user explicitly requests a change or a demonstrated critical security or operability issue requires one.
 - Minimize persistent desktop metadata. Before adding history, cache, or state, identify what is stored, where it is stored, how long it is retained, and how it is cleared; prefer session-scoped state when persistence provides no clear benefit.
+- For sensitive state that is intended to end with the graphical session, prefer `XDG_RUNTIME_DIR` when practical and enforce the boundary at both session start and shutdown; normal-logout cleanup alone is insufficient because interrupted sessions can leave state behind.
 - Do not automatically delete user data, trash, browser state, credentials, or broad development caches without an explicit request.
 - Prefer a quiet, non-interrupting desktop: keep audible and visual bells and automatic notification banners disabled by default. Retain passive status indicators and user-invoked controls where useful, and interrupt only for an explicit workflow or safety requirement.
 - Keep always-visible desktop surfaces privacy-minimal. Show operational state without SSIDs, network addresses, device aliases, or page, document, and window titles when user-invoked detail provides the same function.
@@ -143,6 +144,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Prefer distro-managed versions for OS-owned packages, drivers, services, and desktop components.
 - Pin a version or revision when an upstream regression, compatibility boundary, or reviewed operational constraint requires it; add a concise comment stating why and when the pin can be reconsidered.
 - Do not introduce lockfiles, generated version churn, or broad dependency pinning without a demonstrated need.
+- Treat each new AUR recipe, upstream installer, release-binary source, and Flatpak remote as a supply-chain trust decision. Prefer existing reviewed sources, use supported integrity verification when available, and require an explicit user decision before introducing a new source or bypassing available verification.
 
 ## Remote Development
 

@@ -1291,6 +1291,8 @@ setup_basic_firewall() { # {{{
 
     # firewalld:
     # - Existing zones and rules are preserved; do not reset the firewall.
+    # - On a fresh local bootstrap, remove the packaged public-zone SSH allow
+    #   rule. Preserve user-owned overrides and active remote bootstrap access.
     # - Add allow rules manually for inbound SSH or dev servers.
     #   Examples:
     #     sudo firewall-cmd --permanent --add-service=ssh
@@ -1309,6 +1311,7 @@ setup_basic_firewall() { # {{{
       return 0
     fi
 
+    local -r public_zone_override="/etc/firewalld/zones/public.xml"
     if [[ -n "${SSH_CONNECTION:-}" ]]; then
       echo "INFO: SSH session detected. Ensuring inbound SSH remains allowed in firewalld..."
       run_as_root firewall-cmd --permanent --add-service=ssh || {
@@ -1318,6 +1321,31 @@ setup_basic_firewall() { # {{{
       run_as_root firewall-cmd --reload || {
         echo "WARN: Failed to reload firewalld after adding SSH allow rule."
       }
+    elif [[ -e "${public_zone_override}" || -L "${public_zone_override}" ]]; then
+      echo "INFO: Preserving the user-managed firewalld public zone."
+    else
+      local default_zone=""
+      if ! default_zone="$(firewall-cmd --get-default-zone)"; then
+        echo "WARN: Could not inspect the default firewalld zone; preserving its rules."
+      elif [[ "${default_zone}" != "public" ]]; then
+        echo "INFO: Preserving the non-default firewalld zone policy: ${default_zone}"
+      else
+        local ssh_query_status=0
+        firewall-cmd --permanent --zone=public --query-service=ssh >/dev/null
+        ssh_query_status=$?
+        if ((ssh_query_status == 0)); then
+          echo "INFO: Removing the packaged SSH allow rule from the fresh public zone..."
+          if run_as_root firewall-cmd --permanent --zone=public --remove-service=ssh; then
+            run_as_root firewall-cmd --reload || {
+              echo "WARN: Failed to reload firewalld after removing the packaged SSH rule."
+            }
+          else
+            echo "WARN: Failed to remove the packaged SSH allow rule from firewalld."
+          fi
+        elif ((ssh_query_status != 1)); then
+          echo "WARN: Could not inspect the public-zone SSH rule; preserving it."
+        fi
+      fi
     fi
 
     if command -v ufw &>/dev/null; then
