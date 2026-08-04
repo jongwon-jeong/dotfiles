@@ -25,7 +25,7 @@ _clear_session_clipboard_history() {
   fi
 
   chmod 600 "${session_db}" || return 1
-  /usr/bin/timeout 2s /usr/bin/cliphist -db-path "${session_db}" wipe
+  /usr/bin/timeout --kill-after=1s 2s /usr/bin/cliphist -db-path "${session_db}" wipe
 }
 
 _clear_legacy_clipboard_history() {
@@ -47,21 +47,23 @@ _clear_legacy_clipboard_history() {
   fi
 
   chmod 600 "${legacy_db}" || return 1
-  /usr/bin/timeout 2s /usr/bin/cliphist -db-path "${legacy_db}" wipe
+  /usr/bin/timeout --kill-after=1s 2s /usr/bin/cliphist -db-path "${legacy_db}" wipe
 }
 
 cleanup_session() {
   # Notifications are session-scoped and should not survive logout.
   if [[ -x /usr/bin/swaync-client ]]; then
-    /usr/bin/timeout 2s /usr/bin/swaync-client --close-all --skip-wait >/dev/null 2>&1 || true
+    /usr/bin/timeout --kill-after=1s 2s \
+      /usr/bin/swaync-client --close-all --skip-wait >/dev/null 2>&1 || true
   fi
-  # The logout helper normally stops the target first, but an interrupted
-  # compositor reaches this fallback directly. Bound every user-manager call
+  # Normal logout reaches this owner after requesting compositor exit, while an
+  # interrupted compositor reaches it directly. Bound every user-manager call
   # so failed session cleanup cannot keep greetd from reclaiming the terminal.
-  /usr/bin/timeout 5s /usr/bin/systemctl --user stop sway-session.target >/dev/null 2>&1 || true
+  /usr/bin/timeout --kill-after=1s 5s \
+    /usr/bin/systemctl --user stop sway-session.target >/dev/null 2>&1 || true
   # Clipboard history must not survive the graphical login boundary.
   _clear_session_clipboard_history >/dev/null 2>&1 || true
-  /usr/bin/timeout 5s /usr/bin/systemctl --user unset-environment \
+  /usr/bin/timeout --kill-after=1s 5s /usr/bin/systemctl --user unset-environment \
     DISPLAY WAYLAND_DISPLAY SWAYSOCK PATH SSH_AUTH_SOCK \
     XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP XDG_SESSION_TYPE \
     MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM SDL_VIDEODRIVER \

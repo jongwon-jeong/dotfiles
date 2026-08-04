@@ -621,7 +621,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, batsignal, nm-applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
 | 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Swappy, wf-recorder, Pavucontrol, Thunar, Blueman manager, CUPS scheduler, GVfs MTP backend, Calculator, Disk Usage Analyzer, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
-Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, 로그아웃 helper가 compositor보다 먼저 `sway-session.target`을 멈춰 세션 전용 프로세스를 정상 종료하는 것이 이 구조의 핵심이다. 정상 종료 요청 뒤에도 Sway가 남으면 helper는 `SWAYSOCK`의 PID와 사용자·실행 명령을 다시 검증한 해당 process에만 `SIGTERM`, 마지막으로 `SIGKILL`을 보낸다. launcher의 최종 정리에도 제한 시간을 두므로 중단된 user service가 ReGreet 복귀를 무한정 막지 않는다. 비정상적인 compositor 종료 때도 즉시 재시작을 반복하지 않도록 그래픽 서비스의 재시작에는 짧은 지연을 둔다.
+Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않는 것이 이 구조의 핵심이다. 로그아웃 helper는 먼저 제한 시간이 있는 정상 종료를 요청하고, launcher가 compositor 종료 직후 `sway-session.target`을 정리한다. 정상 종료에 실패한 경우에만 helper가 target을 멈춘 뒤 `SWAYSOCK`의 PID와 사용자·실행 명령을 다시 검증한 해당 process에 `SIGTERM`, 마지막으로 `SIGKILL`을 보낸다. 강제 종료까지 실패하고 Sway가 남으면 target을 다시 시작해 Waybar와 Fcitx5를 복구한다. 모든 종료 명령에 제한 시간을 두므로 응답 없는 IPC나 user service가 ReGreet 복귀를 무한정 막거나 실행 중인 desktop에서 세션 서비스만 사라진 상태를 유지하지 않는다. 비정상적인 compositor 종료 때도 즉시 재시작을 반복하지 않도록 그래픽 서비스의 재시작에는 짧은 지연을 둔다.
 
 Sway, Xwayland와 직접 실행된 자식 process의 진단 출력은 로그인 TTY에 표시하지 않고 system journal의 `sway` identifier로 보낸다. 로그아웃 fallback은 `sway-logout` identifier를 사용하며 두 기록 모두 system journal의 1일 보존 정책을 따른다.
 

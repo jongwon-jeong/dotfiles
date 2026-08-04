@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-readonly GRACEFUL_EXIT_ATTEMPTS=50
+readonly GRACEFUL_EXIT_ATTEMPTS=20
 readonly TERM_EXIT_ATTEMPTS=20
 readonly EXIT_POLL_SECONDS=0.1
 
@@ -21,7 +21,7 @@ _log_logout() {
       ;;
   esac
 
-  /usr/bin/systemd-cat \
+  /usr/bin/timeout --kill-after=1s 1s /usr/bin/systemd-cat \
     --identifier=sway-logout \
     --priority="${journal_priority}" \
     --stderr-priority="${journal_priority}" \
@@ -82,6 +82,21 @@ _wait_for_sway_exit() {
   ! _is_current_user_sway "${sway_pid}"
 }
 
+_restore_session_services() {
+  local -r sway_pid="${1}"
+
+  _is_current_user_sway "${sway_pid}" || return 0
+
+  if /usr/bin/timeout --kill-after=1s 5s \
+    /usr/bin/systemctl --user start sway-session.target; then
+    _log_logout warning "Restored Sway session services after logout recovery failed."
+    return 0
+  fi
+
+  _log_logout error "Could not restore Sway session services after logout recovery failed."
+  return 1
+}
+
 main() {
   local sway_pid=""
   local swaymsg_succeeded=false
@@ -89,16 +104,12 @@ main() {
   sway_pid="$(_current_sway_pid)" ||
     _log_logout warning "Could not verify the current Sway process; forced logout fallback is disabled."
 
-  # Stop session-owned processes while the compositor is still available. A
-  # timeout keeps one misbehaving client from blocking the logout path itself.
-  if ! /usr/bin/timeout 5s /usr/bin/systemctl --user stop sway-session.target; then
-    _log_logout warning "Could not stop all Sway session services before logout."
-  fi
-
-  if /usr/bin/swaymsg exit >/dev/null 2>&1; then
+  # Keep the desktop usable while requesting a normal exit. swaymsg can block
+  # indefinitely when the compositor accepts the connection but never replies.
+  if /usr/bin/timeout --kill-after=1s 2s /usr/bin/swaymsg exit >/dev/null 2>&1; then
     swaymsg_succeeded=true
   else
-    _log_logout warning "The normal Sway exit request failed."
+    _log_logout warning "The normal Sway exit request timed out or failed."
   fi
 
   if [[ -z "${sway_pid}" ]]; then
@@ -109,9 +120,16 @@ main() {
     return 1
   fi
 
-  if [[ "${swaymsg_succeeded}" == true ]] &&
-    _wait_for_sway_exit "${sway_pid}" "${GRACEFUL_EXIT_ATTEMPTS}"; then
+  if _wait_for_sway_exit "${sway_pid}" "${GRACEFUL_EXIT_ATTEMPTS}"; then
     return 0
+  fi
+
+  # The launcher handles normal session cleanup after Sway exits. Stop the
+  # target here only when forced recovery is necessary, so a failed exit
+  # request does not leave a running compositor without its desktop services.
+  if ! /usr/bin/timeout --kill-after=1s 2s \
+    /usr/bin/systemctl --user stop sway-session.target; then
+    _log_logout warning "Could not stop all Sway session services before forced logout."
   fi
 
   if ! _is_current_user_sway "${sway_pid}"; then
@@ -121,6 +139,7 @@ main() {
   _log_logout warning "Sway did not exit cleanly; sending SIGTERM to PID ${sway_pid}."
   if ! kill -TERM "${sway_pid}" 2>/dev/null; then
     _log_logout error "Could not send SIGTERM to verified Sway PID ${sway_pid}."
+    _restore_session_services "${sway_pid}"
     return 1
   fi
   if _wait_for_sway_exit "${sway_pid}" "${TERM_EXIT_ATTEMPTS}"; then
@@ -134,11 +153,13 @@ main() {
   _log_logout error "Sway ignored SIGTERM; sending SIGKILL to PID ${sway_pid}."
   if ! kill -KILL "${sway_pid}" 2>/dev/null; then
     _log_logout error "Could not send SIGKILL to verified Sway PID ${sway_pid}."
+    _restore_session_services "${sway_pid}"
     return 1
   fi
 
   if ! _wait_for_sway_exit "${sway_pid}" "${TERM_EXIT_ATTEMPTS}"; then
     _log_logout error "Verified Sway PID ${sway_pid} remains after SIGKILL."
+    _restore_session_services "${sway_pid}"
     return 1
   fi
 }
