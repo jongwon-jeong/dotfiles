@@ -53,7 +53,7 @@ session도 함께 끝날 수 있다.
         현재 client를 detach
 
     tmux kill-session -t <session-name>
-    tmkl <session-name>
+    tmkl -t <session-name>
         지정한 session 종료
 
     prefix d
