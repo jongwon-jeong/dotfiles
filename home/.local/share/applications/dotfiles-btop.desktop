@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=System Monitor (btop)
+Comment=Monitor processes and system resources with btop
+TryExec=btop
+Exec=alacritty --class dotfiles-btop -e btop
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+StartupNotify=false

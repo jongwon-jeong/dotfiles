@@ -4,6 +4,11 @@ _show_osd() {
   swayosd-client --custom-message "${1}" --custom-icon media-record-symbolic 2>/dev/null || true
 }
 
+_refresh_waybar() {
+  # The recording module is event-driven so an idle bar does not poll forever.
+  pkill -RTMIN+8 -x waybar 2>/dev/null || true
+}
+
 runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 pid_file="${runtime_dir}/sway-wf-recorder.pid"
 
@@ -35,6 +40,26 @@ recording_file="${recording_dir}/$(date +%Y%m%d-%H%M%S).mp4"
 /usr/bin/wf-recorder -g "${geometry}" -f "${recording_file}" &
 recorder_pid=$!
 
+recorder_ready=false
+for ((attempt = 0; attempt < 20; attempt++)); do
+  recorder_executable="$(readlink -f "/proc/${recorder_pid}/exe" 2>/dev/null || true)"
+  if [[ "${recorder_executable}" == "/usr/bin/wf-recorder" ]]; then
+    recorder_ready=true
+    break
+  fi
+  if ! kill -0 "${recorder_pid}" 2>/dev/null; then
+    break
+  fi
+  sleep 0.05
+done
+
+if [[ "${recorder_ready}" != "true" ]]; then
+  # A failed child may already be gone; stop it only if it survived the check.
+  kill -INT "${recorder_pid}" 2>/dev/null || true
+  _show_osd "Recording could not start"
+  exit 1
+fi
+
 if ! printf '%s\n' "${recorder_pid}" >"${pid_file}"; then
   kill -INT "${recorder_pid}" 2>/dev/null || true
   _show_osd "Recording could not start"
@@ -47,6 +72,7 @@ cleanup() {
   if [[ -r "${pid_file}" ]] && [[ "$(<"${pid_file}")" == "${recorder_pid}" ]]; then
     rm -f "${pid_file}"
   fi
+  _refresh_waybar
 }
 trap cleanup EXIT
 
@@ -57,6 +83,7 @@ terminate() {
 trap terminate INT TERM
 
 _show_osd "Recording started"
+_refresh_waybar
 if wait "${recorder_pid}"; then
   _show_osd "Recording saved"
   exit 0

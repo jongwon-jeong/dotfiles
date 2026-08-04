@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+
+readonly DANGER_LEVEL=5
+readonly GRACE_SECONDS=60
+readonly POWER_SUPPLY_ROOT="/sys/class/power_supply"
+readonly RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+readonly LOCK_FILE="${RUNTIME_DIR}/battery-danger.lock"
+
+battery_count=0
+battery_level=100
+battery_discharging=false
+external_power_online=false
+
+show_osd() {
+  local message="$1"
+
+  # The safety action must continue if the optional visual warning is unavailable.
+  swayosd-client \
+    --custom-message "${message}" \
+    --custom-icon battery-caution-symbolic 2>/dev/null || true
+}
+
+read_power_state() {
+  local capacity
+  local capacity_total=0
+  local charge_full
+  local charge_full_total=0
+  local charge_now
+  local charge_now_total=0
+  local charge_readings=0
+  local energy_full
+  local energy_full_total=0
+  local energy_now
+  local energy_now_total=0
+  local energy_readings=0
+  local power_supply_path
+  local scope
+  local status
+  local type
+  local -a power_supply_paths=()
+
+  battery_count=0
+  battery_level=100
+  battery_discharging=false
+  external_power_online=false
+
+  shopt -s nullglob
+  power_supply_paths=("${POWER_SUPPLY_ROOT}"/*)
+  shopt -u nullglob
+
+  for power_supply_path in "${power_supply_paths[@]}"; do
+    if [[ ! -r "${power_supply_path}/type" ]]; then
+      continue
+    fi
+
+    type="$(<"${power_supply_path}/type")"
+    if [[ "${type}" == "Battery" ]]; then
+      # Scope keeps headset, mouse and other peripheral batteries out of the
+      # system power policy. Older system batteries without scope remain valid.
+      if [[ -r "${power_supply_path}/scope" ]]; then
+        scope="$(<"${power_supply_path}/scope")"
+        if [[ "${scope}" != "System" ]]; then
+          continue
+        fi
+      fi
+
+      if [[ ! -r "${power_supply_path}/capacity" ]] ||
+        [[ ! -r "${power_supply_path}/status" ]]; then
+        continue
+      fi
+
+      capacity="$(<"${power_supply_path}/capacity")"
+      status="$(<"${power_supply_path}/status")"
+      if [[ ! "${capacity}" =~ ^[0-9]+$ ]] || ((capacity > 100)); then
+        continue
+      fi
+
+      ((battery_count += 1))
+      ((capacity_total += capacity))
+
+      if [[ -r "${power_supply_path}/energy_now" ]] &&
+        [[ -r "${power_supply_path}/energy_full" ]]; then
+        energy_now="$(<"${power_supply_path}/energy_now")"
+        energy_full="$(<"${power_supply_path}/energy_full")"
+        if [[ "${energy_now}" =~ ^[0-9]+$ ]] &&
+          [[ "${energy_full}" =~ ^[0-9]+$ ]] && ((energy_full > 0)); then
+          ((energy_readings += 1))
+          ((energy_now_total += energy_now))
+          ((energy_full_total += energy_full))
+        fi
+      fi
+
+      if [[ -r "${power_supply_path}/charge_now" ]] &&
+        [[ -r "${power_supply_path}/charge_full" ]]; then
+        charge_now="$(<"${power_supply_path}/charge_now")"
+        charge_full="$(<"${power_supply_path}/charge_full")"
+        if [[ "${charge_now}" =~ ^[0-9]+$ ]] &&
+          [[ "${charge_full}" =~ ^[0-9]+$ ]] && ((charge_full > 0)); then
+          ((charge_readings += 1))
+          ((charge_now_total += charge_now))
+          ((charge_full_total += charge_full))
+        fi
+      fi
+
+      if [[ "${status}" == "Discharging" ]]; then
+        battery_discharging=true
+      fi
+    elif [[ -r "${power_supply_path}/online" ]] &&
+      [[ "$(<"${power_supply_path}/online")" == "1" ]]; then
+      external_power_online=true
+    fi
+  done
+
+  # Weight multiple batteries by a common physical unit. Some kernel drivers
+  # expose only percentages, so retain their average as a conservative fallback.
+  if ((energy_readings == battery_count && energy_full_total > 0)); then
+    battery_level=$(((100 * energy_now_total + energy_full_total / 2) / energy_full_total))
+  elif ((charge_readings == battery_count && charge_full_total > 0)); then
+    battery_level=$(((100 * charge_now_total + charge_full_total / 2) / charge_full_total))
+  elif ((battery_count > 0)); then
+    battery_level=$(((capacity_total + battery_count / 2) / battery_count))
+  fi
+
+  if ((battery_level > 100)); then
+    battery_level=100
+  fi
+}
+
+battery_is_in_danger() {
+  read_power_state
+
+  ((battery_count > 0)) &&
+    ((battery_level <= DANGER_LEVEL)) &&
+    [[ "${battery_discharging}" == true ]] &&
+    [[ "${external_power_online}" == false ]]
+}
+
+if ! battery_is_in_danger; then
+  exit 0
+fi
+
+if [[ ! -d "${RUNTIME_DIR}" ]]; then
+  exit 1
+fi
+
+# A restarted monitor must not create overlapping shutdown countdowns.
+exec 9>"${LOCK_FILE}" || exit 1
+if ! flock --nonblock 9; then
+  exit 0
+fi
+
+# The battery state may have changed while another countdown released the lock.
+if ! battery_is_in_danger; then
+  exit 0
+fi
+
+show_osd "Battery ${battery_level}%: power off in ${GRACE_SECONDS} seconds"
+sleep "${GRACE_SECONDS}"
+
+# Connecting power, charging, or recovering above the threshold cancels the action.
+if ! battery_is_in_danger; then
+  show_osd "Automatic power off cancelled"
+  exit 0
+fi
+
+show_osd "Battery ${battery_level}%: powering off"
+if ! command systemctl poweroff; then
+  show_osd "Automatic power off failed"
+  exit 1
+fi

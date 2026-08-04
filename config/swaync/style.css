@@ -32,6 +32,7 @@
 
 .widget-title,
 .widget-dnd,
+.widget-buttons-grid,
 .widget-mpris,
 .widget-volume,
 .widget-backlight {
@@ -39,6 +40,14 @@
   padding: 8px;
   background: #f2eede;
   border: 1px solid #aaaaaa;
+}
+
+.widget-buttons-grid flowboxchild {
+  padding: 4px;
+}
+
+.widget-buttons-grid flowboxchild > button {
+  min-height: 42px;
 }
 
 button {

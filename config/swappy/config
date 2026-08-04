@@ -1,0 +1,8 @@
+[Default]
+save_dir=$HOME/Pictures/Screenshots
+save_filename_format=swappy-%Y%m%d-%H%M%S.png
+show_panel=true
+paint_mode=arrow
+early_exit=false
+auto_save=false
+custom_color=rgba(204,62,40,1)

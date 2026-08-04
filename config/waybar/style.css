@@ -41,6 +41,8 @@ window#waybar {
 }
 
 #tray,
+#privacy,
+#custom-recording,
 #idle_inhibitor,
 #network,
 #bluetooth,
@@ -52,6 +54,14 @@ window#waybar {
 #clock,
 #custom-power {
   padding: 0 9px;
+}
+
+#privacy-item.screenshare,
+#privacy-item.audio-in,
+#custom-recording {
+  background: #cc3e28;
+  color: #ffffff;
+  font-weight: bold;
 }
 
 #network.disconnected,

@@ -50,6 +50,17 @@ _copy_screenshot() {
   return 1
 }
 
+_edit_screenshot() {
+  local -r geometry="${1}"
+
+  if grim -g "${geometry}" - | swappy --file -; then
+    return 0
+  fi
+
+  _show_osd "Screenshot editor failed"
+  return 1
+}
+
 case "${1:-}" in
   save-full)
     _save_screenshot
@@ -65,8 +76,12 @@ case "${1:-}" in
     geometry="$(_select_geometry)" || exit 0
     _copy_screenshot "${geometry}"
     ;;
+  edit-region)
+    geometry="$(_select_geometry)" || exit 0
+    _edit_screenshot "${geometry}"
+    ;;
   *)
-    echo "ERROR: Usage: ${0##*/} {save-full|save-region|copy-full|copy-region}" >&2
+    echo "ERROR: Usage: ${0##*/} {save-full|save-region|copy-full|copy-region|edit-region}" >&2
     exit 2
     ;;
 esac

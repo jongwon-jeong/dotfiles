@@ -61,6 +61,8 @@ output * bg #303030 solid_color
 # Launchers and daily desktop tools.
 bindsym $mod+Return exec $term
 bindsym $mod+d exec $menu
+bindsym $mod+p exec $HOME/.config/sway/scripts/select-window
+bindsym $mod+Shift+p exec $HOME/.config/sway/scripts/search-files
 bindsym $mod+F1 exec alacritty --class sway-help -e sh -lc 'less "$HOME/.dotfiles/docs/sway-workflow.md"'
 
 # Session and shell controls.
@@ -111,6 +113,11 @@ bindsym $mod+Shift+minus move scratchpad
 
 # Workspaces.
 bindsym $mod+Tab workspace back_and_forth
+
+# Native gestures add laptop navigation without a session daemon and remain
+# inert on desktops whose input devices do not report touch gestures.
+bindgesture swipe:3:left workspace next
+bindgesture swipe:3:right workspace prev
 
 set $ws1 "1"
 set $ws2 "2"
@@ -171,6 +178,7 @@ bindsym Print exec $HOME/.config/sway/scripts/capture-screenshot save-full
 bindsym Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot save-region
 bindsym Ctrl+Print exec $HOME/.config/sway/scripts/capture-screenshot copy-full
 bindsym Ctrl+Shift+Print exec $HOME/.config/sway/scripts/capture-screenshot copy-region
+bindsym $mod+Print exec $HOME/.config/sway/scripts/capture-screenshot edit-region
 bindsym $mod+Shift+Print exec $HOME/.config/sway/scripts/toggle-recording
 
 bindsym --locked XF86AudioRaiseVolume exec swayosd-client --output-volume raise

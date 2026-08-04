@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+pid_file="${runtime_dir}/sway-wf-recorder.pid"
+
+if [[ ! -r "${pid_file}" ]]; then
+  exit 0
+fi
+
+recorder_pid="$(<"${pid_file}")"
+if [[ ! "${recorder_pid}" =~ ^[0-9]+$ ]] || ! kill -0 "${recorder_pid}" 2>/dev/null; then
+  exit 0
+fi
+
+recorder_executable="$(readlink -f "/proc/${recorder_pid}/exe" 2>/dev/null || true)"
+if [[ "${recorder_executable}" == "/usr/bin/wf-recorder" ]]; then
+  printf 'REC\n'
+fi

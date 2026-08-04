@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+for required_command in fuzzel jq swaymsg; do
+  command -v "${required_command}" >/dev/null 2>&1 || exit 1
+done
+
+tree_json="$(swaymsg --raw --type get_tree)" || exit 1
+
+window_ids=()
+window_labels=()
+while IFS=$'\t' read -r window_id window_label; do
+  [[ "${window_id}" =~ ^[0-9]+$ ]] || continue
+  window_ids+=("${window_id}")
+  window_labels+=("${window_label}")
+done < <(
+  jq --raw-output '
+    [
+      .. | objects
+      | select(.type? == "workspace" and .name != "__i3_scratch") as $workspace
+      | ($workspace | .. | objects
+        | select(.type? == "con" and .pid? != null)
+        | {
+            id: .id,
+            workspace: $workspace.name,
+            app: (.app_id // .window_properties.class // "Unknown"),
+            title: (.name // "Untitled"),
+            focused: (.focused // false)
+          })
+    ]
+    | sort_by([if .focused then 0 else 1 end, .workspace, .app, .title])
+    | .[]
+    | [
+        .id,
+        ("WS " + .workspace + "  " + .app + "  " + (.title | gsub("[\\t\\r\\n]+"; " ")))
+      ]
+    | @tsv
+  ' <<<"${tree_json}"
+)
+
+if ((${#window_ids[@]} == 0)); then
+  exit 0
+fi
+
+selected_index="$({ printf '%s\0' "${window_labels[@]}"; } | fuzzel \
+  --dmenu0 \
+  --index \
+  --only-match \
+  --prompt='Windows: ' \
+  --placeholder='Search open windows')" || exit 0
+
+if [[ ! "${selected_index}" =~ ^[0-9]+$ ]] || ((selected_index >= ${#window_ids[@]})); then
+  exit 1
+fi
+
+swaymsg "[con_id=${window_ids[selected_index]}]" focus >/dev/null

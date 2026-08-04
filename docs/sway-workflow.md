@@ -12,6 +12,8 @@
 |---|---|
 | `Super+Enter` | 터미널 열기 |
 | `Super+D` | 애플리케이션 검색 |
+| `Super+P` | 열린 창 전체 검색 |
+| `Super+Shift+P` | 표준 사용자 폴더의 파일 검색 |
 | `Super+H/J/K/L` 또는 방향키 | 창 사이의 초점 이동 |
 | `Super+Shift+H/J/K/L` 또는 방향키 | 창 위치 이동 |
 | `Super+Tab` | 직전에 사용한 워크스페이스로 돌아가기 |
@@ -54,10 +56,14 @@ H/J/K/L이 익숙하지 않으면 방향키를 그대로 사용해도 된다.
 |---|---|
 | `Super+Enter` | Alacritty 터미널 |
 | `Super+D` | Fuzzel 애플리케이션 실행기 |
+| `Super+P` | 모든 워크스페이스의 열린 창 검색 |
+| `Super+Shift+P` | Documents, Downloads, 미디어와 Projects 파일 검색 |
 | `Super+F1` | 이 안내서 열기 |
 | `Super+Shift+C` | Sway 설정 다시 읽기 |
 
-Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에서 이름을 검색해 실행한다.
+Chrome, Thunar, Calculator, Disk Usage Analyzer와 그래픽 설정 도구는 `Super+D`에서 이름을 검색해 실행한다. `System Monitor (btop)`과 `Text Editor (Neovim)`도 동일한 실행기에서 찾을 수 있다.
+
+`Super+P`는 창 제목과 애플리케이션 이름을 사용해 현재 열려 있는 모든 워크스페이스의 창을 찾는다. 목록은 호출한 동안에만 표시하며 Waybar에는 창 제목을 계속 노출하지 않는다. `Super+Shift+P`는 별도 색인을 만들지 않고 표준 사용자 폴더와 `~/Projects`를 호출할 때 검색한 뒤 기본 애플리케이션으로 연다. 대규모 의존성·빌드·IDE 메타데이터 디렉터리는 검색에서 제외한다.
 
 ### 창 초점과 이동
 
@@ -127,6 +133,8 @@ Chrome, Thunar, Pavucontrol과 Wdisplays 같은 그래픽 도구는 `Super+D`에
 
 Waybar에는 해당 출력에서 현재 사용 중인 워크스페이스만 표시된다. 워크스페이스 번호를 클릭하거나 마우스 휠로 이동할 수도 있다.
 
+제스처를 지원하는 터치패드에서는 세 손가락을 왼쪽으로 밀면 다음 워크스페이스, 오른쪽으로 밀면 이전 워크스페이스로 이동한다. 별도 제스처 daemon을 사용하지 않으며 터치패드가 없는 데스크톱에는 영향을 주지 않는다.
+
 ### Scratchpad
 
 | 키 | 동작 |
@@ -158,6 +166,8 @@ Scratchpad는 다른 데스크톱의 최소화 기능과 다르다. 창을 다�
 
 알림센터 안에서는 `Shift+D`로 방해 금지를 전환하고 `Shift+C`로 알림을 모두 지울 수 있다. `Escape`로 닫는다.
 
+알림센터 상단의 빠른 설정 버튼은 Network, Bluetooth, Audio, Displays, Disks와 Printers 관리 화면을 연다. 버튼은 이미 설치된 각 기능의 전용 GUI를 호출할 뿐 하드웨어 상태를 임의로 전환하지 않는다.
+
 방해 금지는 로그인할 때 항상 켜지므로 팝업 배너가 자동으로 나타나지 않는다. 알림은 현재 세션의 알림센터에만 쌓이고 `Super+N`으로 직접 확인할 수 있으며, 로그아웃할 때 모두 지운다. 필요한 동안만 `Shift+D` 또는 Waybar 알림 항목의 오른쪽 클릭으로 팝업을 다시 허용할 수 있다.
 
 클립보드 검색에서 항목을 선택하면 해당 내용이 시스템 클립보드로 복사된다. 이후 애플리케이션의 일반 붙여넣기 키를 사용한다.
@@ -172,11 +182,12 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 | `Shift+Print` | 선택 영역을 `~/Pictures/Screenshots`에 저장 |
 | `Ctrl+Print` | 전체 화면을 클립보드로 복사 |
 | `Ctrl+Shift+Print` | 선택 영역을 클립보드로 복사 |
+| `Super+Print` | 선택 영역을 캡처해 주석 편집기로 열기 |
 | `Super+Shift+Print` | 선택 영역 녹화 시작/종료 |
 
-스크린샷을 저장하거나 클립보드로 복사하면 짧은 OSD가 표시된다. 영역 선택을 취소하려면 `Escape`를 누른다.
+스크린샷을 저장하거나 클립보드로 복사하면 짧은 OSD가 표시된다. `Super+Print`의 Swappy에서는 화살표·도형·텍스트·블러를 추가한 뒤 `~/Pictures/Screenshots`에 저장하거나 클립보드로 복사할 수 있다. 영역 선택을 취소하려면 `Escape`를 누른다.
 
-화면 녹화는 `~/Videos/Recordings`에 MP4로 저장한다. 같은 키를 다시 누르면 이 workflow에서 시작한 녹화를 정상 종료하며, 시작·중지·저장 결과는 OSD로 표시한다. 마이크나 시스템 오디오를 실수로 수집하지 않도록 기본 녹화에는 소리를 포함하지 않는다.
+화면 녹화는 `~/Videos/Recordings`에 MP4로 저장한다. 같은 키를 다시 누르면 이 workflow에서 시작한 녹화를 정상 종료하며, 시작·중지·저장 결과는 OSD로 표시한다. 녹화 중에는 Waybar에 빨간 `REC`를 계속 표시한다. 마이크나 시스템 오디오를 실수로 수집하지 않도록 기본 녹화에는 소리를 포함하지 않는다.
 
 ### 오디오, 밝기, 미디어
 
@@ -195,7 +206,7 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 
 화면 색온도는 기본 Sway 세션에서 자동으로 바꾸지 않는다. 필요할 때 `sunset on`으로 시작하면 위치 정보나 네트워크 조회 없이 시스템의 현지 시각만 사용해 19:00부터 4000 K로 서서히 낮추고 07:00부터 6500 K로 되돌린다. `sunset off`로 현재 세션에서 즉시 중지하고 `sunset status` 또는 인자 없는 `sunset`으로 상태를 확인한다.
 
-20% 배터리 경고는 기본 방해 금지 정책에 따라 알림센터에 쌓인다. 10% critical 상태는 데이터 손실을 피하기 위해 알림센터 기록과 함께 OSD로 즉시 표시한다. 자동 종료나 절전은 실행하지 않는다.
+20% 배터리 경고는 기본 방해 금지 정책에 따라 알림센터에 쌓인다. 10% critical 상태는 데이터 손실을 피하기 위해 알림센터 기록과 함께 OSD로 즉시 표시한다. 5%까지 내려가면 60초 종료 유예를 OSD로 알린 뒤 정상 종료한다. 유예 중 전원을 연결하거나 충전이 시작되거나 잔량이 5%를 넘으면 자동 종료를 취소한다. 이 정책은 시스템 배터리에만 적용되며 주변기기 배터리는 제외한다.
 
 ### 세션
 
@@ -209,6 +220,12 @@ Cliphist는 최근 텍스트와 이미지를 로컬 캐시에 저장하므로 �
 종료와 재부팅에는 직접 단축키를 두지 않는다. 세션 메뉴를 거쳐 실수로 종료하는 일을 막는다.
 
 ## 일상 작업 예시
+
+### 다른 워크스페이스의 창이나 파일 찾기
+
+1. 열린 창으로 이동하려면 `Super+P`를 누르고 애플리케이션 또는 창 제목 일부를 입력한다.
+2. 파일을 찾으려면 `Super+Shift+P`를 누르고 파일 이름 일부를 입력한다.
+3. 선택한 파일은 MIME 기본 애플리케이션으로 열리며, 텍스트 파일은 Alacritty 안의 Neovim으로 연다.
 
 ### 터미널 두 개를 좌우로 배치하기
 
@@ -255,9 +272,10 @@ Waybar의 `IDLE` 항목을 클릭해 `INHIBIT`으로 바꾼다. 작업이 끝나
 - 전체 화면을 파일로 남기려면 `Print`를 누른다.
 - 영역을 파일로 남기려면 `Shift+Print`를 누르고 영역을 선택한다.
 - 붙여넣을 이미지는 `Ctrl+Print` 또는 `Ctrl+Shift+Print`로 클립보드에 복사한다.
+- 캡처를 가리거나 설명해야 하면 `Super+Print`로 영역을 고른 뒤 Swappy에서 편집한다.
 - 영역 녹화는 `Super+Shift+Print`로 시작하고 같은 키로 종료한다.
 
-스크린샷은 `~/Pictures/Screenshots`, 녹화는 `~/Videos/Recordings`에 저장되며 결과는 OSD로 확인한다.
+스크린샷은 `~/Pictures/Screenshots`, 녹화는 `~/Videos/Recordings`에 저장되며 결과는 OSD로 확인한다. Waybar의 `REC`가 사라지면 녹화 프로세스가 종료되고 파일 정리가 끝난 상태다.
 
 ### 이전 클립보드 내용 다시 사용하기
 
@@ -273,7 +291,7 @@ Waybar의 `IDLE` 항목을 클릭해 `INHIBIT`으로 바꾼다. 작업이 끝나
 2. 팝업 알림이 필요한 동안에는 알림센터에서 `Shift+D`로 방해 금지를 해제한다.
 3. 확인이 끝나면 `Escape`로 닫고 필요하면 방해 금지를 다시 켠다.
 
-배터리 20% 경고는 알림센터에 쌓이며, 10% critical 상태는 OSD에도 즉시 표시된다. critical OSD가 보이면 작업을 저장하고 전원을 연결하거나 세션 메뉴에서 절전한다.
+배터리 20% 경고는 알림센터에 쌓이며, 10% critical 상태는 OSD에도 즉시 표시된다. critical OSD가 보이면 작업을 저장하고 전원을 연결한다. 5%에서는 60초 뒤 자동 종료하므로 전원을 연결해 취소하거나 남은 작업을 즉시 정리한다.
 
 ### Thunar에서 일반 파일과 숨김 파일 오가기
 
@@ -281,6 +299,14 @@ Waybar의 `IDLE` 항목을 클릭해 `INHIBIT`으로 바꾼다. 작업이 끝나
 2. 왼쪽 `Places`에서 Downloads, Documents, Pictures 또는 Projects로 이동한다.
 3. 숨김 설정 파일이 필요할 때만 `Ctrl+H`로 표시한다.
 4. 작업이 끝나면 `Ctrl+H`를 다시 눌러 일반 파일 중심 보기로 돌아간다.
+
+### Android 장치의 파일 열기
+
+1. 잠금 해제한 Android 장치를 USB로 연결하고 장치에서 파일 전송 모드를 선택한다.
+2. Thunar의 `Devices`에서 장치를 선택한다.
+3. 작업이 끝나면 Thunar에서 마운트 해제한 뒤 케이블을 분리한다.
+
+`gvfs-mtp`는 장치를 연결하고 파일을 열 때 D-Bus 요청으로 MTP backend를 활성화한다. 별도의 동기화나 원격 전송을 시작하지 않는다.
 
 ### 암호화 USB를 필요할 때만 열기
 
@@ -353,7 +379,8 @@ Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하
 - GTK 3·4의 밝은 테마, 고대비 아이콘·글꼴, 애니메이션, 시스템 이벤트음과 최근 파일 기록 여부는 각각의 `settings.ini`가 관리한다. `gtk.css`는 Paper 배경, 검정 글자와 작은 여백을 사용하는 공통 툴팁을 관리한다. 버튼·경고·입력 피드백음은 끄되 영상·음악의 일반 출력은 음소거하지 않는다.
 - GTK 3·4 파일 선택기의 24시간 시계, 숨김 파일 기본 비표시, 폴더 우선 정렬, 목록 보기와 현재 디렉터리 시작은 GLib `gsettings`로 bootstrap 시 적용한다.
 - Thunar는 상세 목록 보기, 숨김 파일 기본 비표시, 폴더 우선 정렬을 사용하고 이미지 미리보기와 썸네일 생성을 비활성화한다. 숨김 파일이 필요하면 `Ctrl+H`로 전환한다.
-- 디렉터리는 Thunar, 이미지는 Imv, 영상·음악은 mpv, PDF는 Zathura, 웹 URL은 Google Chrome으로 연다.
+- 디렉터리는 Thunar, 텍스트·Markdown·JSON·XML·YAML은 Alacritty 안의 Neovim, 이미지는 Imv, 영상·음악은 mpv, PDF는 Zathura, 웹 URL은 Google Chrome으로 연다.
+- `Text Editor (Neovim)`과 `System Monitor (btop)` 데스크톱 항목은 터미널 프로그램을 Fuzzel과 MIME 연결에서 일반 데스크톱 앱처럼 발견할 수 있게 한다. 별도 프로세스나 데이터를 추가하지 않는다.
 
 `gsettings`는 GNOME Shell 전용 도구가 아니라 GLib 설정 저장 인터페이스이므로 Sway에서도 GTK 파일 선택기 설정에 사용하는 것이 맞다. 다만 Sway 설정을 다시 읽을 때마다 실행하지 않고, 설치 단계에서 한 번 적용해 compositor 수명주기와 분리한다.
 
@@ -366,6 +393,8 @@ Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하
 오른쪽 상태 영역은 하드웨어와 서비스가 존재할 때만 의미 있는 값을 표시한다.
 
 - `IDLE/INHIBIT`: 자동 잠금과 절전 허용 여부
+- 빨간 개인정보 표시: PipeWire 화면 공유 또는 마이크 입력 사용 중
+- 빨간 `REC`: 이 구성에서 시작한 `wf-recorder` 녹화가 진행 중
 - 네트워크: 클릭하면 연결 편집기
 - Bluetooth: 클릭하면 장치 관리자
 - 볼륨: 클릭하면 믹서, 오른쪽 클릭하면 음소거
@@ -381,7 +410,7 @@ Sway는 compositor이므로 GTK 애플리케이션 설정까지 직접 관리하
 
 ## 화면 공유
 
-Sway에서는 `xdg-desktop-portal-wlr`가 화면 캡처를 담당하고 `xdg-desktop-portal-gtk`가 파일 선택 같은 일반 인터페이스를 보완한다. 브라우저나 회의 앱에서 화면 공유를 시작하면 출력 또는 영역 선택 UI가 나타나야 한다.
+Sway에서는 `xdg-desktop-portal-wlr`가 화면 캡처를 담당하고 `xdg-desktop-portal-gtk`가 파일 선택 같은 일반 인터페이스를 보완한다. 브라우저나 회의 앱에서 화면 공유를 시작하면 출력 또는 영역 선택 UI가 나타나고 Waybar에 빨간 화면 공유 표시가 나타나야 한다. PipeWire 마이크 입력을 사용하는 동안에도 별도의 빨간 표시가 나타난다. 개인정보를 위해 표시의 툴팁에는 애플리케이션 이름을 노출하지 않는다.
 
 문제가 있으면 세션 환경과 서비스를 확인한다.
 
@@ -400,6 +429,8 @@ journalctl --user -b -u xdg-desktop-portal -u xdg-desktop-portal-wlr
 - systemd가 절전에 들어가기 직전에 항상 잠금
 
 영상 플레이어나 브라우저가 idle inhibit 프로토콜을 사용하면 재생 중 잠금이 지연될 수 있다. 수동 제어가 필요하면 Waybar의 `IDLE` 항목을 사용한다.
+
+현재 저장장치는 zram swap만 사용하고 resume 구성이 없으므로 최대 절전은 제공하지 않는다. 배터리가 5%까지 내려가면 저장되지 않은 메모리 상태에 의존하는 절전 대신 60초 유예 후 정상 종료해 완전 방전 시 데이터 손실 위험을 줄인다.
 
 장시간 build, test나 migration처럼 명령이 끝날 때까지만 시스템 절전을 막아야
 하면 해당 명령을 `keep_awake`로 실행한다. Linux에서는 `systemd-inhibit`,
@@ -503,9 +534,9 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 
 | 패키지 | 역할 | 이 구성에서의 사용 방식 |
 |---|---|---|
-| `waybar` | Sway용 패널이다. 워크스페이스, Scratchpad 개수, 트레이, 일반화한 연결 상태, 오디오, 배터리, 시계와 세션 메뉴를 표시한다. | 활성 창 제목과 네트워크·장치 식별자는 숨긴다. `sway-session.target`이 시작하고 로그아웃하면 종료하며, 모듈은 해당 하드웨어나 서비스가 없으면 숨거나 빈 상태가 된다. |
-| `swaync` | 알림 daemon과 알림센터를 함께 제공한다. | 기본 방해 금지 상태에서 팝업 없이 현재 세션의 알림만 모으며, `Super+N` 또는 Waybar에서 직접 확인·삭제하거나 필요할 때 팝업을 허용한다. |
-| `fuzzel` | Wayland native 애플리케이션 실행기이며 dmenu 호환 선택기다. | `Super+D`의 앱 검색뿐 아니라 Cliphist 기록을 고르는 메뉴에도 재사용한다. |
+| `waybar` | Sway용 패널이다. 워크스페이스, Scratchpad 개수, 트레이, 일반화한 연결 상태, 개인정보 사용, 녹화, 오디오, 배터리, 시계와 세션 메뉴를 표시한다. | 활성 창 제목과 네트워크·장치 식별자는 숨긴다. PipeWire 화면 공유·마이크 사용과 이 구성의 녹화만 강한 상태색으로 알리고, 해당 기능이 끝나면 표시를 숨긴다. |
+| `swaync` | 알림 daemon과 알림센터를 함께 제공한다. | 기본 방해 금지 상태에서 현재 세션의 알림을 모으고, 상단 빠른 설정 버튼으로 이미 설치된 네트워크·장치·오디오·출력·디스크·프린터 GUI를 연다. |
+| `fuzzel` | Wayland native 애플리케이션 실행기이며 dmenu 호환 선택기다. | `Super+D`의 앱 검색, Cliphist 기록, 열린 창과 파일 선택 메뉴에 재사용한다. 창·파일 목록은 직접 호출한 동안에만 만든다. |
 | `swayosd` | 볼륨, 마이크와 밝기 변경을 화면 중앙의 OSD로 보여 주고 해당 값을 조절한다. | 키보드의 미디어·밝기 키를 `swayosd-client`가 처리하고 세션의 `swayosd-server`가 결과를 표시한다. |
 | `playerctl` | MPRIS 표준을 지원하는 미디어 player를 명령행에서 제어한다. | 재생·일시정지와 이전·다음 미디어 키를 현재 활성 player에 전달한다. player가 없으면 명령만 조용히 실패한다. |
 | `libnotify` | 데스크톱 알림을 보내는 라이브러리와 `notify-send` 명령을 제공한다. | 스크립트와 프로그램이 SwayNC로 표준 알림을 보낼 때 사용한다. 알림을 직접 표시하는 daemon은 아니다. |
@@ -517,6 +548,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 |---|---|---|
 | `grim` | Wayland 출력 또는 지정한 좌표 영역을 이미지로 캡처한다. | 전체 화면을 클립보드로 보내거나 선택 영역을 PNG로 저장하는 실제 캡처 도구다. |
 | `slurp` | 마우스로 화면의 사각형 영역을 선택하고 좌표를 출력한다. | `grim -g`에 전달할 영역을 정한다. `Escape`로 취소하면 파일을 만들지 않는다. |
+| `swappy` | Wayland 스크린샷에 주석을 추가하는 편집기다. | `Super+Print`로 선택한 영역을 전달받아 화살표·도형·텍스트·블러를 추가하고 저장하거나 복사한다. 요청할 때만 실행한다. |
 | `wf-recorder` | wlroots compositor의 화면을 영상 파일로 녹화한다. | `Super+Shift+Print`로 선택 영역을 녹화하고 같은 키로 종료한다. 개인정보 보호를 위해 기본 명령은 오디오를 포함하지 않는다. |
 | `wl-clipboard` | Wayland 클립보드 명령인 `wl-copy`와 `wl-paste`를 제공한다. | 스크린샷·텍스트 복사, Cliphist 감시와 선택 항목 복원에 사용한다. |
 | `cliphist` | Wayland 클립보드 내용을 로컬 데이터베이스에 기록하고 검색·복원한다. | 텍스트와 이미지를 별도 systemd 서비스가 수집한다. `Super+C`로 Fuzzel에서 고르고 `Super+Ctrl+C`로 기록을 지운다. |
@@ -540,7 +572,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `kanshi` | 연결된 모니터 조합을 감지해 저장된 출력 profile을 자동 적용한다. | 데스크톱, 랩탑 단독, docked 구성을 `~/.config/kanshi/local.conf`에서 장비별로 정의한다. profile이 없으면 Sway의 preferred mode를 그대로 둔다. |
 | `wdisplays` | wlroots output-management protocol용 그래픽 모니터 설정 도구다. | `Super+O` Output 모드의 `D`에서 해상도, 위치, 회전과 배율을 시험한다. 자주 쓰는 결과만 Kanshi profile로 옮긴다. |
 | `brightnessctl` | 커널 backlight와 LED 장치를 조회·조절하는 CLI다. | Waybar 밝기 모듈에서 스크롤 조절에 사용한다. 백라이트가 없는 데스크톱에서는 할 일이 없다. |
-| `batsignal` | 배터리 충전량을 가볍게 감시해 표준 데스크톱 알림을 보낸다. | 발견한 모든 배터리를 대상으로 20%에서 알림센터 경고를 남기고 10%에서 OSD도 표시한다. 자동 종료·절전 동작은 하지 않으며 배터리가 없는 데스크톱에서는 조용히 종료한다. |
+| `batsignal` | 배터리 충전량을 가볍게 감시해 경고와 위험 단계 동작을 실행한다. | 시스템 배터리를 대상으로 20%에서 알림센터 경고, 10%에서 OSD를 표시한다. 5%에서는 60초 유예 후 정상 종료하며 전원이 연결되거나 충전이 시작되면 취소한다. 주변기기 배터리는 제외하고 배터리가 없는 데스크톱에서는 조용히 종료한다. |
 | `wlsunset` | Wayland 출력의 색온도를 현지 시각에 따라 조절한다. | 기본 Sway 세션에서는 시작하지 않는 선택 기능이다. `sunset on`, `sunset off`, `sunset status`로 현재 세션에서 제어하며 실행 중에도 위치나 네트워크를 사용하지 않는다. |
 | `upower` | 배터리와 전원 장치 정보를 D-Bus로 제공하는 시스템 daemon이다. | Waybar와 데스크톱 앱이 충전량, 충전 상태와 남은 시간을 하드웨어별 구현 없이 읽게 한다. |
 | `power-profiles-daemon` | `power-saver`, `balanced`, `performance` 전원 profile을 제공한다. | bootstrap이 기본값을 `balanced`로 맞추고 Waybar에서 현재 상태를 표시한다. profile 전환은 `powerprofilesctl set`으로 할 수 있으며, 지원하지 않는 하드웨어에서는 가능한 profile만 노출된다. |
@@ -556,6 +588,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `polkit`, `lxqt-policykit` | Polkit은 일반 사용자의 권한 있는 시스템 작업을 중개하고 LXQt agent는 비밀번호 확인창을 표시한다. | 디스크 마운트, 네트워크 변경과 일부 시스템 설정이 필요할 때만 인증창이 나타난다. agent가 없으면 GUI 작업이 설명 없이 실패하거나 터미널 인증이 필요할 수 있다. |
 | `udisks2`, `udiskie` | UDisks2는 디스크와 이동식 저장장치 작업을 D-Bus로 제공하고 Udiskie는 사용자 세션에서 자동 마운트·알림·트레이를 담당한다. | 일반 USB 저장장치는 사용자 권한으로 자동 마운트한다. 외장 LUKS 장치는 연결하거나 그 상태로 부팅해도 암호창을 자동으로 띄우지 않으며, Thunar나 Udiskie 트레이에서 직접 열 때만 암호를 묻는다. |
 | `gnome-disk-utility` | GNOME 세션과 독립적으로 실행되는 GTK 디스크 관리 도구다. | Fuzzel에서 Disks를 찾아 필요할 때만 실행한다. UDisks2와 Polkit을 통해 장치 상태 확인, 파티션·파일시스템 관리와 디스크 이미지 작업을 제공하며 상시 서비스나 네트워크 연결을 추가하지 않는다. |
+| `gvfs-mtp` | GVfs의 Android·미디어 장치용 MTP backend다. | USB 파일 전송 모드의 Android 장치를 Thunar `Devices`에 연결한다. 장치 접근 요청이 있을 때만 활성화하며 동기화 서비스는 제공하지 않는다. |
 | `cups`, `system-config-printer`, `bluez-cups` | CUPS는 인쇄 queue와 driver backend, system-config-printer는 그래픽 설정, bluez-cups는 Bluetooth 프린터 연결을 제공한다. | 프린터를 쓰지 않는 장비에서도 서비스는 설치되지만 실제 queue가 없으면 유휴 상태다. |
 
 ### 기본 애플리케이션과 파일 통합
@@ -569,6 +602,8 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `thunar-volman` | 이동식 미디어가 연결됐을 때 Thunar 동작을 연결하는 volume manager다. | UDisks2가 발견한 USB 저장장치와 미디어를 파일 관리자 workflow에 통합한다. |
 | `thunar-archive-plugin`, `xarchiver` | Thunar의 압축 메뉴와 실제 압축 파일 GUI backend를 제공한다. | 파일 관리자의 오른쪽 클릭 메뉴에서 압축 생성과 해제를 수행한다. plugin만 있고 backend가 없으면 메뉴가 작업을 완료하지 못한다. |
 | `gvfs` | GTK 앱에 휴지통, 최근 파일, 마운트와 여러 가상 파일시스템 기능을 제공한다. | Thunar와 파일 선택기가 로컬 파일 외의 데스크톱 파일 기능을 일관되게 사용하도록 한다. |
+| `gnome-calculator` | GNOME Shell과 독립적으로 실행되는 일반·공학·프로그래밍 계산기다. | Fuzzel에서 Calculator로 찾아 필요할 때만 실행하며 백그라운드 updater를 추가하지 않는다. 통화 변환은 외부 환율 정보에 의존하므로 네트워크를 원하지 않으면 해당 기능을 사용하지 않는다. 사용자 설정은 애플리케이션의 dconf 상태로 남으며 `pclean`이 지우지 않는다. |
+| `baobab` | 폴더별 사용량을 트리와 그래프로 보여 주는 디스크 사용량 분석기다. | Fuzzel에서 Disk Usage Analyzer로 실행해 큰 디렉터리를 찾는다. 파일을 자동 정리하거나 삭제하지 않는다. |
 | `imv` | Wayland와 X11을 지원하는 가벼운 이미지 viewer다. | 별도 데스크톱 사진 앱 없이 이미지 파일을 빠르게 확인한다. |
 | `zathura`, `zathura-pdf-mupdf` | Zathura는 키보드 중심 문서 viewer이고 MuPDF plugin은 PDF를 실제로 해석한다. | PDF를 가볍게 열기 위한 조합이다. Zathura 본체만으로는 PDF backend가 없어 문서를 표시할 수 없다. |
 | `mpv` | FFmpeg 기반 영상·음악 player다. | GPU 출력, 하드웨어 decoding과 이 리포의 회전·반전 키 설정을 사용하는 기본 미디어 player다. |
@@ -581,7 +616,7 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | 시스템 서비스 또는 D-Bus 요청으로 실행 | greetd, NetworkManager, firewalld, Bluetooth, CUPS, UDisks2, UPower, power-profiles-daemon, switcheroo-control |
 | 로그인 화면이 보이는 동안 실행 | Cage, ReGreet |
 | Sway 로그인 동안 실행 | Sway, Waybar, SwayNC, Swayidle, SwayOSD, OpenSSH agent, Fcitx5, Kanshi, batsignal, nm-applet, Blueman applet, LXQt Polkit agent, Udiskie, Cliphist 감시 서비스, 개인정보 정리 path·timer |
-| 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, wf-recorder, Pavucontrol, Thunar, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
+| 요청·이벤트·예약 시 활성화 | Fuzzel, Wdisplays, Grim, Slurp, Swappy, wf-recorder, Pavucontrol, Thunar, GVfs MTP backend, Calculator, Disk Usage Analyzer, Tumbler, portal backend, 파일·URL 기본 앱, 개인정보 정리 service |
 
 Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관리한다. Sway 설정을 다시 읽어도 중복 실행되지 않고, `sway-session.target`이 멈추면 세션 전용 프로세스가 함께 종료되는 것이 이 구조의 핵심이다.
 
@@ -593,7 +628,7 @@ Sway 세션용 daemon은 가능한 한 `config/systemd/user/`의 unit으로 관�
 | SwayNC | 사용하지 않음 | 현재 세션의 알림을 보관하고 로그아웃 시 모두 지움 | 하드웨어와 무관하게 알림센터 제공 |
 | Cliphist 감시 서비스 | 사용하지 않음 | 복사한 텍스트·이미지를 제한된 로컬 DB에 저장하고 로그아웃 시 전체 삭제 | 하드웨어와 무관하게 동작 |
 | wlsunset | 사용하지 않음 | 기본적으로 실행하지 않으며, 직접 시작한 동안 현지 시각만 읽고 기록을 남기지 않음 | Sway 출력이 있는 세션에서만 의미 있음 |
-| batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않음 | 배터리가 없으면 조용히 종료 |
+| batsignal | 사용하지 않음 | 로컬 전원 정보를 읽고 별도 기록을 남기지 않으며 시스템 배터리 5%에서 유예 후 정상 종료 | 시스템 배터리가 없으면 조용히 종료 |
 | 개인정보 정리 path·timer·service | 사용하지 않음 | `~/.local/share/recently-used.xbel`과 24시간이 지난 `~/.cache/thumbnails` 항목만 정리 | 대상 경로가 없으면 변경하지 않음 |
 | NetworkManager | 실제 연결에 필요한 네트워크만 사용 | 연결 profile은 NetworkManager가 관리하며 주기적 HTTP 연결 확인은 비활성화 | Wi-Fi가 없어도 유선·VPN 관리에 사용 가능 |
 | firewalld | 자체적인 외부 요청 없음 | 검토된 zone과 firewall 정책을 시스템에 유지 | 네트워크 장치 종류와 무관하게 정책 적용 |
@@ -670,9 +705,10 @@ GNOME 제거는 다음 검증을 실제 사용하는 데스크톱과 랩탑에�
 이 목록은 공통 acceptance criteria이며 특정 장비의 완료 기록이 아니다. 여러 session에 걸쳐 검증한다면 작업을 소유한 issue나 PR에 기준 commit, 데스크톱·랩탑 구분, 실제 통과 항목, 건너뛴 이유, 남은 위험과 GNOME 제거 가능 여부를 기록한다. 대화에만 남은 결과나 다른 장비의 결과를 현재 장비의 evidence로 간주하지 않는다.
 
 - [ ] 재부팅 후 ReGreet 로그인, Sway 시작과 GNOME Keyring 잠금 해제가 정상이다.
+- [ ] ReGreet 로그인 직후 터미널을 먼저 열지 않아도 앱·창·파일 검색, btop·Neovim 실행과 텍스트 MIME 연결이 정상이다.
 - [ ] 한글 입력, 키 반복, 터미널과 브라우저의 기본 키 동작이 정상이다.
 - [ ] 단일·다중 모니터, hotplug, 해상도·배율·회전과 Kanshi profile이 정상이다.
-- [ ] 랩탑의 밝기, 배터리 상태, 덮개, 전원 버튼, 절전과 복귀가 정상이다.
+- [ ] 랩탑의 밝기, 배터리 상태, 5% 자동 종료와 전원 연결 시 취소, 덮개, 전원 버튼, 절전과 복귀가 정상이다.
 - [ ] 유선·Wi-Fi·VPN, Bluetooth, 오디오 입출력과 미디어 키가 정상이다.
 - [ ] 화면 공유, 파일 선택기, 기본 파일·URL 연결과 권한 요청창이 정상이다.
 - [ ] USB 저장장치, 휴지통과 필요한 경우 프린터가 정상이다.
@@ -711,6 +747,9 @@ GNOME을 제거한 뒤에는 TTY에서 `/usr/local/bin/start-sway`를 직접 실
 | 패널 | `~/.config/waybar/` |
 | 알림센터 | `~/.config/swaync/` |
 | 실행기 | `~/.config/fuzzel/fuzzel.ini` |
+| 창·파일 검색과 화면 캡처 스크립트 | `~/.config/sway/scripts/` |
+| 스크린샷 주석 편집기 | `~/.config/swappy/config` |
+| 터미널 앱 데스크톱 항목 | `~/.local/share/applications/` |
 | 클립보드 기록 | `~/.config/cliphist/config` |
 | GTK 3·4 외형과 최근 파일 정책 | `~/.config/gtk-3.0/`, `~/.config/gtk-4.0/` |
 | 기본 파일·URL 연결 | `~/.config/mimeapps.list` |

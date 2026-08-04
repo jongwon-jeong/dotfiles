@@ -8,6 +8,8 @@
   // Active window titles can expose page, document, and terminal context.
   "modules-center": ["clock"],
   "modules-right": [
+    "privacy",
+    "custom/recording",
     "tray",
     "idle_inhibitor",
     "network",
@@ -36,6 +38,26 @@
   "tray": {
     "icon-size": 18,
     "spacing": 8
+  },
+  "privacy": {
+    "icon-spacing": 6,
+    "icon-size": 16,
+    "modules": [
+      {
+        "type": "screenshare",
+        "tooltip": false
+      },
+      {
+        "type": "audio-in",
+        "tooltip": false
+      }
+    ]
+  },
+  "custom/recording": {
+    "exec": "$HOME/.config/sway/scripts/recording-status",
+    "format": "{}",
+    "signal": 8,
+    "tooltip": false
   },
   "idle_inhibitor": {
     "format": "{icon}",

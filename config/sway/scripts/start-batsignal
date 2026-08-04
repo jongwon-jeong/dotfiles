@@ -7,6 +7,12 @@ for power_supply_path in /sys/class/power_supply/*; do
   fi
 
   if [[ "$(<"${power_supply_path}/type")" == "Battery" ]]; then
+    # Peripheral batteries must never trigger a system power-off policy.
+    if [[ -r "${power_supply_path}/scope" ]] &&
+      [[ "$(<"${power_supply_path}/scope")" != "System" ]]; then
+      continue
+    fi
+
     battery_names+=("${power_supply_path##*/}")
   fi
 done
@@ -22,13 +28,16 @@ battery_name_list="$(
 )"
 notification_script="${HOME}/.config/sway/scripts/notify-battery"
 notification_command="\"${notification_script}\" \"%s\" \"%s\""
+danger_script="${HOME}/.config/sway/scripts/handle-battery-danger"
+danger_command="\"${danger_script}\""
 
 exec /usr/bin/batsignal \
   -i \
   -w 20 \
   -c 10 \
-  -d 0 \
+  -d 5 \
   -W "Battery low" \
   -C "Battery critical" \
   -M "${notification_command}" \
+  -D "${danger_command}" \
   -n "${battery_name_list}"

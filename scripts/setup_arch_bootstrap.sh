@@ -420,7 +420,7 @@ install_base_packages() { # {{{
   install_required_packages \
     waybar swaync fuzzel swayosd \
     kanshi wdisplays \
-    grim slurp cliphist wf-recorder \
+    grim slurp swappy cliphist wf-recorder \
     batsignal wlsunset \
     brightnessctl playerctl \
     network-manager-applet \
@@ -444,8 +444,9 @@ install_base_packages() { # {{{
     alsa-utils pavucontrol \
     ffmpeg libheif poppler-data \
     gst-libav gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
-    mpv alacritty thunar tumbler thunar-volman thunar-archive-plugin xarchiver gvfs \
+    mpv alacritty thunar tumbler thunar-volman thunar-archive-plugin xarchiver gvfs gvfs-mtp \
     imv zathura zathura-pdf-mupdf \
+    gnome-calculator baobab \
     veracrypt \
     flatpak
 

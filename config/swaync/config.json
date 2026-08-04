@@ -20,7 +20,15 @@
   "notification-body-image-width": 240,
   "relative-timestamps": true,
   "fit-to-screen": true,
-  "widgets": ["dnd", "mpris", "volume", "backlight", "title", "notifications"],
+  "widgets": [
+    "dnd",
+    "buttons-grid",
+    "mpris",
+    "volume",
+    "backlight",
+    "title",
+    "notifications"
+  ],
   "widget-config": {
     "dnd": {
       "text": "Do Not Disturb"
@@ -28,6 +36,35 @@
     "mpris": {
       "show-album-art": "when-available",
       "autohide": true
+    },
+    "buttons-grid": {
+      "buttons-per-row": 3,
+      "actions": [
+        {
+          "label": "Network",
+          "command": "nm-connection-editor"
+        },
+        {
+          "label": "Bluetooth",
+          "command": "blueman-manager"
+        },
+        {
+          "label": "Audio",
+          "command": "pavucontrol"
+        },
+        {
+          "label": "Displays",
+          "command": "wdisplays"
+        },
+        {
+          "label": "Disks",
+          "command": "gnome-disks"
+        },
+        {
+          "label": "Printers",
+          "command": "system-config-printer"
+        }
+      ]
     },
     "title": {
       "text": "Notifications",

@@ -22,9 +22,9 @@ cleanup_session() {
 }
 trap cleanup_session EXIT
 
-# greetd does not source interactive shell startup files. Keep user-installed
-# launchers available to Sway and applications started from desktop entries.
-export PATH="${HOME}/.local/bin:${PATH}"
+# greetd does not source interactive shell startup files. Include mise shims so
+# Sway scripts and desktop entries resolve the same user-owned tools as shells.
+export PATH="${HOME}/.local/share/mise/shims:${HOME}/.local/bin:${PATH}"
 export XDG_CURRENT_DESKTOP=sway
 export XDG_SESSION_DESKTOP=sway
 export XDG_SESSION_TYPE=wayland

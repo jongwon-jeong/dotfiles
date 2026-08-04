@@ -1,5 +1,10 @@
 [Default Applications]
 inode/directory=thunar.desktop
+text/plain=dotfiles-nvim.desktop
+text/markdown=dotfiles-nvim.desktop
+application/json=dotfiles-nvim.desktop
+application/xml=dotfiles-nvim.desktop
+application/x-yaml=dotfiles-nvim.desktop
 application/pdf=org.pwmt.zathura.desktop
 image/bmp=imv.desktop
 image/avif=imv.desktop

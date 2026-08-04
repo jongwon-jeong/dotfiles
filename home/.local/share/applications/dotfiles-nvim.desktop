@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Text Editor (Neovim)
+Comment=Edit text files in Neovim
+TryExec=nvim
+Exec=alacritty --class dotfiles-nvim -e nvim %F
+Icon=nvim
+Terminal=false
+Categories=Utility;TextEditor;
+MimeType=text/plain;text/markdown;application/json;application/xml;application/x-yaml;
+StartupNotify=false

@@ -57,6 +57,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## User Decision Boundaries
 
 - Require an explicit user decision before materially changing maintained platform support, boot or disk policy, login or authentication, firewall or network privacy, destructive data lifecycle behavior, or another boundary already reserved to the user in this file.
+- Require an explicit user decision before changing automatic low-battery thresholds or their resulting suspend, hibernate, or power-off behavior. Automatic low-battery power-off must use system-scoped batteries, provide a visible grace period, re-check the trigger immediately before acting, cancel when the trigger clears, and remain inert when system battery hardware is absent.
 - Do not add or remove OS packages, persistent system services, or long-running user services unless the requested capability clearly requires the change. When it does, report the owner, lifecycle, network and data impact, hardware behavior, and practical alternative.
 
 ## Deployment Ownership
@@ -122,6 +123,7 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 ## Desktop Configuration Ownership
 
 - Trace each setting to the component that actually consumes it; successful configuration writes alone do not prove that the maintained desktop behavior changed.
+- Ensure commands launched by Sway, systemd user units, desktop entries, and MIME handlers resolve from the non-interactive graphical session environment. Do not treat availability in an interactive shell as proof; when a user tool manager owns a command, expose its supported executable path or shims to the session deliberately.
 - Treat GSettings schema availability as insufficient evidence that a setting affects Sway. Use GLib or GTK settings for applications that consume them, and use Sway, systemd-logind, swayidle, or the relevant native owner for compositor, input, power, and session behavior.
 - Do not retain GNOME-specific configuration merely because its schemas remain installed. Translate desired behavior to the maintained Sway/Wayland stack or document why a compatibility setting is still required.
 
