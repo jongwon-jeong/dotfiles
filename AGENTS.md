@@ -37,10 +37,6 @@ This repository manages personal dotfiles and OS bootstrap scripts.
 - Treat hidden dotfiles and dot directories as in scope during repository inspection, excluding `.git/`.
 - Treat dotfiles and configuration files as first-class repository content.
 
-## Ignore
-
-- Do not read, summarize, modify, or use files under `.agent-ignore/` unless the user explicitly asks for them by path.
-
 ## Editing Rules
 
 - Treat analysis, diagnosis, review, and improvement proposals as read-only unless the user explicitly requests changes.
