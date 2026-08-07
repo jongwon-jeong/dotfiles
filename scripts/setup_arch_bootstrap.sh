@@ -868,9 +868,12 @@ setup_date_and_time() { # {{{
 } # }}}
 
 set_default_shell_to_zsh() { # {{{
-  local -r zsh_path="$(command -v zsh)"
-  if [[ -z "${zsh_path}" ]]; then
-    echo "WARN: zsh is not installed or not in PATH."
+  # Use the Arch package path instead of PATH lookup. On WSL, /usr/sbin can
+  # precede /usr/bin and resolve the same binary through /usr/sbin/zsh, which
+  # is not listed in /etc/shells and would incorrectly skip this task.
+  local -r zsh_path="/usr/bin/zsh"
+  if [[ ! -x "${zsh_path}" ]]; then
+    echo "WARN: zsh is not installed at ${zsh_path}."
     return 0
   fi
 
