@@ -612,6 +612,8 @@ Sway는 창 관리자 하나만 설치한다고 완전한 데스크톱이 되지
 | `mpv` | FFmpeg 기반 영상·음악 player다. | GPU 출력, 하드웨어 decoding과 이 리포의 회전·반전 키 설정을 사용하는 기본 미디어 player다. |
 | `flatpak` | 배포판 패키지와 격리된 데스크톱 애플리케이션 runtime·설치 체계다. | bootstrap이 Flathub remote를 추가한다. Flatpak 앱의 파일 선택과 화면 공유는 위의 portal 계층을 통과한다. |
 
+Bootstrap은 Intel GPU에 `vulkan-intel`과 `intel-media-driver`, AMD GPU에 Mesa와 `vulkan-radeon`, NVIDIA GPU에 `nvidia-utils`와 kernel에 맞는 open module을 설치한다. mpv는 안전 목록에 포함된 hardware decoder를 자동 선택하고 지원하지 않는 codec이나 실패한 driver에서는 software decoding으로 돌아간다. GStreamer 기반 애플리케이션은 `gst-plugin-va`로 Intel·AMD VA-API 경로를 사용하고, NVIDIA에서는 `gst-plugins-bad`의 NVDEC 경로를 사용한다.
+
 ### 어떤 프로세스가 언제 실행되는가
 
 | 수명주기 | 주요 구성 요소 |

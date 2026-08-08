@@ -255,8 +255,8 @@ handle_hardware_drivers() { # {{{
   # Match GPU vendors only on VGA/3D/Display controller lines. Other PCI
   # devices can contain vendor names that would otherwise trigger false positives.
   if grep -qiE "intel" <<<"${gpu_devices}"; then
-    echo "INFO: Intel graphics detected. Installing Intel Vulkan driver..."
-    install_package vulkan-intel
+    echo "INFO: Intel graphics detected. Installing Intel Vulkan and VA-API drivers..."
+    install_package vulkan-intel intel-media-driver
   fi
 
   if grep -qiE "advanced micro devices|amd/ati|ati technologies" <<<"${gpu_devices}"; then
@@ -443,7 +443,7 @@ install_base_packages() { # {{{
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber gst-plugin-pipewire \
     alsa-utils pavucontrol \
     ffmpeg libheif poppler-data \
-    gst-libav gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
+    gst-libav gst-plugin-va gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly \
     mpv alacritty thunar tumbler thunar-volman thunar-archive-plugin xarchiver gvfs gvfs-mtp \
     imv zathura zathura-pdf-mupdf \
     gnome-calculator baobab \
